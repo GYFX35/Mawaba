@@ -1,6 +1,6 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
-import { Briefcase, MessageCircle, Share2, TrendingUp } from 'lucide-react';
+import { Briefcase, MessageCircle, Share2, TrendingUp, Cpu, Globe } from 'lucide-react';
 
 const ServicesPage: NextPage = () => {
   const services = [
@@ -23,6 +23,16 @@ const ServicesPage: NextPage = () => {
       title: "Growth Analytics",
       desc: "Track the impact of your ideas and business reach with detailed dashboard insights.",
       icon: <TrendingUp className="h-10 w-10 text-blue-600" />
+    },
+    {
+      title: "AI Business Assistant",
+      desc: "Leverage Langchain and Langflow to automate your business processes and customer interactions.",
+      icon: <Cpu className="h-10 w-10 text-blue-600" />
+    },
+    {
+      title: "Global POS Integration",
+      desc: "Seamlessly connect with NCR, Square, Toast, and other global commerce platforms.",
+      icon: <Globe className="h-10 w-10 text-blue-600" />
     }
   ];
 
