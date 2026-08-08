@@ -25,6 +25,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link href="/about" className="text-gray-500 hover:text-blue-600">About Us</Link></li>
               <li><Link href="/services" className="text-gray-500 hover:text-blue-600">Services</Link></li>
+              <li><Link href="/education" className="text-gray-500 hover:text-blue-600">Global Education</Link></li>
               <li><Link href="/forums" className="text-gray-500 hover:text-blue-600">Forums</Link></li>
               <li><Link href="/chat" className="text-gray-500 hover:text-blue-600">Chat</Link></li>
             </ul>
@@ -34,6 +35,7 @@ const Footer = () => {
             <ul className="space-y-2">
               <li><Link href="/privacy" className="text-gray-500 hover:text-blue-600">Privacy Policy</Link></li>
               <li><Link href="/terms" className="text-gray-500 hover:text-blue-600">Terms of Service</Link></li>
+              <li><Link href="/license" className="text-gray-500 hover:text-blue-600">MIT License</Link></li>
             </ul>
           </div>
         </div>
