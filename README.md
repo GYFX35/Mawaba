@@ -35,3 +35,7 @@ To get started, you need to have Node.js and npm installed.
    ```bash
    npm --workspace=backend exec ts-node src/index.ts
    ```
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
