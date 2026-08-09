@@ -6,3 +6,16 @@ dist
 .env*
 *.log
 .DS_Store
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.tox/
+.coverage
+htmlcov/
+
+# TypeScript
+*.tsbuildinfo
