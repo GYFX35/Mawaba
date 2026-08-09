@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import {
@@ -32,6 +32,29 @@ const EducationPage: NextPage = () => {
   const [aiQuestion, setAiQuestion] = useState<string>('');
   const [aiAnswer, setAiAnswer] = useState<string>('');
   const [isAiResponding, setIsAiResponding] = useState<boolean>(false);
+
+  // Forum state
+  const [messages, setMessages] = useState<any[]>([]);
+  const [newUsername, setNewUsername] = useState<string>('');
+  const [newMessage, setNewMessage] = useState<string>('');
+  const [messageDiscipline, setMessageDiscipline] = useState<string>('STEM & Sciences');
+  const [submittingMessage, setSubmittingMessage] = useState<boolean>(false);
+
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch('http://localhost:3001/api/forums/messages');
+      if (res.ok) {
+        const data = await res.json();
+        setMessages(data);
+      }
+    } catch (err) {
+      console.warn("Could not load forum messages from API backend.", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchMessages();
+  }, []);
 
   const disciplines = [
     { id: 'All', name: 'All Disciplines' },
@@ -97,33 +120,101 @@ const EducationPage: NextPage = () => {
     ? featuredCourses
     : featuredCourses.filter(course => course.category === selectedDiscipline);
 
-  const handleAskAi = (e: React.FormEvent) => {
+  const handleAskAi = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!aiQuestion.trim()) return;
 
     setIsAiResponding(true);
     setAiAnswer('');
 
-    // Simulate AI thinking and streaming response
-    setTimeout(() => {
-      const q = aiQuestion.toLowerCase();
-      let response = "That's an excellent question! In the context of Mawaba's global education, we believe in interdisciplinary problem-solving. ";
+    try {
+      let discipline = 'STEM & Sciences';
+      if (selectedDiscipline === 'Literature') discipline = 'Literature & Languages';
+      if (selectedDiscipline === 'Business') discipline = 'Business & Economics';
+      if (selectedDiscipline === 'Health') discipline = 'Health & Well-being';
+      if (selectedDiscipline === 'Development') discipline = 'World Development';
 
-      if (q.includes('ai') || q.includes('artificial intelligence') || q.includes('technology')) {
-        response += "Artificial Intelligence acts as an equalizer, translating learning materials in real-time and personalizing coursework to match every student's learning style, regardless of location.";
-      } else if (q.includes('science') || q.includes('physics') || q.includes('math')) {
-        response += "Scientific inquiry drives modern discovery. Our STEM curriculum highlights collaboration between labs globally, allowing students in emerging economies to run virtual simulations on premium hardware.";
-      } else if (q.includes('business') || q.includes('economics') || q.includes('finance')) {
-        response += "Modern business is global and social. Integrating sustainability (green tech) and AI tools into business courses ensures future leaders build companies that prioritize social and planetary health.";
-      } else if (q.includes('health') || q.includes('medicine') || q.includes('well-being')) {
-        response += "Global health education focuses on preventive care, public health policy, and clean drinking water access. Educating communities yields instant returns in economic stability and wellness.";
+      const res = await fetch('http://localhost:3001/api/ai/tutor', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          question: aiQuestion,
+          discipline
+        })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setAiAnswer(data.answer);
       } else {
-        response += "We offer localized content, virtual mentors, and collaborative projects. Connecting students from diverse cultural backgrounds helps solve the world's most complex challenges together.";
+        throw new Error('API response error');
       }
+    } catch (err) {
+      console.warn("Using offline simulated response fallback...");
+      setTimeout(() => {
+        const q = aiQuestion.toLowerCase();
+        let response = "That's an excellent question! In the context of Mawaba's global education, we believe in interdisciplinary problem-solving. ";
 
-      setAiAnswer(response);
+        if (q.includes('ai') || q.includes('artificial intelligence') || q.includes('technology')) {
+          response += "Artificial Intelligence acts as an equalizer, translating learning materials in real-time and personalizing coursework to match every student's learning style, regardless of location.";
+        } else if (q.includes('science') || q.includes('physics') || q.includes('math')) {
+          response += "Scientific inquiry drives modern discovery. Our STEM curriculum highlights collaboration between labs globally, allowing students in emerging economies to run virtual simulations on premium hardware.";
+        } else if (q.includes('business') || q.includes('economics') || q.includes('finance')) {
+          response += "Modern business is global and social. Integrating sustainability (green tech) and AI tools into business courses ensures future leaders build companies that prioritize social and planetary health.";
+        } else if (q.includes('health') || q.includes('medicine') || q.includes('well-being')) {
+          response += "Global health education focuses on preventive care, public health policy, and clean drinking water access. Educating communities yields instant returns in economic stability and wellness.";
+        } else {
+          response += "We offer localized content, virtual mentors, and collaborative projects. Connecting students from diverse cultural backgrounds helps solve the world's most complex challenges together.";
+        }
+
+        setAiAnswer(response);
+      }, 1000);
+    } finally {
       setIsAiResponding(false);
-    }, 1500);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newUsername.trim() || !newMessage.trim()) return;
+
+    setSubmittingMessage(true);
+    try {
+      const res = await fetch('http://localhost:3001/api/forums/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username: newUsername,
+          message: newMessage,
+          discipline: messageDiscipline
+        })
+      });
+
+      if (res.ok) {
+        const posted = await res.json();
+        setMessages(prev => [...prev, posted]);
+        setNewMessage('');
+      } else {
+        throw new Error('API post failed');
+      }
+    } catch (err) {
+      console.warn("Offline post fallback...");
+      const fallbackMsg = {
+        id: Math.random().toString(),
+        username: newUsername,
+        discipline: messageDiscipline,
+        message: newMessage,
+        timestamp: new Date().toISOString()
+      };
+      setMessages(prev => [...prev, fallbackMsg]);
+      setNewMessage('');
+    } finally {
+      setSubmittingMessage(false);
+    }
   };
 
   const sampleQuestions = [
@@ -147,11 +238,10 @@ const EducationPage: NextPage = () => {
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">
                 <Sparkles className="h-3.5 w-3.5" /> Next-Generation Learning Platform
               </span>
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight leading-tight">
-                Global Education <br />
-                <span className="text-blue-600">Without Boundaries</span>
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-gray-900 tracking-tight leading-none">
+                Education Without <span className="text-blue-600">Boundaries</span>
               </h1>
-              <p className="text-lg text-gray-600 leading-relaxed max-w-xl">
+              <p className="text-lg md:text-xl text-gray-500 max-w-xl leading-relaxed">
                 Mawaba brings world-class educational resources directly to your screen. We integrate modern STEM sciences, literature, economics, global health, and advanced AI systems to nurture future leaders.
               </p>
               <div className="flex flex-wrap gap-4 pt-2">
@@ -173,78 +263,58 @@ const EducationPage: NextPage = () => {
             {/* Visual Hero Feature */}
             <div className="relative bg-white p-8 rounded-3xl border border-gray-100 shadow-xl lg:ml-4">
               <div className="absolute -top-6 -right-6 bg-amber-100 p-4 rounded-2xl shadow-md -rotate-12 hidden sm:block">
-                <Award className="h-8 w-8 text-amber-600" />
+                <Award className="h-8 w-8 text-amber-700" />
               </div>
-              <div className="space-y-6">
-                <div className="flex items-center gap-3">
-                  <div className="bg-blue-100 p-3 rounded-xl">
-                    <GraduationCap className="h-6 w-6 text-blue-600" />
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <Compass className="text-blue-600 h-6 w-6" /> Platform Pillars
+              </h3>
+              <div className="space-y-4">
+                {[
+                  { title: "STEM & Sciences", desc: "Interactive quantum physics, computational mathematics, biology, and green technology.", icon: <Sparkles className="text-emerald-500" /> },
+                  { title: "Literature & Languages", desc: "Multilingual content, global writing circles, and comparative literary studies.", icon: <Globe className="text-indigo-500" /> },
+                  { title: "Business & sustainable development", desc: "Social entrepreneurship guides, micro-economical models, and sustainable goals.", icon: <Users className="text-rose-500" /> }
+                ].map((pillar, idx) => (
+                  <div key={idx} className="flex gap-4 p-4 rounded-2xl bg-gray-50 hover:bg-blue-50/50 transition-colors">
+                    <div className="bg-white p-3 h-fit rounded-xl border border-gray-100 shadow-sm shrink-0">
+                      {pillar.icon}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-gray-900 text-sm">{pillar.title}</h4>
+                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">{pillar.desc}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-gray-900 text-lg">Mawaba Academy</h3>
-                    <p className="text-sm text-gray-500">Accessible world-class courses</p>
-                  </div>
-                </div>
-
-                <div className="border-t border-gray-100 pt-4 space-y-3">
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-500">Current active learners</span>
-                    <span className="font-bold text-gray-900">14,200+ globally</span>
-                  </div>
-                  <div className="w-full bg-gray-100 h-2 rounded-full overflow-hidden">
-                    <div className="bg-blue-600 h-full w-[80%] rounded-full"></div>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4 pt-2">
-                  <div className="p-3 bg-gray-50 rounded-xl text-center">
-                    <span className="block text-2xl font-extrabold text-blue-600">98%</span>
-                    <span className="text-xs text-gray-500 font-medium">Completion Rate</span>
-                  </div>
-                  <div className="p-3 bg-gray-50 rounded-xl text-center">
-                    <span className="block text-2xl font-extrabold text-green-600">50+</span>
-                    <span className="text-xs text-gray-500 font-medium">Nations Connected</span>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-blue-50 rounded-2xl flex items-center gap-3">
-                  <Globe className="h-5 w-5 text-blue-600 shrink-0" />
-                  <span className="text-xs text-blue-800 leading-snug font-medium">
-                    Integrated with live discussion groups across Europe, Americas, Africa, and Asia.
-                  </span>
-                </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* Decorative backdrop blobs */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-blue-100 rounded-full blur-3xl opacity-30 -z-10"></div>
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-indigo-100 rounded-full blur-3xl opacity-30 -z-10"></div>
+        {/* Backdrop blob */}
+        <div className="absolute top-0 right-0 w-[45%] h-[45%] bg-blue-100 rounded-full blur-3xl opacity-40 pointer-events-none -z-10 translate-x-[20%] translate-y-[-20%]"></div>
       </section>
 
-      {/* Core Educational Pillars / Disciplines */}
-      <section id="explore-courses" className="py-20 bg-white border-y border-gray-100">
+      {/* Explore Disciplines */}
+      <section id="explore-courses" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-            <h2 className="text-3xl font-extrabold text-gray-900 tracking-tight sm:text-4xl">
-              Curated Academic Disciplines
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-extrabold text-gray-900 sm:text-4xl">
+              Curriculum Core Disciplines
             </h2>
-            <div className="h-1.5 w-20 bg-blue-600 mx-auto mt-4 rounded-full mb-6"></div>
-            <p className="text-lg text-gray-500">
-              Mawaba organizes educational programs into critical areas that drive social, technical, and commercial prosperity.
+            <div className="h-1.5 w-20 bg-blue-600 mx-auto mt-4 rounded-full"></div>
+            <p className="text-lg text-gray-500 max-w-2xl mx-auto mt-4">
+              Switch between disciplines to view our highly targeted global courses.
             </p>
           </div>
 
-          {/* Filter Bar */}
+          {/* Filter Tabs */}
           <div className="flex flex-wrap justify-center gap-2 mb-12">
-            {disciplines.map(discipline => (
+            {disciplines.map((discipline) => (
               <button
                 key={discipline.id}
                 onClick={() => setSelectedDiscipline(discipline.id)}
-                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all ${
-                  selectedDiscipline === discipline.id
-                    ? 'bg-blue-600 text-white shadow-sm'
+                className={`px-5 py-2.5 rounded-full text-sm font-semibold transition-all duration-200 ${
+                  (selectedDiscipline === discipline.id || (selectedDiscipline === 'All' && discipline.id === 'All'))
+                    ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
                     : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
@@ -256,37 +326,25 @@ const EducationPage: NextPage = () => {
           {/* Courses Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredCourses.map((course, idx) => (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden group"
-              >
+              <div key={idx} className="bg-white rounded-3xl border border-gray-100 shadow-sm hover:shadow-lg transition-all flex flex-col justify-between overflow-hidden group">
                 <div className="p-6">
                   <div className="flex justify-between items-center mb-4">
-                    <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full">
+                    <span className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full uppercase tracking-wider">
                       {course.category}
                     </span>
-                    <span className="text-xs font-medium text-gray-500">
-                      {course.level}
-                    </span>
+                    <span className="text-xs text-gray-400 font-medium">{course.level}</span>
                   </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
+                  <h3 className="text-xl font-bold text-gray-900 mb-3 group-hover:text-blue-600 transition-colors">
                     {course.title}
                   </h3>
-                  <div className="flex items-center gap-4 text-sm text-gray-500 mt-4">
-                    <span className="flex items-center gap-1">
-                      <BookOpenCheck className="h-4 w-4 text-gray-400" /> {course.duration}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <Users className="h-4 w-4 text-gray-400" /> {course.enrolled.toLocaleString()} learners
-                    </span>
+                  <div className="flex items-center gap-4 text-xs text-gray-400 mt-6 border-t border-gray-50 pt-4">
+                    <span className="flex items-center gap-1"><BookOpenCheck className="h-4 w-4 text-blue-500" /> {course.duration}</span>
+                    <span className="flex items-center gap-1"><Users className="h-4 w-4 text-emerald-500" /> {course.enrolled} enrolled</span>
                   </div>
                 </div>
-                <div className="border-t border-gray-100 px-6 py-4 bg-gray-50 flex items-center justify-between">
-                  <div className="flex items-center gap-1">
-                    <span className="text-amber-500 text-lg">★</span>
-                    <span className="text-sm font-bold text-gray-700">{course.rating}</span>
-                  </div>
-                  <button className="text-xs font-bold text-blue-600 flex items-center gap-1 group-hover:gap-2 transition-all">
+                <div className="bg-gray-50 px-6 py-4 border-t border-gray-50 flex justify-between items-center">
+                  <span className="text-sm font-bold text-amber-500 flex items-center gap-1">★ {course.rating}</span>
+                  <button className="text-blue-600 hover:text-blue-700 text-sm font-bold flex items-center gap-1 transition-all">
                     Start Course <ArrowRight className="h-3 w-3" />
                   </button>
                 </div>
@@ -329,13 +387,11 @@ const EducationPage: NextPage = () => {
                   </div>
                 </div>
 
-                <div className="mt-8 pt-8 border-t border-blue-500/30 flex items-center gap-4">
-                  <div className="flex -space-x-2">
-                    <div className="w-8 h-8 rounded-full bg-amber-400 flex items-center justify-center text-xs text-gray-900 font-bold border-2 border-blue-600">A</div>
-                    <div className="w-8 h-8 rounded-full bg-emerald-400 flex items-center justify-center text-xs text-gray-900 font-bold border-2 border-blue-600">M</div>
-                    <div className="w-8 h-8 rounded-full bg-indigo-400 flex items-center justify-center text-xs text-gray-900 font-bold border-2 border-blue-600">S</div>
+                <div className="mt-12 lg:mt-0 pt-6 border-t border-blue-500/30 flex items-center gap-3">
+                  <div className="bg-white/10 p-2 rounded-full backdrop-blur-md">
+                    <Sparkles className="h-5 w-5 text-blue-300" />
                   </div>
-                  <span className="text-xs text-blue-100 font-medium">Join 5,000+ asking questions daily</span>
+                  <span className="text-xs text-blue-100 font-medium">Included free with all education modules</span>
                 </div>
               </div>
 
@@ -458,50 +514,93 @@ const EducationPage: NextPage = () => {
               </div>
             </div>
 
-            <div className="bg-blue-50 rounded-3xl p-8 lg:p-12 relative overflow-hidden flex flex-col justify-between min-h-[400px]">
-              <div className="space-y-4">
+            <div className="bg-blue-50 rounded-3xl p-6 lg:p-8 relative overflow-hidden flex flex-col justify-between min-h-[450px]">
+              <div className="space-y-2 mb-4">
                 <span className="text-xs font-bold text-blue-600 bg-blue-100 px-3 py-1 rounded-full uppercase tracking-widest">
-                  Discussion Spotlights
+                  Discussion Spotlights & Live Forums
                 </span>
-                <h3 className="text-2xl font-bold text-gray-900">
-                  Join active conversation rooms
+                <h3 className="text-xl font-bold text-gray-900">
+                  Global Conversation Room
                 </h3>
               </div>
 
-              <div className="space-y-4 my-8">
-                {[
-                  {
-                    topic: "Green Energy & Smart Cities",
-                    stats: "152 participants • 4 active threads",
-                    tag: "Development"
-                  },
-                  {
-                    topic: "Integrating AI in High School Curriculums",
-                    stats: "89 participants • 1 active thread",
-                    tag: "Sciences"
-                  },
-                  {
-                    topic: "Literary realism and social critique in 20th century novels",
-                    stats: "43 participants • 2 active threads",
-                    tag: "Literature"
-                  }
-                ].map((room, idx) => (
-                  <div key={idx} className="bg-white p-4 rounded-xl border border-blue-100 flex items-center justify-between shadow-sm hover:border-blue-300 transition-all cursor-pointer">
-                    <div>
-                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded uppercase">
-                        {room.tag}
-                      </span>
-                      <h4 className="font-bold text-gray-900 text-sm mt-1.5">{room.topic}</h4>
-                      <p className="text-xs text-gray-400 mt-1">{room.stats}</p>
+              {/* Message List */}
+              <div className="space-y-3 my-4 overflow-y-auto max-h-[220px] pr-1">
+                {messages.length === 0 ? (
+                  <>
+                    {[
+                      { username: "Einstein101", message: "Has anyone integrated any live quantum simulator on NextJS?", discipline: "STEM & Sciences" },
+                      { username: "AdaLovelace", message: "Yes! Check out React-Three-Fiber, it works wonders for 3D state representations.", discipline: "STEM & Sciences" },
+                      { username: "GutenbergPioneer", message: "I am planning to launch a creative writing challenge next week.", discipline: "Literature & Languages" }
+                    ].map((m, idx) => (
+                      <div key={idx} className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-xs font-bold text-gray-700">@{m.username}</span>
+                          <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">
+                            {m.discipline}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-600 leading-relaxed">{m.message}</p>
+                      </div>
+                    ))}
+                  </>
+                ) : (
+                  messages.map((m, idx) => (
+                    <div key={m.id || idx} className="bg-white p-3 rounded-xl border border-blue-100 shadow-sm">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-bold text-gray-700">@{m.username}</span>
+                        <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1.5 py-0.5 rounded uppercase">
+                          {m.discipline}
+                        </span>
+                      </div>
+                      <p className="text-xs text-gray-600 leading-relaxed">{m.message}</p>
                     </div>
-                    <MessageSquare className="h-5 w-5 text-gray-400 shrink-0" />
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
 
-              <button className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-all flex items-center justify-center gap-2 shadow-sm">
-                Open Forums Portal
-              </button>
+              {/* Form to Post Message */}
+              <form onSubmit={handleSendMessage} className="bg-white p-4 rounded-2xl border border-blue-100 space-y-2 mt-2">
+                <span className="text-xs font-bold text-gray-800 block">Post to Live Feed</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Username"
+                    value={newUsername}
+                    onChange={(e) => setNewUsername(e.target.value)}
+                    className="p-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <select
+                    value={messageDiscipline}
+                    onChange={(e) => setMessageDiscipline(e.target.value)}
+                    className="p-2 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                  >
+                    <option value="STEM & Sciences">Sciences & STEM</option>
+                    <option value="Literature & Languages">Literature & Langs</option>
+                    <option value="Business & Economics">Business & Econ</option>
+                    <option value="Health & Well-being">Health & Wellness</option>
+                    <option value="World Development">Development</option>
+                  </select>
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    required
+                    placeholder="Type your message..."
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    className="w-full p-2 pr-16 border border-gray-200 rounded-lg text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={submittingMessage}
+                    className="absolute right-1.5 top-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1 rounded text-[10px] disabled:bg-blue-300"
+                  >
+                    {submittingMessage ? 'Sending' : 'Post'}
+                  </button>
+                </div>
+              </form>
             </div>
 
           </div>
