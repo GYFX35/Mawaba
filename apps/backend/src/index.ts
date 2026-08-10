@@ -259,6 +259,10 @@ app.post('/api/ai/tutor', (req: Request, res: Response) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Backend listening at http://localhost:${port}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Backend listening at http://localhost:${port}`);
+  });
+}
+
+export default app;
