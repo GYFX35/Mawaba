@@ -1,9 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import { Menu, X, Globe, Cpu } from 'lucide-react';
+import { useRouter } from 'next/router';
+import { Menu, X, Cpu } from 'lucide-react';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const router = useRouter();
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -16,37 +18,50 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-white border-b border-gray-100 sticky top-0 z-50">
+    <nav className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0 flex items-center gap-2">
-              <Cpu className="h-8 w-8 text-blue-600" />
-              <span className="text-2xl font-bold text-gray-900 tracking-tight">MAWABA</span>
+            <Link href="/" className="flex-shrink-0 flex items-center gap-2.5 group">
+              <div className="bg-blue-600 text-white p-1.5 rounded-xl transition-transform group-hover:scale-105 duration-300 shadow-md shadow-blue-200">
+                <Cpu className="h-5 w-5" />
+              </div>
+              <span className="text-2xl font-extrabold text-gray-900 tracking-tight bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">
+                MAWABA
+              </span>
             </Link>
           </div>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex items-center space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                href={link.href}
-                className="text-gray-600 hover:text-blue-600 px-3 py-2 text-sm font-medium transition-colors"
-              >
-                {link.name}
+          <div className="hidden md:flex items-center space-x-1">
+            {navLinks.map((link) => {
+              const isActive = router.pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`px-3.5 py-2 text-sm font-semibold rounded-xl transition-all duration-200 ${
+                    isActive
+                      ? 'text-blue-600 bg-blue-50/50'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50/70'
+                  }`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
+            <div className="pl-4">
+              <Link href="/contact" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-100 hover:shadow-lg hover:shadow-blue-200 transform hover:-translate-y-0.5 inline-block">
+                Get Started
               </Link>
-            ))}
-            <button className="bg-blue-600 text-white px-5 py-2 rounded-full text-sm font-medium hover:bg-blue-700 transition-all shadow-sm">
-              Get Started
-            </button>
+            </div>
           </div>
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none"
+              className="inline-flex items-center justify-center p-2 rounded-xl text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-colors focus:outline-none"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -56,22 +71,33 @@ const Navbar = () => {
 
       {/* Mobile Menu */}
       {isOpen && (
-        <div className="md:hidden bg-white border-b border-gray-100">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            {navLinks.map((link) => (
+        <div className="md:hidden bg-white border-b border-gray-100 animate-in fade-in duration-200">
+          <div className="px-3 pt-2 pb-4 space-y-1 sm:px-4">
+            {navLinks.map((link) => {
+              const isActive = router.pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  href={link.href}
+                  className={`block px-3 py-2.5 rounded-xl text-base font-bold transition-all ${
+                    isActive
+                      ? 'text-blue-600 bg-blue-50/70'
+                      : 'text-gray-700 hover:text-blue-600 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setIsOpen(false)}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
+            <div className="mt-4 px-3 pb-2">
               <Link
-                key={link.name}
-                href={link.href}
-                className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-blue-600 hover:bg-gray-50"
+                href="/contact"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-bold transition-all shadow-md inline-block"
                 onClick={() => setIsOpen(false)}
               >
-                {link.name}
-              </Link>
-            ))}
-            <div className="mt-4 px-3 pb-3">
-              <button className="w-full bg-blue-600 text-white px-5 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition-all">
                 Get Started
-              </button>
+              </Link>
             </div>
           </div>
         </div>

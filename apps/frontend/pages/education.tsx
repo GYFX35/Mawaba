@@ -30,8 +30,12 @@ interface Course {
 const EducationPage: NextPage = () => {
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>('All');
   const [aiQuestion, setAiQuestion] = useState<string>('');
-  const [aiAnswer, setAiAnswer] = useState<string>('');
   const [isAiResponding, setIsAiResponding] = useState<boolean>(false);
+
+  // Chatbot state
+  const [chatHistory, setChatHistory] = useState<Array<{ sender: 'user' | 'tutor'; text: string; time: string }>>([
+    { sender: 'tutor', text: 'Hello! I am your AI Master Tutor. Select a template question above or ask anything related to STEM, Literature, Business, Health, or World Development.', time: 'Just now' }
+  ]);
 
   // Forum state
   const [messages, setMessages] = useState<any[]>([]);
@@ -122,10 +126,15 @@ const EducationPage: NextPage = () => {
 
   const handleAskAi = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!aiQuestion.trim()) return;
+    const queryText = aiQuestion.trim();
+    if (!queryText) return;
+
+    // Add user question to history
+    const userMsg = { sender: 'user' as const, text: queryText, time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) };
+    setChatHistory(prev => [...prev, userMsg]);
+    setAiQuestion('');
 
     setIsAiResponding(true);
-    setAiAnswer('');
 
     try {
       let discipline = 'STEM & Sciences';
@@ -140,21 +149,22 @@ const EducationPage: NextPage = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          question: aiQuestion,
+          question: queryText,
           discipline
         })
       });
 
       if (res.ok) {
         const data = await res.json();
-        setAiAnswer(data.answer);
+        const tutorMsg = { sender: 'tutor' as const, text: data.answer, time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) };
+        setChatHistory(prev => [...prev, tutorMsg]);
       } else {
         throw new Error('API response error');
       }
     } catch (err) {
       console.warn("Using offline simulated response fallback...");
       setTimeout(() => {
-        const q = aiQuestion.toLowerCase();
+        const q = queryText.toLowerCase();
         let response = "That's an excellent question! In the context of Mawaba's global education, we believe in interdisciplinary problem-solving. ";
 
         if (q.includes('ai') || q.includes('artificial intelligence') || q.includes('technology')) {
@@ -169,7 +179,8 @@ const EducationPage: NextPage = () => {
           response += "We offer localized content, virtual mentors, and collaborative projects. Connecting students from diverse cultural backgrounds helps solve the world's most complex challenges together.";
         }
 
-        setAiAnswer(response);
+        const tutorMsg = { sender: 'tutor' as const, text: response, time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) };
+        setChatHistory(prev => [...prev, tutorMsg]);
       }, 1000);
     } finally {
       setIsAiResponding(false);
@@ -396,74 +407,99 @@ const EducationPage: NextPage = () => {
               </div>
 
               {/* Interactive Demo Right Column */}
-              <div className="lg:col-span-7 p-8 lg:p-12 flex flex-col justify-between bg-white">
+              <div className="lg:col-span-7 p-6 lg:p-10 flex flex-col justify-between bg-white">
                 <div>
-                  <h4 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-purple-600" /> Interactive Mock Workspace
+                  <h4 className="font-extrabold text-slate-900 mb-2 flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-purple-600" /> Interactive AI Chat Interface
                   </h4>
-                  <p className="text-sm text-gray-500 mb-6">
-                    Try the tutor simulator below. Type a question or select one of our suggested templates to see an answer instantly.
+                  <p className="text-xs text-slate-500 mb-6 leading-relaxed">
+                    Test our master tutor in real time. Choose from sample queries below, or type your custom request.
                   </p>
 
                   <div className="mb-6 flex flex-wrap gap-2">
                     {sampleQuestions.map((q, idx) => (
                       <button
                         key={idx}
+                        type="button"
                         onClick={() => {
                           setAiQuestion(q);
                         }}
-                        className="text-left text-xs bg-gray-50 hover:bg-gray-100 text-gray-700 px-3 py-2 rounded-lg border border-gray-200 transition-colors"
+                        className="text-left text-xs bg-slate-50 hover:bg-slate-100 text-slate-700 px-3.5 py-2.5 rounded-xl border border-slate-100 transition-colors duration-200"
                       >
                         {q}
                       </button>
                     ))}
                   </div>
 
-                  <form onSubmit={handleAskAi} className="relative mb-6">
+                  {/* Chat Message Workspace */}
+                  <div className="bg-slate-50 border border-slate-100 rounded-3xl p-4 mb-4 flex flex-col h-[320px] justify-between">
+                    <div className="space-y-4 overflow-y-auto pr-1 max-h-[260px] scrollbar-thin">
+                      {chatHistory.map((chat, idx) => (
+                        <div
+                          key={idx}
+                          className={`flex items-start gap-2.5 max-w-[85%] ${
+                            chat.sender === 'user' ? 'ml-auto flex-row-reverse' : ''
+                          }`}
+                        >
+                          <div
+                            className={`w-7 h-7 rounded-full shrink-0 flex items-center justify-center font-bold text-[10px] shadow-sm ${
+                              chat.sender === 'user'
+                                ? 'bg-blue-600 text-white'
+                                : 'bg-purple-600 text-white'
+                            }`}
+                          >
+                            {chat.sender === 'user' ? 'ME' : 'AI'}
+                          </div>
+                          <div
+                            className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                              chat.sender === 'user'
+                                ? 'bg-blue-600 text-white rounded-tr-none'
+                                : 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
+                            }`}
+                          >
+                            <p className="font-medium">{chat.text}</p>
+                            <span
+                              className={`text-[9px] block mt-1.5 font-bold ${
+                                chat.sender === 'user' ? 'text-blue-100' : 'text-slate-400'
+                              }`}
+                            >
+                              {chat.time}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+
+                      {isAiResponding && (
+                        <div className="flex items-start gap-2.5 max-w-[85%]">
+                          <div className="w-7 h-7 rounded-full bg-purple-600 text-white shrink-0 flex items-center justify-center font-bold text-[10px] animate-pulse">
+                            AI
+                          </div>
+                          <div className="bg-white border border-slate-100 p-3.5 rounded-2xl shadow-sm text-xs space-y-2 w-full rounded-tl-none">
+                            <div className="h-3 bg-slate-200 rounded animate-pulse w-3/4"></div>
+                            <div className="h-3 bg-slate-200 rounded animate-pulse w-5/6"></div>
+                            <div className="h-3 bg-slate-200 rounded animate-pulse w-1/2"></div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <form onSubmit={handleAskAi} className="relative">
                     <input
                       type="text"
-                      placeholder="e.g. Why is STEM education critical for sustainable development?"
+                      placeholder="Ask the AI Tutor a question..."
                       value={aiQuestion}
                       onChange={(e) => setAiQuestion(e.target.value)}
-                      className="w-full pl-4 pr-12 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      className="w-full pl-4 pr-14 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-xs"
                     />
                     <button
                       type="submit"
-                      disabled={isAiResponding}
-                      className="absolute right-2 top-2 bg-blue-600 text-white p-1.5 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300"
+                      disabled={isAiResponding || !aiQuestion.trim()}
+                      className="absolute right-2 top-2 bg-blue-600 text-white p-2 rounded-lg hover:bg-blue-700 transition-colors disabled:bg-blue-300"
                     >
                       <ArrowRight className="h-4 w-4" />
                     </button>
                   </form>
-
-                  {/* AI Response Box */}
-                  <div className="bg-gray-50 rounded-2xl p-5 min-h-[160px] border border-gray-100 flex flex-col justify-between">
-                    <div>
-                      <span className="text-xs font-bold text-purple-600 uppercase tracking-widest block mb-2 flex items-center gap-1">
-                        <Brain className="h-3.5 w-3.5" /> AI Response
-                      </span>
-                      {isAiResponding ? (
-                        <div className="space-y-2 pt-2">
-                          <div className="h-4 bg-gray-200 rounded animate-pulse w-3/4"></div>
-                          <div className="h-4 bg-gray-200 rounded animate-pulse w-5/6"></div>
-                          <div className="h-4 bg-gray-200 rounded animate-pulse w-2/3"></div>
-                        </div>
-                      ) : aiAnswer ? (
-                        <p className="text-sm text-gray-700 leading-relaxed font-medium">
-                          {aiAnswer}
-                        </p>
-                      ) : (
-                        <p className="text-sm text-gray-400 italic">
-                          Choose a template question above or type your own, then click the arrow to see how the AI tutor acts.
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="border-t border-gray-100 pt-3 mt-4 flex justify-between items-center text-xs text-gray-400">
-                      <span>Response time: ~1.5s</span>
-                      <span>Accuracy rate: 99.4%</span>
-                    </div>
-                  </div>
                 </div>
               </div>
 
