@@ -43,4 +43,45 @@ describe('Backend API Endpoints', () => {
       });
     });
   });
+
+  describe('POST /api/ai/tutor', () => {
+    it('should return 400 if required fields are missing', async () => {
+      const response = await request(app).post('/api/ai/tutor').send({ question: 'What is physics?' });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Missing question or discipline');
+    });
+
+    it('should return tailored answer, key takeaways, follow-ups, and quiz for valid query', async () => {
+      const response = await request(app).post('/api/ai/tutor').send({
+        question: 'What is quantum superposition?',
+        discipline: 'STEM & Sciences',
+        level: 'Beginner',
+        responseType: 'Explanation'
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.discipline).toBe('STEM & Sciences');
+      expect(response.body.level).toBe('Beginner');
+      expect(response.body.answer).toContain('In simple terms:');
+      expect(Array.isArray(response.body.keyTakeaways)).toBe(true);
+      expect(response.body.keyTakeaways.length).toBeGreaterThan(0);
+      expect(Array.isArray(response.body.followUpQuestions)).toBe(true);
+      expect(response.body.quiz).toHaveProperty('question');
+      expect(response.body.quiz).toHaveProperty('options');
+      expect(response.body.quiz).toHaveProperty('answer');
+    });
+
+    it('should customize output when Quiz responseType is selected', async () => {
+      const response = await request(app).post('/api/ai/tutor').send({
+        question: 'How do catalysts work?',
+        discipline: 'Sciences',
+        level: 'Intermediate',
+        responseType: 'Quiz'
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.answer).toContain('Here is a quick practice quiz');
+      expect(response.body.quiz).toBeDefined();
+    });
+  });
 });
