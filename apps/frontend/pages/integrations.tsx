@@ -18,7 +18,7 @@ const IntegrationsPage: NextPage = () => {
   const [actionMessage, setActionMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
   // Fallback initial state if backend cannot be reached
-  const fallbackPartners: Integration[] = [
+  const fallbackPartners: Integration[] = React.useMemo(() => [
     { name: "NCR", connected: false, desc: "Global leader in consumer transaction technologies.", category: "Payments" },
     { name: "Revel", connected: true, desc: "Cloud-based POS system for restaurants and retailers.", category: "POS" },
     { name: "Lightspeed", connected: false, desc: "Commerce platform for retail and hospitality businesses.", category: "E-commerce" },
@@ -26,7 +26,7 @@ const IntegrationsPage: NextPage = () => {
     { name: "Toast", connected: true, desc: "Built specifically for restaurants to streamline operations.", category: "POS" },
     { name: "Shopline", connected: false, desc: "Global smart commerce platform for merchants.", category: "E-commerce" },
     { name: "Clover", connected: false, desc: "Integrated point of sale systems for all business types.", category: "POS" }
-  ];
+  ], []);
 
   const getIcon = (name: string) => {
     switch (name.toLowerCase()) {
@@ -47,7 +47,7 @@ const IntegrationsPage: NextPage = () => {
     }
   };
 
-  const fetchIntegrations = async () => {
+  const fetchIntegrations = React.useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch('http://localhost:3001/api/integrations');
@@ -75,11 +75,11 @@ const IntegrationsPage: NextPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fallbackPartners]);
 
   useEffect(() => {
     fetchIntegrations();
-  }, []);
+  }, [fetchIntegrations]);
 
   const handleToggleConnection = async (partner: Integration) => {
     const action = partner.connected ? 'disconnect' : 'connect';

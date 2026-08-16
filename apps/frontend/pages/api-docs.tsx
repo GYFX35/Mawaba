@@ -23,6 +23,102 @@ interface Endpoint {
   sampleBody?: any;
 }
 
+// Entities schemas
+const schemas = [
+  {
+    name: "Idea",
+    desc: "Represents a global developmental, business, or education idea/opinion shared by a member.",
+    fields: [
+      { name: "id", type: "string", desc: "Unique generated identifier" },
+      { name: "title", type: "string", desc: "Short descriptive title of the idea" },
+      { name: "category", type: "string", desc: "Pillar category ('Health' | 'Education' | 'Business' | 'Development')" },
+      { name: "description", type: "string", desc: "Detailed breakdown of the innovation" },
+      { name: "author", type: "string", desc: "Name of the publisher" },
+      { name: "likes", type: "number", desc: "Upvote count" },
+      { name: "comments", type: "Comment[]", desc: "Array of discussion comments" },
+      { name: "createdAt", type: "string (ISO)", desc: "Timestamp of creation" }
+    ]
+  },
+  {
+    name: "ForumMessage",
+    desc: "Represents a message sent to the global communication chat room.",
+    fields: [
+      { name: "id", type: "string", desc: "Unique message identifier" },
+      { name: "username", type: "string", desc: "Chat user handle" },
+      { name: "discipline", type: "string", desc: "Pillar topic ('STEM & Sciences' | 'Literature & Languages' | etc.)" },
+      { name: "message", type: "string", desc: "Text content of the message" },
+      { name: "timestamp", type: "string (ISO)", desc: "Timestamp when published" }
+    ]
+  }
+];
+
+const endpoints: Endpoint[] = [
+  {
+    method: 'GET',
+    path: '/api/health',
+    description: 'Fetch the runtime status, uptime, and timestamp of Mawaba Core API.'
+  },
+  {
+    method: 'GET',
+    path: '/api/ideas',
+    description: 'Retrieve a list of all active development and business ideas.'
+  },
+  {
+    method: 'POST',
+    path: '/api/ideas',
+    description: 'Publish a new global developmental or business idea.',
+    sampleBody: {
+      title: "Decentralized Clean Water Filters",
+      category: "Development",
+      description: "Deploying bio-sand water filtration kits tracked via local SMS queries.",
+      author: "Evelyn Carter"
+    }
+  },
+  {
+    method: 'POST',
+    path: '/api/ideas/{id}/like',
+    description: 'Upvote/like a specific idea by providing its unique identifier.',
+  },
+  {
+    method: 'POST',
+    path: '/api/ideas/{id}/comments',
+    description: 'Append an expert discussion comment/feedback to a specific idea.',
+    sampleBody: {
+      author: "Dr. Rachel Green",
+      text: "We should pilot this in East Africa. The SMS telemetry is extremely promising!"
+    }
+  },
+  {
+    method: 'GET',
+    path: '/api/forums/messages',
+    description: 'Fetch all live communication and forum messages. Filter by ?discipline if needed.'
+  },
+  {
+    method: 'POST',
+    path: '/api/forums/messages',
+    description: 'Publish an instant message to the global collaborative chat channels.',
+    sampleBody: {
+      username: "TeslaGiga",
+      message: "Green energy storage is key to making solar clinics feasible 24/7.",
+      discipline: "STEM & Sciences"
+    }
+  },
+  {
+    method: 'POST',
+    path: '/api/ai/tutor',
+    description: 'Interact with the simulated AI tutor, receiving contextual guidance.',
+    sampleBody: {
+      question: "How do we implement sustainable micro-grids?",
+      discipline: "World Development"
+    }
+  },
+  {
+    method: 'GET',
+    path: '/api/integrations',
+    description: 'Get all point-of-sale and commerce integration modules (Square, Clover, NCR, Toast, etc.).'
+  }
+];
+
 const ApiDocsPage: NextPage = () => {
   const [activeTab, setActiveTab] = useState<'docs' | 'explorer'>('docs');
   const [activeLang, setActiveLang] = useState<'curl' | 'js' | 'python'>('curl');
@@ -35,102 +131,6 @@ const ApiDocsPage: NextPage = () => {
   const [responseStatus, setResponseStatus] = useState<number | null>(null);
   const [responseBody, setResponseBody] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
-
-  // Entities schemas
-  const schemas = [
-    {
-      name: "Idea",
-      desc: "Represents a global developmental, business, or education idea/opinion shared by a member.",
-      fields: [
-        { name: "id", type: "string", desc: "Unique generated identifier" },
-        { name: "title", type: "string", desc: "Short descriptive title of the idea" },
-        { name: "category", type: "string", desc: "Pillar category ('Health' | 'Education' | 'Business' | 'Development')" },
-        { name: "description", type: "string", desc: "Detailed breakdown of the innovation" },
-        { name: "author", type: "string", desc: "Name of the publisher" },
-        { name: "likes", type: "number", desc: "Upvote count" },
-        { name: "comments", type: "Comment[]", desc: "Array of discussion comments" },
-        { name: "createdAt", type: "string (ISO)", desc: "Timestamp of creation" }
-      ]
-    },
-    {
-      name: "ForumMessage",
-      desc: "Represents a message sent to the global communication chat room.",
-      fields: [
-        { name: "id", type: "string", desc: "Unique message identifier" },
-        { name: "username", type: "string", desc: "Chat user handle" },
-        { name: "discipline", type: "string", desc: "Pillar topic ('STEM & Sciences' | 'Literature & Languages' | etc.)" },
-        { name: "message", type: "string", desc: "Text content of the message" },
-        { name: "timestamp", type: "string (ISO)", desc: "Timestamp when published" }
-      ]
-    }
-  ];
-
-  const endpoints: Endpoint[] = [
-    {
-      method: 'GET',
-      path: '/api/health',
-      description: 'Fetch the runtime status, uptime, and timestamp of Mawaba Core API.'
-    },
-    {
-      method: 'GET',
-      path: '/api/ideas',
-      description: 'Retrieve a list of all active development and business ideas.'
-    },
-    {
-      method: 'POST',
-      path: '/api/ideas',
-      description: 'Publish a new global developmental or business idea.',
-      sampleBody: {
-        title: "Decentralized Clean Water Filters",
-        category: "Development",
-        description: "Deploying bio-sand water filtration kits tracked via local SMS queries.",
-        author: "Evelyn Carter"
-      }
-    },
-    {
-      method: 'POST',
-      path: '/api/ideas/{id}/like',
-      description: 'Upvote/like a specific idea by providing its unique identifier.',
-    },
-    {
-      method: 'POST',
-      path: '/api/ideas/{id}/comments',
-      description: 'Append an expert discussion comment/feedback to a specific idea.',
-      sampleBody: {
-        author: "Dr. Rachel Green",
-        text: "We should pilot this in East Africa. The SMS telemetry is extremely promising!"
-      }
-    },
-    {
-      method: 'GET',
-      path: '/api/forums/messages',
-      description: 'Fetch all live communication and forum messages. Filter by ?discipline if needed.'
-    },
-    {
-      method: 'POST',
-      path: '/api/forums/messages',
-      description: 'Publish an instant message to the global collaborative chat channels.',
-      sampleBody: {
-        username: "TeslaGiga",
-        message: "Green energy storage is key to making solar clinics feasible 24/7.",
-        discipline: "STEM & Sciences"
-      }
-    },
-    {
-      method: 'POST',
-      path: '/api/ai/tutor',
-      description: 'Interact with the simulated AI tutor, receiving contextual guidance.',
-      sampleBody: {
-        question: "How do we implement sustainable micro-grids?",
-        discipline: "World Development"
-      }
-    },
-    {
-      method: 'GET',
-      path: '/api/integrations',
-      description: 'Get all point-of-sale and commerce integration modules (Square, Clover, NCR, Toast, etc.).'
-    }
-  ];
 
   // Code Snippets generator
   const getCodeSnippet = (endpoint: Endpoint) => {
