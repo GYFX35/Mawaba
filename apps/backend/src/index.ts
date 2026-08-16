@@ -225,35 +225,146 @@ app.post('/api/integrations/:name/disconnect', (req: Request, res: Response) => 
 
 // 5. Simulated AI Tutor Support API
 app.post('/api/ai/tutor', (req: Request, res: Response) => {
-  const { question, discipline } = req.body;
+  const { question, discipline, level = 'Intermediate', responseType = 'Explanation' } = req.body;
   if (!question || !discipline) {
     return res.status(400).json({ error: 'Missing question or discipline' });
   }
 
-  // Simulated professional response from AI Tutor based on the discipline and question
-  let answer = `That's an excellent question about ${discipline}! `;
   const lowerQ = question.toLowerCase();
+  let answer = '';
+  let followUpQuestions: string[] = [];
+  let keyTakeaways: string[] = [];
+  let quiz: { question: string; options: string[]; answer: string; explanation: string } | null = null;
 
-  if (discipline === 'STEM & Sciences') {
+  // Level prefix customization
+  const levelPrefix = level === 'Beginner'
+    ? 'In simple terms: '
+    : level === 'Advanced'
+    ? 'Deep Academic Breakdown: '
+    : 'Conceptual Explanation: ';
+
+  if (discipline === 'STEM & Sciences' || discipline === 'Sciences') {
     if (lowerQ.includes('quantum') || lowerQ.includes('physics')) {
-      answer += "In Quantum Physics, superposition is a fundamental principle. It describes a system's ability to exist in multiple states simultaneously until it is measured. From a developer/platform perspective, we model this using probabilistic distributions or state vectors represented via 3D canvas libraries.";
-    } else if (lowerQ.includes('biology') || lowerQ.includes('chemistry')) {
-      answer += "Mawaba's science pillar targets biological modeling and green chemistry. Understanding chemical reactions and catalyst pathways is vital for eco-sustainable manufacturing, which our AI service can optimize through deep chemical embedding models.";
+      answer = `${levelPrefix}Quantum physics focuses on the behavior of matter and light at subatomic levels. A key concept is superposition, where particles exist in multiple states simultaneously until measured. We model these probabilities with state vectors and visual simulations.`;
+      keyTakeaways = [
+        'Superposition allows systems to exist in multiple potential states at once.',
+        'Wave-particle duality illustrates that subatomic entities exhibit properties of both particles and waves.',
+        'Quantum state collapse occurs upon direct measurement.'
+      ];
+      followUpQuestions = [
+        'How does quantum entanglement differ from classical correlation?',
+        'What are the real-world applications of quantum computing in cryptography?'
+      ];
+      quiz = {
+        question: 'What happens to a quantum system upon measurement?',
+        options: ['It remains in superposition', 'It collapses into a single definite state', 'It disappears completely', 'It accelerates to light speed'],
+        answer: 'It collapses into a single definite state',
+        explanation: 'Measurement causes the quantum superposition to collapse into a single measurable eigenstate.'
+      };
+    } else if (lowerQ.includes('biology') || lowerQ.includes('chemistry') || lowerQ.includes('water')) {
+      answer = `${levelPrefix}Green chemistry and biological modeling allow us to simulate reaction pathways, minimize chemical waste, and synthesize eco-friendly materials using AI-guided catalyst optimization.`;
+      keyTakeaways = [
+        'Catalysts reduce activation energy required for bio-chemical processes.',
+        'Simulated molecular modeling speeds up green solution discovery.',
+        'Clean water ecosystems rely on real-time microbial and chemical sensing.'
+      ];
+      followUpQuestions = [
+        'How can bio-catalysts reduce industrial environmental impact?',
+        'What sensors are best for tracking watershed contamination in real time?'
+      ];
+      quiz = {
+        question: 'What is the primary function of a catalyst in a chemical reaction?',
+        options: ['Increase temperature', 'Lower activation energy', 'Consume all reactants', 'Prevent reaction'],
+        answer: 'Lower activation energy',
+        explanation: 'Catalysts speed up chemical reactions by lowering the required activation energy without being consumed.'
+      };
     } else {
-      answer += "Our STEM curriculum targets critical thinking and experimental methods. The best way to proceed is by setting up a model where students can adjust parameters of simulation models dynamically and see real-time graphical feedback.";
+      answer = `${levelPrefix}STEM education empowers problem-solving through hypothesis testing, algorithmic thinking, and empirical observation. Virtual laboratories enable remote experimentations across disciplines.`;
+      keyTakeaways = [
+        'Empirical verification is core to scientific reasoning.',
+        'Interactive simulations make complex physical principles intuitive.',
+        'Data-driven models allow real-time feedback loops during experiments.'
+      ];
+      followUpQuestions = [
+        'How do interactive simulations improve learning retention in STEM?',
+        'Which programming tools best support dynamic physics modeling?'
+      ];
+      quiz = {
+        question: 'What is the first step in the scientific method?',
+        options: ['Drawing conclusions', 'Observation and asking a question', 'Publishing results', 'Skipping hypotheses'],
+        answer: 'Observation and asking a question',
+        explanation: 'The scientific method begins with observing a phenomenon and forming a specific question.'
+      };
     }
-  } else if (discipline === 'Literature & Languages') {
-    answer += "Global communication is highly aided by multilingual Large Language Models (LLMs). When publishing content, our API provides automated context-sensitive translations, preserving cultural nuance and idiomatic meaning for readers worldwide.";
-  } else if (discipline === 'Business & Economics') {
-    answer += "To build a sustainable business model under Mawaba's guidance, you must align your value proposition with the UN Sustainable Development Goals (SDGs). This involves pricing carbon footprints, establishing fair-trade micro-transactions, and leveraging our point-of-sale integrations (like Square or Clover) to track local economic impact.";
+  } else if (discipline === 'Literature & Languages' || discipline === 'Literature') {
+    answer = `${levelPrefix}Language and literature represent the human experience across cultures. Modern natural language processing enables real-time context-aware translation, preserving cultural metaphors and idiomatic expressions across global works.`;
+    keyTakeaways = [
+      'Translation requires understanding cultural context, not just word substitution.',
+      'Literary analysis uncovers universal themes across historical eras.',
+      'LLMs assist in preserve endangered languages through oral and text digitizations.'
+    ];
+    followUpQuestions = [
+      'How do cultural idioms challenge machine translation systems?',
+      'In what ways does comparative literature foster cross-cultural empathy?'
+    ];
+    quiz = {
+      question: 'What does "nuance" mean in literary translation?',
+      options: ['Exact literal dictionary word swap', 'Subtle distinction in meaning or expression', 'Grammatical errors', 'Rhyming scheme'],
+      answer: 'Subtle distinction in meaning or expression',
+      explanation: 'Nuance refers to subtle variations in tone, emotion, or cultural meaning that must be preserved during translation.'
+    };
+  } else if (discipline === 'Business & Economics' || discipline === 'Business') {
+    answer = `${levelPrefix}Building resilient businesses requires aligning economic value with global sustainability targets. By combining AI forecasting with point-of-sale integrations, organizations optimize supply chains and reduce carbon footprints.`;
+    keyTakeaways = [
+      'Triple bottom line focuses on People, Planet, and Profit.',
+      'Real-time supply chain telemetry reduces inventory waste.',
+      'Micro-finance and open APIs empower entrepreneurs in emerging economies.'
+    ];
+    followUpQuestions = [
+      'How does micro-financing impact regional economic growth?',
+      'What metrics best measure a business\'s environmental sustainability?'
+    ];
+    quiz = {
+      question: 'What are the three pillars of the "Triple Bottom Line"?',
+      options: ['Product, Price, Promotion', 'People, Planet, Profit', 'Sales, Revenue, Growth', 'Assets, Liabilities, Equity'],
+      answer: 'People, Planet, Profit',
+      explanation: 'The Triple Bottom Line framework measures social, environmental, and financial impact.'
+    };
   } else {
-    answer += "Under the World Development pillar, we prioritize climate tech, green energy infrastructure, and public well-being. By integrating your API with national sensors, developers can track and publish local air/water quality indexes onto Mawaba's decentralized feed.";
+    answer = `${levelPrefix}World development focuses on equitable growth, clean infrastructure, public health access, and sustainable technology. Open data networks connect local community metrics with global initiatives.`;
+    keyTakeaways = [
+      'Sustainable Development Goals (SDGs) provide a shared framework for progress.',
+      'De-centralized sensor networks enable transparent environmental monitoring.',
+      'Community-led innovations scale effectively with open platform APIs.'
+    ];
+    followUpQuestions = [
+      'How do open data platforms improve disaster response efficiency?',
+      'What role does clean energy infrastructure play in rural development?'
+    ];
+    quiz = {
+      question: 'Which international framework guides global sustainability targets?',
+      options: ['UN Sustainable Development Goals (SDGs)', 'World Trade Agreement', 'Global Tech Standard', 'ISO 9001'],
+      answer: 'UN Sustainable Development Goals (SDGs)',
+      explanation: 'The UN SDGs outline 17 interconnected goals for global peace, prosperity, and environmental protection.'
+    };
+  }
+
+  // Handle specific responseType modifications
+  if (responseType === 'Quiz') {
+    answer = `Here is a quick practice quiz on ${discipline} to test your understanding of "${question}":`;
+  } else if (responseType === 'Key Takeaways') {
+    answer = `Here are the key study takeaways for "${question}" (${level} level):`;
   }
 
   res.json({
     question,
     discipline,
+    level,
+    responseType,
     answer,
+    keyTakeaways,
+    followUpQuestions,
+    quiz,
     tutorName: 'Mawaba AI Master Tutor',
     timestamp: new Date().toISOString()
   });

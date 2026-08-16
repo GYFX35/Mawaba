@@ -30,11 +30,31 @@ interface Course {
 const EducationPage: NextPage = () => {
   const [selectedDiscipline, setSelectedDiscipline] = useState<string>('All');
   const [aiQuestion, setAiQuestion] = useState<string>('');
+  const [learningLevel, setLearningLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
+  const [responseType, setResponseType] = useState<'Explanation' | 'Quiz' | 'Key Takeaways'>('Explanation');
   const [isAiResponding, setIsAiResponding] = useState<boolean>(false);
 
-  // Chatbot state
-  const [chatHistory, setChatHistory] = useState<Array<{ sender: 'user' | 'tutor'; text: string; time: string }>>([
-    { sender: 'tutor', text: 'Hello! I am your AI Master Tutor. Select a template question above or ask anything related to STEM, Literature, Business, Health, or World Development.', time: 'Just now' }
+  // Chatbot state with structured data support
+  interface ChatMessage {
+    sender: 'user' | 'tutor';
+    text: string;
+    time: string;
+    keyTakeaways?: string[];
+    followUpQuestions?: string[];
+    quiz?: {
+      question: string;
+      options: string[];
+      answer: string;
+      explanation: string;
+    } | null;
+  }
+
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([
+    {
+      sender: 'tutor',
+      text: 'Hello! I am your AI Master Tutor. Customize your learning level and response format above, pick a suggested prompt, or ask any question across STEM, Literature, Business, Health, or World Development.',
+      time: 'Just now'
+    }
   ]);
 
   // Forum state
@@ -124,15 +144,19 @@ const EducationPage: NextPage = () => {
     ? featuredCourses
     : featuredCourses.filter(course => course.category === selectedDiscipline);
 
-  const handleAskAi = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const queryText = aiQuestion.trim();
+  const handleAskAi = async (e: React.FormEvent, customQuestion?: string) => {
+    if (e) e.preventDefault();
+    const queryText = (customQuestion || aiQuestion).trim();
     if (!queryText) return;
 
     // Add user question to history
-    const userMsg = { sender: 'user' as const, text: queryText, time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) };
+    const userMsg: ChatMessage = {
+      sender: 'user',
+      text: queryText,
+      time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+    };
     setChatHistory(prev => [...prev, userMsg]);
-    setAiQuestion('');
+    if (!customQuestion) setAiQuestion('');
 
     setIsAiResponding(true);
 
@@ -150,13 +174,22 @@ const EducationPage: NextPage = () => {
         },
         body: JSON.stringify({
           question: queryText,
-          discipline
+          discipline,
+          level: learningLevel,
+          responseType
         })
       });
 
       if (res.ok) {
         const data = await res.json();
-        const tutorMsg = { sender: 'tutor' as const, text: data.answer, time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) };
+        const tutorMsg: ChatMessage = {
+          sender: 'tutor',
+          text: data.answer,
+          keyTakeaways: data.keyTakeaways,
+          followUpQuestions: data.followUpQuestions,
+          quiz: data.quiz,
+          time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+        };
         setChatHistory(prev => [...prev, tutorMsg]);
       } else {
         throw new Error('API response error');
@@ -165,7 +198,7 @@ const EducationPage: NextPage = () => {
       console.warn("Using offline simulated response fallback...");
       setTimeout(() => {
         const q = queryText.toLowerCase();
-        let response = "That's an excellent question! In the context of Mawaba's global education, we believe in interdisciplinary problem-solving. ";
+        let response = `[${learningLevel} Mode] `;
 
         if (q.includes('ai') || q.includes('artificial intelligence') || q.includes('technology')) {
           response += "Artificial Intelligence acts as an equalizer, translating learning materials in real-time and personalizing coursework to match every student's learning style, regardless of location.";
@@ -179,12 +212,34 @@ const EducationPage: NextPage = () => {
           response += "We offer localized content, virtual mentors, and collaborative projects. Connecting students from diverse cultural backgrounds helps solve the world's most complex challenges together.";
         }
 
-        const tutorMsg = { sender: 'tutor' as const, text: response, time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' }) };
+        const tutorMsg: ChatMessage = {
+          sender: 'tutor',
+          text: response,
+          keyTakeaways: [
+            "Continuous practice improves retention across subjects.",
+            "Interactive queries help bridge complex theory and practice."
+          ],
+          followUpQuestions: [
+            "Would you like an example problem related to this topic?",
+            "How does this relate to practical real-world scenarios?"
+          ],
+          time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+        };
         setChatHistory(prev => [...prev, tutorMsg]);
       }, 1000);
     } finally {
       setIsAiResponding(false);
     }
+  };
+
+  const handleClearHistory = () => {
+    setChatHistory([
+      {
+        sender: 'tutor',
+        text: 'Chat history cleared. What topic would you like to explore next?',
+        time: 'Just now'
+      }
+    ]);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -409,22 +464,61 @@ const EducationPage: NextPage = () => {
               {/* Interactive Demo Right Column */}
               <div className="lg:col-span-7 p-6 lg:p-10 flex flex-col justify-between bg-white">
                 <div>
-                  <h4 className="font-extrabold text-slate-900 mb-2 flex items-center gap-2">
-                    <Sparkles className="h-5 w-5 text-purple-600" /> Interactive AI Chat Interface
-                  </h4>
-                  <p className="text-xs text-slate-500 mb-6 leading-relaxed">
-                    Test our master tutor in real time. Choose from sample queries below, or type your custom request.
+                  <div className="flex justify-between items-center mb-2">
+                    <h4 className="font-extrabold text-slate-900 flex items-center gap-2">
+                      <Sparkles className="h-5 w-5 text-purple-600" /> Interactive AI Chat Interface
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={handleClearHistory}
+                      className="text-[11px] font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                      Clear Chat
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4 leading-relaxed">
+                    Tailor tutor answers by level and response type, choose sample questions, or ask custom prompts.
                   </p>
 
-                  <div className="mb-6 flex flex-wrap gap-2">
+                  {/* Tutor Control Toolbar */}
+                  <div className="grid grid-cols-2 gap-3 mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                        Learning Level
+                      </label>
+                      <select
+                        value={learningLevel}
+                        onChange={(e) => setLearningLevel(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
+                        className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="Beginner">Beginner (Simple Concept)</option>
+                        <option value="Intermediate">Intermediate (Standard)</option>
+                        <option value="Advanced">Advanced (Academic)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                        Response Format
+                      </label>
+                      <select
+                        value={responseType}
+                        onChange={(e) => setResponseType(e.target.value as 'Explanation' | 'Quiz' | 'Key Takeaways')}
+                        className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      >
+                        <option value="Explanation">Detailed Explanation</option>
+                        <option value="Key Takeaways">Key Takeaways Only</option>
+                        <option value="Quiz">Practice Quiz Mode</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div className="mb-4 flex flex-wrap gap-2">
                     {sampleQuestions.map((q, idx) => (
                       <button
                         key={idx}
                         type="button"
-                        onClick={() => {
-                          setAiQuestion(q);
-                        }}
-                        className="text-left text-xs bg-slate-50 hover:bg-slate-100 text-slate-700 px-3.5 py-2.5 rounded-xl border border-slate-100 transition-colors duration-200"
+                        onClick={(e) => handleAskAi(e, q)}
+                        className="text-left text-xs bg-slate-50 hover:bg-blue-50 text-slate-700 hover:text-blue-700 px-3 py-2 rounded-xl border border-slate-100 transition-colors duration-200"
                       >
                         {q}
                       </button>
@@ -432,12 +526,12 @@ const EducationPage: NextPage = () => {
                   </div>
 
                   {/* Chat Message Workspace */}
-                  <div className="bg-slate-50 border border-slate-100 rounded-3xl p-4 mb-4 flex flex-col h-[320px] justify-between">
-                    <div className="space-y-4 overflow-y-auto pr-1 max-h-[260px] scrollbar-thin">
+                  <div className="bg-slate-50 border border-slate-100 rounded-3xl p-4 mb-4 flex flex-col h-[380px] justify-between">
+                    <div className="space-y-4 overflow-y-auto pr-1 max-h-[350px] scrollbar-thin">
                       {chatHistory.map((chat, idx) => (
                         <div
                           key={idx}
-                          className={`flex items-start gap-2.5 max-w-[85%] ${
+                          className={`flex items-start gap-2.5 max-w-[90%] ${
                             chat.sender === 'user' ? 'ml-auto flex-row-reverse' : ''
                           }`}
                         >
@@ -451,15 +545,63 @@ const EducationPage: NextPage = () => {
                             {chat.sender === 'user' ? 'ME' : 'AI'}
                           </div>
                           <div
-                            className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                            className={`p-3.5 rounded-2xl text-xs leading-relaxed shadow-sm w-full ${
                               chat.sender === 'user'
                                 ? 'bg-blue-600 text-white rounded-tr-none'
                                 : 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
                             }`}
                           >
                             <p className="font-medium">{chat.text}</p>
+
+                            {/* Structured Key Takeaways */}
+                            {chat.keyTakeaways && chat.keyTakeaways.length > 0 && (
+                              <div className="mt-3 pt-2 border-t border-slate-100">
+                                <span className="font-bold text-[10px] uppercase text-purple-700 block mb-1">Key Study Takeaways</span>
+                                <ul className="list-disc list-inside space-y-1 text-slate-600">
+                                  {chat.keyTakeaways.map((item, tIdx) => (
+                                    <li key={tIdx}>{item}</li>
+                                  ))}
+                                </ul>
+                              </div>
+                            )}
+
+                            {/* Structured Quiz Card */}
+                            {chat.quiz && (
+                              <div className="mt-3 p-3 bg-purple-50/60 rounded-xl border border-purple-100 text-slate-800">
+                                <span className="font-extrabold text-[10px] uppercase text-purple-800 block mb-1">Quick Knowledge Check</span>
+                                <p className="font-bold mb-2">{chat.quiz.question}</p>
+                                <div className="space-y-1">
+                                  {chat.quiz.options.map((opt, oIdx) => (
+                                    <div key={oIdx} className="text-[11px] bg-white p-2 rounded-lg border border-purple-100 font-medium">
+                                      {opt}
+                                    </div>
+                                  ))}
+                                </div>
+                                <p className="text-[10px] text-purple-700 mt-2 italic">Answer: {chat.quiz.answer}</p>
+                              </div>
+                            )}
+
+                            {/* Suggested Follow-up Questions */}
+                            {chat.followUpQuestions && chat.followUpQuestions.length > 0 && (
+                              <div className="mt-3 pt-2 border-t border-slate-100">
+                                <span className="font-bold text-[10px] uppercase text-slate-400 block mb-1">Follow-up Prompts</span>
+                                <div className="flex flex-col gap-1">
+                                  {chat.followUpQuestions.map((fq, fIdx) => (
+                                    <button
+                                      key={fIdx}
+                                      type="button"
+                                      onClick={(e) => handleAskAi(e, fq)}
+                                      className="text-left text-[11px] text-blue-600 hover:underline font-medium"
+                                    >
+                                      → {fq}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
                             <span
-                              className={`text-[9px] block mt-1.5 font-bold ${
+                              className={`text-[9px] block mt-2 font-bold ${
                                 chat.sender === 'user' ? 'text-blue-100' : 'text-slate-400'
                               }`}
                             >
@@ -484,7 +626,7 @@ const EducationPage: NextPage = () => {
                     </div>
                   </div>
 
-                  <form onSubmit={handleAskAi} className="relative">
+                  <form onSubmit={(e) => handleAskAi(e)} className="relative">
                     <input
                       type="text"
                       placeholder="Ask the AI Tutor a question..."
