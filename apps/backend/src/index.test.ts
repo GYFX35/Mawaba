@@ -44,6 +44,32 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('POST /api/notion/publish', () => {
+    it('should return 400 if title or content missing', async () => {
+      const response = await request(app)
+        .post('/api/notion/publish')
+        .send({ title: 'Missing content' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Missing required fields');
+    });
+
+    it('should publish item to Notion successfully', async () => {
+      const response = await request(app)
+        .post('/api/notion/publish')
+        .send({
+          title: 'Test Notion Document',
+          content: 'Testing Notion publishing endpoint',
+          category: 'Testing',
+          author: 'Tester'
+        });
+
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.notionPageId).toBeDefined();
+    });
+  });
+
   describe('POST /api/ai/tutor', () => {
     it('should return 400 if required fields are missing', async () => {
       const response = await request(app).post('/api/ai/tutor').send({ question: 'What is physics?' });
