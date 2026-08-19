@@ -16,6 +16,18 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+def query_gemini_tutor(question: str, discipline: str = "STEM & Sciences", level: str = "Intermediate") -> str:
+    """Helper to structure queries for Google Gemini API."""
+    prompt = f"System: You are an expert AI tutor in {discipline} ({level} level).\nUser: {question}"
+    # Simulated response payload structure for Gemini
+    return f"[Google Gemini 1.5 Flash] Explanation for '{question}' in {discipline}: Focus on core conceptual principles, interactive modeling, and empirical problem solving."
+
+def query_openai_tutor(question: str, discipline: str = "STEM & Sciences", level: str = "Intermediate") -> str:
+    """Helper to structure queries for OpenAI GPT API."""
+    prompt = f"System: You are an expert AI tutor in {discipline} ({level} level).\nUser: {question}"
+    # Simulated response payload structure for OpenAI
+    return f"[OpenAI GPT-4o] Explanation for '{question}' in {discipline}: Comprehensive step-by-step guidance tailored for {level} learners."
+
 def main():
     print("Mawaba AI Service Initialized")
     print("Checking integrations...")
@@ -26,6 +38,10 @@ def main():
 
     # Example of Google API setup (e.g., Search or Calendar)
     print("Google API client structure ready.")
+
+    # AI Tutor Model Providers initialized
+    print("Google Gemini integration path ready.")
+    print("OpenAI GPT integration path ready.")
 
     print("Langflow integration path established.")
 

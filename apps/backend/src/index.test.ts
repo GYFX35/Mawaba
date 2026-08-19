@@ -163,6 +163,32 @@ describe('Backend API Endpoints', () => {
       expect(response.body.answer).toContain('Here is a quick practice quiz');
       expect(response.body.quiz).toBeDefined();
     });
+
+    it('should handle Google Gemini provider requests', async () => {
+      const response = await request(app).post('/api/ai/tutor').send({
+        question: 'Explain photosythesis',
+        discipline: 'STEM & Sciences',
+        provider: 'gemini'
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.provider).toContain('gemini');
+      expect(response.body.model).toContain('Gemini');
+      expect(response.body.answer).toBeDefined();
+    });
+
+    it('should handle OpenAI provider requests', async () => {
+      const response = await request(app).post('/api/ai/tutor').send({
+        question: 'Explain macroeconomics',
+        discipline: 'Business & Economics',
+        provider: 'openai'
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.provider).toContain('openai');
+      expect(response.body.model).toContain('GPT');
+      expect(response.body.answer).toBeDefined();
+    });
   });
 
   describe('World Bank APIs', () => {

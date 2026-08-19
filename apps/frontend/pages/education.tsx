@@ -32,6 +32,7 @@ const EducationPage: NextPage = () => {
   const [aiQuestion, setAiQuestion] = useState<string>('');
   const [learningLevel, setLearningLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
   const [responseType, setResponseType] = useState<'Explanation' | 'Quiz' | 'Key Takeaways'>('Explanation');
+  const [provider, setProvider] = useState<'auto' | 'gemini' | 'openai'>('auto');
   const [isAiResponding, setIsAiResponding] = useState<boolean>(false);
 
   // Chatbot state with structured data support
@@ -39,6 +40,8 @@ const EducationPage: NextPage = () => {
     sender: 'user' | 'tutor';
     text: string;
     time: string;
+    provider?: string;
+    model?: string;
     keyTakeaways?: string[];
     followUpQuestions?: string[];
     quiz?: {
@@ -176,7 +179,8 @@ const EducationPage: NextPage = () => {
           question: queryText,
           discipline,
           level: learningLevel,
-          responseType
+          responseType,
+          provider
         })
       });
 
@@ -185,6 +189,8 @@ const EducationPage: NextPage = () => {
         const tutorMsg: ChatMessage = {
           sender: 'tutor',
           text: data.answer,
+          provider: data.provider,
+          model: data.model,
           keyTakeaways: data.keyTakeaways,
           followUpQuestions: data.followUpQuestions,
           quiz: data.quiz,
@@ -481,7 +487,21 @@ const EducationPage: NextPage = () => {
                   </p>
 
                   {/* Tutor Control Toolbar */}
-                  <div className="grid grid-cols-2 gap-3 mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <div className="grid grid-cols-3 gap-2 mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                        AI Provider
+                      </label>
+                      <select
+                        value={provider}
+                        onChange={(e) => setProvider(e.target.value as 'auto' | 'gemini' | 'openai')}
+                        className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                      >
+                        <option value="auto">Auto / Mawaba AI</option>
+                        <option value="gemini">Google Gemini</option>
+                        <option value="openai">OpenAI GPT</option>
+                      </select>
+                    </div>
                     <div>
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                         Learning Level
@@ -491,9 +511,9 @@ const EducationPage: NextPage = () => {
                         onChange={(e) => setLearningLevel(e.target.value as 'Beginner' | 'Intermediate' | 'Advanced')}
                         className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
-                        <option value="Beginner">Beginner (Simple Concept)</option>
-                        <option value="Intermediate">Intermediate (Standard)</option>
-                        <option value="Advanced">Advanced (Academic)</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Advanced">Advanced</option>
                       </select>
                     </div>
                     <div>
@@ -505,9 +525,9 @@ const EducationPage: NextPage = () => {
                         onChange={(e) => setResponseType(e.target.value as 'Explanation' | 'Quiz' | 'Key Takeaways')}
                         className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500"
                       >
-                        <option value="Explanation">Detailed Explanation</option>
-                        <option value="Key Takeaways">Key Takeaways Only</option>
-                        <option value="Quiz">Practice Quiz Mode</option>
+                        <option value="Explanation">Detailed</option>
+                        <option value="Key Takeaways">Takeaways</option>
+                        <option value="Quiz">Quiz Mode</option>
                       </select>
                     </div>
                   </div>
@@ -551,6 +571,13 @@ const EducationPage: NextPage = () => {
                                 : 'bg-white text-slate-700 rounded-tl-none border border-slate-100'
                             }`}
                           >
+                            {chat.model && (
+                              <div className="flex justify-between items-center mb-1">
+                                <span className="text-[9px] font-bold uppercase tracking-wider text-purple-600 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-100">
+                                  {chat.model}
+                                </span>
+                              </div>
+                            )}
                             <p className="font-medium">{chat.text}</p>
 
                             {/* Structured Key Takeaways */}

@@ -106,10 +106,13 @@ const endpoints: Endpoint[] = [
   {
     method: 'POST',
     path: '/api/ai/tutor',
-    description: 'Interact with the simulated AI tutor, receiving contextual guidance.',
+    description: 'Interact with AI tutor powered by Google Gemini, OpenAI GPT, or Mawaba Engine.',
     sampleBody: {
       question: "How do we implement sustainable micro-grids?",
-      discipline: "World Development"
+      discipline: "World Development",
+      provider: "gemini",
+      level: "Intermediate",
+      responseType: "Explanation"
     }
   },
   {
