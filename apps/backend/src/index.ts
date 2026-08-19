@@ -456,9 +456,9 @@ app.get('/api/worldbank/projects', async (req: Request, res: Response) => {
   }
 });
 
-// 5. Simulated AI Tutor Support API
-app.post('/api/ai/tutor', (req: Request, res: Response) => {
-  const { question, discipline, level = 'Intermediate', responseType = 'Explanation' } = req.body;
+// 5. AI Tutor Support API with Google Gemini & OpenAI Integration
+app.post('/api/ai/tutor', async (req: Request, res: Response) => {
+  const { question, discipline, level = 'Intermediate', responseType = 'Explanation', provider = 'auto' } = req.body;
   if (!question || !discipline) {
     return res.status(400).json({ error: 'Missing question or discipline' });
   }
@@ -468,6 +468,84 @@ app.post('/api/ai/tutor', (req: Request, res: Response) => {
   let followUpQuestions: string[] = [];
   let keyTakeaways: string[] = [];
   let quiz: { question: string; options: string[]; answer: string; explanation: string } | null = null;
+  let activeProvider = provider;
+  let modelUsed = 'Mawaba Simulated AI Engine';
+
+  // Handle Google Gemini provider call if requested or available
+  const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+
+  if (provider === 'gemini' && geminiApiKey) {
+    try {
+      const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: `You are an AI Tutor in ${discipline} for a ${level} student. User question: "${question}". Response format requested: ${responseType}.`
+            }]
+          }]
+        })
+      });
+
+      if (geminiRes.ok) {
+        const data = await geminiRes.json();
+        const generatedText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (generatedText) {
+          answer = generatedText;
+          activeProvider = 'gemini';
+          modelUsed = 'Gemini 1.5 Flash';
+        }
+      }
+    } catch (err) {
+      console.warn("Gemini API call failed, falling back to simulated engine", err);
+    }
+  }
+
+  if (provider === 'openai' && openaiApiKey) {
+    try {
+      const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${openaiApiKey}`
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: `You are an AI Tutor in ${discipline} for a ${level} level student.` },
+            { role: 'user', content: question }
+          ]
+        })
+      });
+
+      if (openaiRes.ok) {
+        const data = await openaiRes.json();
+        const generatedText = data.choices?.[0]?.message?.content;
+        if (generatedText) {
+          answer = generatedText;
+          activeProvider = 'openai';
+          modelUsed = 'GPT-4o mini';
+        }
+      }
+    } catch (err) {
+      console.warn("OpenAI API call failed, falling back to simulated engine", err);
+    }
+  }
+
+  // Fallback or default content generation logic if live API answer wasn't set
+  if (!answer) {
+    if (provider === 'gemini') {
+      activeProvider = 'gemini-simulated';
+      modelUsed = 'Gemini 1.5 Flash (Simulated)';
+    } else if (provider === 'openai') {
+      activeProvider = 'openai-simulated';
+      modelUsed = 'GPT-4o mini (Simulated)';
+    } else {
+      activeProvider = 'auto';
+      modelUsed = 'Mawaba AI Master Engine';
+    }
 
   // Level prefix customization
   const levelPrefix = level === 'Beginner'
@@ -588,12 +666,15 @@ app.post('/api/ai/tutor', (req: Request, res: Response) => {
   } else if (responseType === 'Key Takeaways') {
     answer = `Here are the key study takeaways for "${question}" (${level} level):`;
   }
+  }
 
   res.json({
     question,
     discipline,
     level,
     responseType,
+    provider: activeProvider,
+    model: modelUsed,
     answer,
     keyTakeaways,
     followUpQuestions,
