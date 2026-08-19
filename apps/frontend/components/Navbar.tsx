@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { Menu, X, Cpu } from 'lucide-react';
+import { Menu, X, Cpu, User, LogOut } from 'lucide-react';
 
 const Navbar = () => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ name: string; email: string } | null>(null);
   const router = useRouter();
+
+  useEffect(() => {
+    // Check if user is logged in from localStorage
+    const savedUser = localStorage.getItem('mawaba_user');
+    if (savedUser) {
+      try {
+        setCurrentUser(JSON.parse(savedUser));
+      } catch (e) {
+        console.error('Failed to parse saved user');
+      }
+    }
+  }, [router.pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('mawaba_user');
+    setCurrentUser(null);
+    router.push('/');
+  };
 
   const navLinks = [
     { name: 'Home', href: '/' },
@@ -50,10 +69,39 @@ const Navbar = () => {
                 </Link>
               );
             })}
-            <div className="pl-4">
-              <Link href="/contact" className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-100 hover:shadow-lg hover:shadow-blue-200 transform hover:-translate-y-0.5 inline-block">
-                Get Started
-              </Link>
+            <div className="pl-4 flex items-center gap-2">
+              {currentUser ? (
+                <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-xl">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-blue-100 text-blue-700 p-1 rounded-lg">
+                      <User className="h-4 w-4" />
+                    </div>
+                    <span className="text-xs font-bold text-gray-800 max-w-[120px] truncate">{currentUser.name}</span>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    title="Log Out"
+                    className="text-gray-400 hover:text-red-600 transition-colors p-1"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link
+                    href="/login"
+                    className="px-3.5 py-2 text-sm font-bold text-gray-700 hover:text-blue-600 hover:bg-gray-50 rounded-xl transition-all"
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-all shadow-md shadow-blue-100 hover:shadow-lg hover:shadow-blue-200 transform hover:-translate-y-0.5 inline-block"
+                  >
+                    Sign Up
+                  </Link>
+                </>
+              )}
             </div>
           </div>
 
@@ -90,14 +138,42 @@ const Navbar = () => {
                 </Link>
               );
             })}
-            <div className="mt-4 px-3 pb-2">
-              <Link
-                href="/contact"
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl text-center font-bold transition-all shadow-md inline-block"
-                onClick={() => setIsOpen(false)}
-              >
-                Get Started
-              </Link>
+            <div className="mt-4 px-3 pb-2 border-t border-gray-100 pt-3">
+              {currentUser ? (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm font-bold text-gray-800 px-3 py-2 bg-gray-50 rounded-xl">
+                    <User className="h-4 w-4 text-blue-600" />
+                    <span>Signed in as {currentUser.name}</span>
+                  </div>
+                  <button
+                    onClick={() => {
+                      handleLogout();
+                      setIsOpen(false);
+                    }}
+                    className="w-full flex items-center justify-center gap-2 bg-red-50 text-red-600 py-2.5 rounded-xl text-center font-bold text-sm hover:bg-red-100 transition-all"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Log Out</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  <Link
+                    href="/login"
+                    className="w-full border border-gray-200 text-gray-800 py-2.5 rounded-xl text-center font-bold text-sm hover:bg-gray-50 transition-all inline-block"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Log In
+                  </Link>
+                  <Link
+                    href="/signup"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 rounded-xl text-center font-bold text-sm transition-all shadow-md inline-block"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    Sign Up
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -41,7 +41,24 @@ interface Integration {
   category: string;
 }
 
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  password: string; // Stored securely/simulated in-memory
+  createdAt: string;
+}
+
 // Pre-populated Data
+let users: User[] = [
+  {
+    id: 'u1',
+    name: 'Marie Curie',
+    email: 'marie@curie.org',
+    password: 'password123',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 30).toISOString()
+  }
+];
 let ideas: Idea[] = [
   {
     id: '1',
@@ -97,6 +114,80 @@ let integrations: Integration[] = [
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
 // --- ENDPOINTS ---
+
+// 0. User Account & Auth APIs
+app.post('/api/users/register', (req: Request, res: Response) => {
+  const { name, email, password } = req.body;
+
+  if (!name || !email || !password) {
+    return res.status(400).json({ error: 'Name, email, and password are required' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address format' });
+  }
+
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters long' });
+  }
+
+  const existingUser = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (existingUser) {
+    return res.status(409).json({ error: 'An account with this email already exists' });
+  }
+
+  const newUser: User = {
+    id: generateId(),
+    name: name.trim(),
+    email: email.trim().toLowerCase(),
+    password, // In a real DB with auth, password would be hashed
+    createdAt: new Date().toISOString()
+  };
+
+  users.push(newUser);
+
+  // Exclude password from output response
+  const { password: _, ...userWithoutPassword } = newUser;
+  res.status(201).json({
+    message: 'User account created successfully',
+    user: userWithoutPassword
+  });
+});
+
+app.post('/api/users/login', (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return res.status(400).json({ error: 'Email and password are required' });
+  }
+
+  const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+  if (!user || user.password !== password) {
+    return res.status(401).json({ error: 'Invalid email or password' });
+  }
+
+  const { password: _, ...userWithoutPassword } = user;
+  res.json({
+    message: 'Login successful',
+    user: userWithoutPassword
+  });
+});
+
+app.get('/api/users/me', (req: Request, res: Response) => {
+  const { email } = req.query;
+  if (!email) {
+    return res.status(400).json({ error: 'Email parameter required' });
+  }
+
+  const user = users.find(u => u.email.toLowerCase() === String(email).toLowerCase());
+  if (!user) {
+    return res.status(404).json({ error: 'User not found' });
+  }
+
+  const { password: _, ...userWithoutPassword } = user;
+  res.json({ user: userWithoutPassword });
+});
 
 // 1. Health Status API
 app.get('/api/health', (req: Request, res: Response) => {
