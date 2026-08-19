@@ -2,6 +2,86 @@ import request from 'supertest';
 import app from './index';
 
 describe('Backend API Endpoints', () => {
+  describe('User Account Endpoints', () => {
+    it('should register a new user successfully', async () => {
+      const response = await request(app).post('/api/users/register').send({
+        name: 'Isaac Newton',
+        email: 'isaac@gravity.org',
+        password: 'principiamathematica'
+      });
+
+      expect(response.status).toBe(201);
+      expect(response.body.message).toBe('User account created successfully');
+      expect(response.body.user).toBeDefined();
+      expect(response.body.user.name).toBe('Isaac Newton');
+      expect(response.body.user.email).toBe('isaac@gravity.org');
+      expect(response.body.user.password).toBeUndefined(); // Should not return password
+    });
+
+    it('should reject registration missing required fields', async () => {
+      const response = await request(app).post('/api/users/register').send({
+        email: 'test@example.com'
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Name, email, and password are required');
+    });
+
+    it('should reject registration with invalid email format', async () => {
+      const response = await request(app).post('/api/users/register').send({
+        name: 'Test User',
+        email: 'not-an-email',
+        password: 'password123'
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid email address format');
+    });
+
+    it('should reject registration with password under 6 characters', async () => {
+      const response = await request(app).post('/api/users/register').send({
+        name: 'Test User',
+        email: 'test@example.com',
+        password: '123'
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Password must be at least 6 characters long');
+    });
+
+    it('should prevent duplicate user registration with same email', async () => {
+      const response = await request(app).post('/api/users/register').send({
+        name: 'Marie Curie Duplicate',
+        email: 'marie@curie.org',
+        password: 'password123'
+      });
+
+      expect(response.status).toBe(409);
+      expect(response.body.error).toBe('An account with this email already exists');
+    });
+
+    it('should authenticate existing user on login', async () => {
+      const response = await request(app).post('/api/users/login').send({
+        email: 'marie@curie.org',
+        password: 'password123'
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Login successful');
+      expect(response.body.user.email).toBe('marie@curie.org');
+    });
+
+    it('should reject invalid credentials on login', async () => {
+      const response = await request(app).post('/api/users/login').send({
+        email: 'marie@curie.org',
+        password: 'wrongpassword'
+      });
+
+      expect(response.status).toBe(401);
+      expect(response.body.error).toBe('Invalid email or password');
+    });
+  });
+
   describe('GET /api/health', () => {
     it('should return 200 and health status', async () => {
       const response = await request(app).get('/api/health');
