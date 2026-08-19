@@ -164,4 +164,36 @@ describe('Backend API Endpoints', () => {
       expect(response.body.quiz).toBeDefined();
     });
   });
+
+  describe('World Bank APIs', () => {
+    it('GET /api/worldbank/countries should return paginated list of countries', async () => {
+      const response = await request(app).get('/api/worldbank/countries?page=1&per_page=5');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('countries');
+      expect(response.body).toHaveProperty('total');
+      expect(Array.isArray(response.body.countries)).toBe(true);
+      expect(response.body.countries.length).toBeLessThanOrEqual(5);
+    });
+
+    it('GET /api/worldbank/indicators should fetch development indicator data', async () => {
+      const response = await request(app).get('/api/worldbank/indicators?country=USA&indicator=NY.GDP.MKTP.CD');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('countryName');
+      expect(response.body).toHaveProperty('data');
+      expect(Array.isArray(response.body.data)).toBe(true);
+      if (response.body.data.length > 0) {
+        expect(response.body.data[0]).toHaveProperty('year');
+        expect(response.body.data[0]).toHaveProperty('value');
+      }
+    });
+
+    it('GET /api/worldbank/projects should search global development projects', async () => {
+      const response = await request(app).get('/api/worldbank/projects?q=education&rows=5');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('query', 'education');
+      expect(response.body).toHaveProperty('projects');
+      expect(Array.isArray(response.body.projects)).toBe(true);
+      expect(response.body.projects.length).toBeLessThanOrEqual(5);
+    }, 15000);
+  });
 });

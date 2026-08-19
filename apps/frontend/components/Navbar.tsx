@@ -32,6 +32,7 @@ const Navbar = () => {
     { name: 'Education', href: '/education' },
     { name: 'Services', href: '/services' },
     { name: 'Integrations', href: '/integrations' },
+    { name: 'World Bank', href: '/worldbank' },
     { name: 'Developer API', href: '/api-docs' },
     { name: 'Contact', href: '/contact' },
   ];
