@@ -116,6 +116,21 @@ const endpoints: Endpoint[] = [
     method: 'GET',
     path: '/api/integrations',
     description: 'Get all point-of-sale and commerce integration modules (Square, Clover, NCR, Toast, etc.).'
+  },
+  {
+    method: 'GET',
+    path: '/api/worldbank/countries',
+    description: 'Fetch paginated global country profiles, regions, and income levels from World Bank API.'
+  },
+  {
+    method: 'GET',
+    path: '/api/worldbank/indicators',
+    description: 'Fetch real-time development indicators (GDP, population, renewable energy, health expenditure) for a given country.'
+  },
+  {
+    method: 'GET',
+    path: '/api/worldbank/projects',
+    description: 'Search official World Bank international development projects and funding initiatives.'
   }
 ];
 

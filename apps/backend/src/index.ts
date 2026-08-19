@@ -314,6 +314,148 @@ app.post('/api/integrations/:name/disconnect', (req: Request, res: Response) => 
   }
 });
 
+// 6. World Bank Open Data APIs
+app.get('/api/worldbank/countries', async (req: Request, res: Response) => {
+  try {
+    const { page = '1', per_page = '20', search = '' } = req.query;
+    const response = await fetch(`https://api.worldbank.org/v2/country?format=json&per_page=300`);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch countries from World Bank API' });
+    }
+    const data = await response.json();
+    if (!Array.isArray(data) || data.length < 2) {
+      return res.status(502).json({ error: 'Unexpected response format from World Bank API' });
+    }
+
+    const metadata = data[0];
+    let rawCountries = data[1] || [];
+
+    // Filter out aggregate groupings if user wants specific country filtering or search
+    if (search) {
+      const q = String(search).toLowerCase();
+      rawCountries = rawCountries.filter((c: any) =>
+        (c.name && c.name.toLowerCase().includes(q)) ||
+        (c.id && c.id.toLowerCase().includes(q)) ||
+        (c.capitalCity && c.capitalCity.toLowerCase().includes(q))
+      );
+    }
+
+    const pageNum = parseInt(String(page), 10) || 1;
+    const limitNum = parseInt(String(per_page), 10) || 20;
+    const startIndex = (pageNum - 1) * limitNum;
+    const paginatedCountries = rawCountries.slice(startIndex, startIndex + limitNum);
+
+    res.json({
+      page: pageNum,
+      per_page: limitNum,
+      total: rawCountries.length,
+      totalPages: Math.ceil(rawCountries.length / limitNum),
+      countries: paginatedCountries.map((c: any) => ({
+        id: c.id,
+        iso2Code: c.iso2Code,
+        name: c.name,
+        region: c.region?.value || 'N/A',
+        incomeLevel: c.incomeLevel?.value || 'N/A',
+        lendingType: c.lendingType?.value || 'N/A',
+        capitalCity: c.capitalCity || 'N/A',
+        longitude: c.longitude,
+        latitude: c.latitude
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error while fetching World Bank countries data' });
+  }
+});
+
+app.get('/api/worldbank/indicators', async (req: Request, res: Response) => {
+  try {
+    const country = (req.query.country as string) || 'WLD';
+    const indicator = (req.query.indicator as string) || 'NY.GDP.MKTP.CD';
+    const date = req.query.date as string;
+
+    let url = `https://api.worldbank.org/v2/country/${country}/indicator/${indicator}?format=json&per_page=50`;
+    if (date) {
+      url += `&date=${date}`;
+    }
+
+    const response = await fetch(url);
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch indicator from World Bank API' });
+    }
+
+    const data = await response.json();
+    if (!Array.isArray(data) || data.length < 2) {
+      return res.status(404).json({ error: 'Indicator data not found for given parameters', data });
+    }
+
+    const meta = data[0];
+    const rawData = data[1] || [];
+
+    const formattedData = rawData.map((item: any) => ({
+      indicatorId: item.indicator?.id,
+      indicatorName: item.indicator?.value,
+      countryId: item.countryiso3code || item.country?.id,
+      countryName: item.country?.value,
+      year: item.date,
+      value: item.value,
+      unit: item.unit || ''
+    }));
+
+    res.json({
+      metadata: meta,
+      indicatorName: formattedData[0]?.indicatorName || indicator,
+      countryName: formattedData[0]?.countryName || country,
+      data: formattedData
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error while fetching World Bank indicator data' });
+  }
+});
+
+app.get('/api/worldbank/projects', async (req: Request, res: Response) => {
+  try {
+    const q = (req.query.q as string) || 'development';
+    const rows = (req.query.rows as string) || '10';
+
+    const url = `https://search.worldbank.org/api/v2/projects?format=json&rows=${rows}&qterm=${encodeURIComponent(q)}`;
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: 'Failed to fetch projects from World Bank API' });
+    }
+
+    const data = await response.json();
+    const projectsObj = data.projects || {};
+
+    const projectsList = Object.keys(projectsObj)
+      .filter(key => key !== 'facets')
+      .map(key => {
+        const p = projectsObj[key];
+        return {
+          id: p.id,
+          project_name: p.project_name,
+          regionname: p.regionname,
+          countryname: Array.isArray(p.countryname) ? p.countryname.join(', ') : p.countryshortname || 'Global',
+          totalamt: p.totalamt,
+          grantamt: p.grantamt || '0',
+          boardapprovaldate: p.boardapprovaldate,
+          closingdate: p.closingdate,
+          status: p.status || p.projectstatusdisplay,
+          url: p.url,
+          sector: p.sector_namecode ? p.sector_namecode.map((s: any) => s.name).join(', ') : 'N/A'
+        };
+      });
+
+    res.json({
+      query: q,
+      total: projectsList.length,
+      projects: projectsList
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal server error while fetching World Bank projects data' });
+  }
+});
+
 // 5. Simulated AI Tutor Support API
 app.post('/api/ai/tutor', (req: Request, res: Response) => {
   const { question, discipline, level = 'Intermediate', responseType = 'Explanation' } = req.body;
