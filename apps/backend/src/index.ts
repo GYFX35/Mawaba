@@ -287,7 +287,79 @@ app.post('/api/forums/messages', (req: Request, res: Response) => {
   res.status(201).json(newMessage);
 });
 
-// 4. POS Integrations APIs
+// 4. Notion Publishing Integration API
+app.post('/api/notion/publish', async (req: Request, res: Response) => {
+  const { notionToken, parentPageId, title, category = 'General', author = 'Anonymous', content } = req.body;
+
+  if (!title || !content) {
+    return res.status(400).json({ error: 'Missing required fields: title, content' });
+  }
+
+  // If notionToken or parentPageId is provided, attempt call to Notion API if node-fetch/https available
+  if (notionToken && parentPageId) {
+    try {
+      const response = await fetch('https://api.notion.com/v1/pages', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${notionToken}`,
+          'Content-Type': 'application/json',
+          'Notion-Version': '2022-06-28'
+        },
+        body: JSON.stringify({
+          parent: { page_id: parentPageId },
+          properties: {
+            title: {
+              title: [{ text: { content: title } }]
+            }
+          },
+          children: [
+            {
+              object: 'block',
+              type: 'paragraph',
+              paragraph: {
+                rich_text: [{ text: { content: `[Category: ${category} | Author: ${author}]\n\n${content}` } }]
+              }
+            }
+          ]
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json() as { id?: string; url?: string };
+        return res.status(201).json({
+          success: true,
+          message: 'Successfully published to Notion workspace page',
+          notionPageId: data.id || 'notion_page_created',
+          notionUrl: data.url || `https://notion.so/${parentPageId}`
+        });
+      } else {
+        const errorData = await response.json();
+        return res.status(response.status).json({
+          success: false,
+          error: 'Notion API returned error',
+          details: errorData
+        });
+      }
+    } catch (err: any) {
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to contact Notion API',
+        details: err.message
+      });
+    }
+  }
+
+  // Simulated fallback publishing response when running without live Notion secret
+  const simulatedId = generateId() + generateId();
+  return res.status(201).json({
+    success: true,
+    message: 'Successfully published item to Notion hub (simulated response)',
+    notionPageId: simulatedId,
+    notionUrl: `https://notion.so/${simulatedId}`
+  });
+});
+
+// 5. POS Integrations APIs
 app.get('/api/integrations', (req: Request, res: Response) => {
   res.json(integrations);
 });
