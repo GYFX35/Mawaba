@@ -222,4 +222,60 @@ describe('Backend API Endpoints', () => {
       expect(response.body.projects.length).toBeLessThanOrEqual(5);
     }, 15000);
   });
+
+  describe('Climate Change Solutions APIs', () => {
+    it('GET /api/climate/solutions should return curated solutions list', async () => {
+      const response = await request(app).get('/api/climate/solutions');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('total');
+      expect(Array.isArray(response.body.solutions)).toBe(true);
+      expect(response.body.solutions.length).toBeGreaterThan(0);
+    });
+
+    it('GET /api/climate/solutions should support category filtering', async () => {
+      const response = await request(app).get('/api/climate/solutions?category=Renewable%20Energy');
+      expect(response.status).toBe(200);
+      expect(response.body.solutions.every((s: any) => s.category === 'Renewable Energy')).toBe(true);
+    });
+
+    it('POST /api/climate/calculator should compute estimated CO2 impact', async () => {
+      const response = await request(app).post('/api/climate/calculator').send({
+        renewablePercentage: 50,
+        solarCapacityKw: 5,
+        treeCount: 20,
+        evKmPerYear: 10000,
+        wasteRecycledKg: 200
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('results');
+      expect(response.body.results.totalCo2SavedKg).toBeGreaterThan(0);
+      expect(response.body.results.totalCo2SavedTons).toBeGreaterThan(0);
+      expect(response.body.results.equivalentTreesPlanted).toBeGreaterThan(0);
+      expect(response.body.results).toHaveProperty('impactGrade');
+    });
+
+    it('GET and POST /api/climate/initiatives should allow viewing and submitting climate projects', async () => {
+      const getRes = await request(app).get('/api/climate/initiatives');
+      expect(getRes.status).toBe(200);
+      expect(Array.isArray(getRes.body)).toBe(true);
+
+      const postRes = await request(app).post('/api/climate/initiatives').send({
+        title: 'Geothermal School Heating Conversion',
+        location: 'Reykjavik, Iceland',
+        category: 'Renewable Energy',
+        description: 'Converting fossil heating in rural schools to localized geothermal loops.',
+        organizer: 'Iceland Clean Energy Foundation',
+        targetImpact: '350 Tons CO2/yr'
+      });
+
+      expect(postRes.status).toBe(201);
+      expect(postRes.body.title).toBe('Geothermal School Heating Conversion');
+      expect(postRes.body.supporters).toBe(1);
+
+      const supportRes = await request(app).post(`/api/climate/initiatives/${postRes.body.id}/support`);
+      expect(supportRes.status).toBe(200);
+      expect(supportRes.body.supporters).toBe(2);
+    });
+  });
 });

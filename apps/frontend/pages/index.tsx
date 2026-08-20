@@ -27,7 +27,7 @@ interface Comment {
 interface Idea {
   id: string;
   title: string;
-  category: 'Health' | 'Education' | 'Business' | 'Development';
+  category: 'Health' | 'Education' | 'Business' | 'Development' | 'Climate';
   description: string;
   author: string;
   likes: number;
@@ -41,7 +41,7 @@ const HomePage: NextPage = () => {
 
   // Submit new Idea Form State
   const [newTitle, setNewTitle] = useState('');
-  const [newCategory, setNewCategory] = useState<'Health' | 'Education' | 'Business' | 'Development'>('Development');
+  const [newCategory, setNewCategory] = useState<'Health' | 'Education' | 'Business' | 'Development' | 'Climate'>('Climate');
   const [newDescription, setNewDescription] = useState('');
   const [newAuthor, setNewAuthor] = useState('');
   const [submitError, setSubmitError] = useState('');
@@ -255,18 +255,20 @@ const HomePage: NextPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
             {[
-              { name: "Health", desc: "Access to clinics & tele-health guides", icon: <Heart className="text-rose-500" /> },
-              { name: "Education", desc: "Interactive tutor models & forums", icon: <BookOpen className="text-amber-500" /> },
-              { name: "Business", desc: "Commerce APIs & trade networks", icon: <BarChart className="text-emerald-500" /> },
-              { name: "Development", desc: "Local clean tech & solar energy", icon: <Globe className="text-blue-500" /> }
+              { name: "Climate Solutions", desc: "Clean tech, carbon capture & ESG tools", icon: <Globe className="text-emerald-500" />, href: "/climate" },
+              { name: "Education", desc: "Interactive AI tutor models & forums", icon: <BookOpen className="text-amber-500" />, href: "/education" },
+              { name: "Business", desc: "Commerce POS APIs & global trade", icon: <BarChart className="text-blue-500" />, href: "/services" },
+              { name: "Development", desc: "World Bank data & local initiatives", icon: <Globe className="text-indigo-500" />, href: "/worldbank" }
             ].map((pillar, idx) => (
-              <div key={idx} className="flex flex-col items-center p-8 bg-white border border-slate-100 rounded-3xl hover:border-blue-200 hover:shadow-xl transition-all duration-300 cursor-pointer group">
+              <Link key={idx} href={pillar.href || '#'}>
+              <div className="flex flex-col items-center p-8 bg-white border border-slate-100 rounded-3xl hover:border-blue-200 hover:shadow-xl transition-all duration-300 cursor-pointer group h-full">
                 <div className="mb-4 p-4 rounded-2xl bg-slate-50 group-hover:bg-blue-50 transition-colors">
                   {React.cloneElement(pillar.icon as React.ReactElement, { size: 28 })}
                 </div>
                 <span className="font-extrabold text-slate-900 text-lg mb-1">{pillar.name}</span>
                 <span className="text-slate-400 text-xs">{pillar.desc}</span>
               </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -324,6 +326,7 @@ const HomePage: NextPage = () => {
                         onChange={(e) => setNewCategory(e.target.value as any)}
                         className="w-full bg-slate-800 border border-slate-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 text-white"
                       >
+                        <option value="Climate">Climate</option>
                         <option value="Development">Development</option>
                         <option value="Business">Business</option>
                         <option value="Education">Education</option>
@@ -396,10 +399,11 @@ const HomePage: NextPage = () => {
                       <div className="flex flex-wrap items-center justify-between gap-4">
                         <div className="flex items-center gap-2.5">
                           <span className={`text-[10px] font-extrabold tracking-wider px-2.5 py-1 rounded-full uppercase ${
+                            idea.category === 'Climate' ? 'bg-emerald-100 text-emerald-800' :
                             idea.category === 'Health' ? 'bg-rose-100 text-rose-800' :
                             idea.category === 'Education' ? 'bg-amber-100 text-amber-800' :
-                            idea.category === 'Business' ? 'bg-emerald-100 text-emerald-800' :
-                            'bg-blue-100 text-blue-800'
+                            idea.category === 'Business' ? 'bg-blue-100 text-blue-800' :
+                            'bg-indigo-100 text-indigo-800'
                           }`}>
                             {idea.category}
                           </span>
