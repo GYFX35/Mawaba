@@ -28,6 +28,7 @@ const Footer = () => {
               <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
               <li><Link href="/services" className="hover:text-white transition-colors">What We Offer</Link></li>
               <li><Link href="/education" className="hover:text-white transition-colors">Global Education</Link></li>
+              <li><Link href="/environment" className="hover:text-white transition-colors">Environment Protection</Link></li>
               <li><Link href="/integrations" className="hover:text-white transition-colors">Integrations</Link></li>
               <li><Link href="/api-docs" className="hover:text-white transition-colors">Developer Portal</Link></li>
             </ul>

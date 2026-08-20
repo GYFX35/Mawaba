@@ -41,6 +41,27 @@ interface Integration {
   category: string;
 }
 
+interface EnvironmentInitiative {
+  id: string;
+  title: string;
+  category: 'Climate Action' | 'Ocean & Marine' | 'Reforestation' | 'Renewable Energy' | 'Circular Economy';
+  description: string;
+  location: string;
+  impact: string;
+  author: string;
+  upvotes: number;
+  createdAt: string;
+}
+
+interface EcoPledge {
+  id: string;
+  name: string;
+  country: string;
+  pledgeType: string;
+  co2ReductionEst: number;
+  createdAt: string;
+}
+
 interface User {
   id: string;
   name: string;
@@ -108,6 +129,59 @@ let integrations: Integration[] = [
   { name: 'Toast', connected: true, desc: 'Built specifically for restaurants to streamline operations.', category: 'POS' },
   { name: 'Shopline', connected: false, desc: 'Global smart commerce platform for merchants.', category: 'E-commerce' },
   { name: 'Clover', connected: false, desc: 'Integrated point of sale systems for all business types.', category: 'POS' }
+];
+
+let environmentInitiatives: EnvironmentInitiative[] = [
+  {
+    id: 'env-1',
+    title: 'Coastal Mangrove Ecosystem Restoration',
+    category: 'Ocean & Marine',
+    description: 'Planting native red mangrove trees along coastal zones to prevent storm surges, enhance ocean biodiversity, and sequester blue carbon.',
+    location: 'Mombasa, Kenya',
+    impact: '150,000 Trees Planted • 45,000 Tons CO2 Sequestered/Yr',
+    author: 'Blue Planet Alliance',
+    upvotes: 42,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString()
+  },
+  {
+    id: 'env-2',
+    title: 'Community Solar Microgrid & Energy Storage',
+    category: 'Renewable Energy',
+    description: 'Installing decentralized solar microgrids in rural off-grid agricultural communities to reduce diesel generator reliance.',
+    location: 'Oaxaca, Mexico',
+    impact: '1.2 MW Clean Energy • 3,500 Families Powered',
+    author: 'Solar Action Network',
+    upvotes: 38,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
+  },
+  {
+    id: 'env-3',
+    title: 'Zero-Waste Circular E-Waste Upcycling Hub',
+    category: 'Circular Economy',
+    description: 'Recovering rare earth metals and re-purposing old electronics to prevent toxic landfill leachate.',
+    location: 'Accra, Ghana',
+    impact: '85 Tons E-Waste Processed • 98% Material Recovery Rate',
+    author: 'EcoTech Innovations',
+    upvotes: 29,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 1).toISOString()
+  },
+  {
+    id: 'env-4',
+    title: 'Urban Biodiversity Corridors & Native Pollinators',
+    category: 'Reforestation',
+    description: 'Transforming vacant urban spaces into indigenous plant refuges supporting native bees, birds, and insects.',
+    location: 'Toronto, Canada',
+    impact: '12 Green Corridors Established • 50+ Native Species Supported',
+    author: 'Green Canopy Initiative',
+    upvotes: 31,
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
+  }
+];
+
+let ecoPledges: EcoPledge[] = [
+  { id: 'p-1', name: 'Sophia Chen', country: 'Singapore', pledgeType: 'Switching to 100% Renewable Home Power', co2ReductionEst: 2400, createdAt: new Date(Date.now() - 3600000 * 48).toISOString() },
+  { id: 'p-2', name: 'Amina Diallo', country: 'Senegal', pledgeType: 'Zero Single-Use Plastics & Active Composting', co2ReductionEst: 650, createdAt: new Date(Date.now() - 3600000 * 24).toISOString() },
+  { id: 'p-3', name: 'Lucas Rossi', country: 'Brazil', pledgeType: 'Planting 10 Native Trees Annually', co2ReductionEst: 1200, createdAt: new Date(Date.now() - 3600000 * 10).toISOString() }
 ];
 
 // Helper to generate IDs
@@ -312,6 +386,86 @@ app.post('/api/integrations/:name/disconnect', (req: Request, res: Response) => 
   } else {
     res.status(404).json({ success: false, message: 'Integration not found' });
   }
+});
+
+// 4b. Environment Protection APIs
+app.get('/api/environment/initiatives', (req: Request, res: Response) => {
+  const { category } = req.query;
+  if (category) {
+    const filtered = environmentInitiatives.filter(
+      i => i.category.toLowerCase() === String(category).toLowerCase()
+    );
+    return res.json(filtered);
+  }
+  res.json(environmentInitiatives);
+});
+
+app.post('/api/environment/initiatives', (req: Request, res: Response) => {
+  const { title, category, description, location, impact, author } = req.body;
+  if (!title || !category || !description || !location || !author) {
+    return res.status(400).json({ error: 'Missing required fields: title, category, description, location, author' });
+  }
+
+  const newInitiative: EnvironmentInitiative = {
+    id: 'env-' + generateId(),
+    title: title.trim(),
+    category,
+    description: description.trim(),
+    location: location.trim(),
+    impact: impact ? impact.trim() : 'Active Community Project',
+    author: author.trim(),
+    upvotes: 1,
+    createdAt: new Date().toISOString()
+  };
+
+  environmentInitiatives.unshift(newInitiative);
+  res.status(201).json(newInitiative);
+});
+
+app.post('/api/environment/initiatives/:id/upvote', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const initiative = environmentInitiatives.find(i => i.id === id);
+  if (!initiative) {
+    return res.status(404).json({ error: 'Environment initiative not found' });
+  }
+
+  initiative.upvotes += 1;
+  res.json({ success: true, upvotes: initiative.upvotes, initiative });
+});
+
+app.get('/api/environment/pledges', (req: Request, res: Response) => {
+  const totalCo2Saved = ecoPledges.reduce((acc, p) => acc + p.co2ReductionEst, 0);
+  res.json({
+    totalPledges: ecoPledges.length,
+    totalCo2ReductionKg: totalCo2Saved,
+    recentPledges: ecoPledges
+  });
+});
+
+app.post('/api/environment/pledges', (req: Request, res: Response) => {
+  const { name, country, pledgeType, co2ReductionEst } = req.body;
+  if (!name || !country || !pledgeType) {
+    return res.status(400).json({ error: 'Missing required fields: name, country, pledgeType' });
+  }
+
+  const newPledge: EcoPledge = {
+    id: 'p-' + generateId(),
+    name: name.trim(),
+    country: country.trim(),
+    pledgeType: pledgeType.trim(),
+    co2ReductionEst: typeof co2ReductionEst === 'number' && co2ReductionEst > 0 ? co2ReductionEst : 500,
+    createdAt: new Date().toISOString()
+  };
+
+  ecoPledges.unshift(newPledge);
+  const totalCo2Saved = ecoPledges.reduce((acc, p) => acc + p.co2ReductionEst, 0);
+
+  res.status(201).json({
+    message: 'Eco-pledge recorded successfully',
+    pledge: newPledge,
+    totalPledges: ecoPledges.length,
+    totalCo2ReductionKg: totalCo2Saved
+  });
 });
 
 // 6. World Bank Open Data APIs
