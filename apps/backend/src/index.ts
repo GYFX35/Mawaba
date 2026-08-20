@@ -18,11 +18,38 @@ interface Comment {
 interface Idea {
   id: string;
   title: string;
-  category: 'Health' | 'Education' | 'Business' | 'Development';
+  category: 'Health' | 'Education' | 'Business' | 'Development' | 'Climate';
   description: string;
   author: string;
   likes: number;
   comments: Comment[];
+  createdAt: string;
+}
+
+interface ClimateSolution {
+  id: string;
+  title: string;
+  category: 'Renewable Energy' | 'Carbon Capture' | 'Sustainable Agriculture' | 'Circular Economy' | 'Ocean & Forest' | 'Smart Mobility';
+  description: string;
+  impactScore: number; // 1-100
+  reductionPotentialGt: number; // Gigatons CO2 equivalent per year globally
+  implementationCost: 'Low' | 'Medium' | 'High' | 'Capital Intensive';
+  scalability: 'Local' | 'Regional' | 'Global';
+  keyTechnologies: string[];
+  sdgGoals: number[];
+  caseStudy: string;
+}
+
+interface ClimateInitiative {
+  id: string;
+  title: string;
+  location: string;
+  category: string;
+  description: string;
+  organizer: string;
+  targetImpact: string;
+  supporters: number;
+  status: 'Proposed' | 'Active' | 'Completed';
   createdAt: string;
 }
 
@@ -48,6 +75,115 @@ interface User {
   password: string; // Stored securely/simulated in-memory
   createdAt: string;
 }
+
+// Pre-populated Climate Data
+let climateSolutions: ClimateSolution[] = [
+  {
+    id: 'cs1',
+    title: 'Utility-Scale Microgrid Solar & Battery Storage',
+    category: 'Renewable Energy',
+    description: 'Deploying modular solar photovoltaic arrays coupled with lithium-iron-phosphate (LFP) battery energy storage systems (BESS) for off-grid communities and resilient urban grids.',
+    impactScore: 95,
+    reductionPotentialGt: 7.2,
+    implementationCost: 'Medium',
+    scalability: 'Global',
+    keyTechnologies: ['Borehole Thermal Storage', 'Perovskite Solar Cells', 'Smart Inverters'],
+    sdgGoals: [7, 11, 13],
+    caseStudy: 'Implemented across rural electrification projects in East Africa and island networks in the South Pacific.'
+  },
+  {
+    id: 'cs2',
+    title: 'Direct Air Capture (DAC) & Mineralization',
+    category: 'Carbon Capture',
+    description: 'Extracting ambient CO2 directly from atmosphere using solid-sorbent technology and permanently locking it into basaltic rock Formations as carbonate minerals.',
+    impactScore: 88,
+    reductionPotentialGt: 5.5,
+    implementationCost: 'Capital Intensive',
+    scalability: 'Global',
+    keyTechnologies: ['Solid Sorbent Filters', 'Geothermal Energy Extraction', 'Carbonation Pumps'],
+    sdgGoals: [9, 12, 13],
+    caseStudy: 'Mammoth plant operations in Iceland capturing and mineralizing 36,000 tons of CO2 annually.'
+  },
+  {
+    id: 'cs3',
+    title: 'Regenerative Agriculture & Biochar Soil Enhancement',
+    category: 'Sustainable Agriculture',
+    description: 'Combining minimal tillage, cover cropping, and pyrolyzed agricultural biomass (biochar) to restore topsoil fertility while sequestering carbon for centuries.',
+    impactScore: 91,
+    reductionPotentialGt: 4.8,
+    implementationCost: 'Low',
+    scalability: 'Global',
+    keyTechnologies: ['Biomass Pyrolysis Reactors', 'Soil Carbon Remote Sensing', 'No-Till Seeders'],
+    sdgGoals: [2, 13, 15],
+    caseStudy: 'Smallholder farming collectives in Latin America improving yield by 25% while building persistent soil carbon.'
+  },
+  {
+    id: 'cs4',
+    title: 'Closed-Loop Plastic Recycling & Bio-Polymers',
+    category: 'Circular Economy',
+    description: 'Replacing fossil-based plastics with enzymatic depolymerization recycling and algae-derived bio-degradable polymer alternatives.',
+    impactScore: 84,
+    reductionPotentialGt: 3.2,
+    implementationCost: 'Medium',
+    scalability: 'Regional',
+    keyTechnologies: ['Enzymatic Recycling', 'Microalgae Cultivation', 'Near-Infrared Sorting'],
+    sdgGoals: [9, 12, 14],
+    caseStudy: 'Automated municipal sorting plants converting mixed waste plastics back into virgin-grade resin.'
+  },
+  {
+    id: 'cs5',
+    title: 'Blue Carbon & Coastal Mangrove Restoration',
+    category: 'Ocean & Forest',
+    description: 'Protecting and restoring mangrove, seagrass, and salt marsh ecosystems which sequester up to 10x more carbon per hectare than terrestrial tropical rainforests.',
+    impactScore: 96,
+    reductionPotentialGt: 3.9,
+    implementationCost: 'Low',
+    scalability: 'Global',
+    keyTechnologies: ['Drone Aerial Seeding', 'Satellite Bathymetry', 'Hydrodynamic Sensors'],
+    sdgGoals: [13, 14, 15],
+    caseStudy: 'Sundarbans mangrove restoration project safeguarding coastal defense for over 2 million residents.'
+  },
+  {
+    id: 'cs6',
+    title: 'Fleet Electrification & AI Route Optimization',
+    category: 'Smart Mobility',
+    description: 'Replacing diesel municipal transit and last-mile commercial delivery fleets with zero-emission electric vehicles guided by real-time AI grid load balancing.',
+    impactScore: 89,
+    reductionPotentialGt: 4.1,
+    implementationCost: 'High',
+    scalability: 'Global',
+    keyTechnologies: ['V2G (Vehicle-to-Grid)', 'Ultra-Fast DC Charging', 'Predictive AI Routing'],
+    sdgGoals: [7, 11, 13],
+    caseStudy: 'Shenzhen municipal bus fleet transition fully converting 16,000+ public transit vehicles to clean electric power.'
+  }
+];
+
+let climateInitiatives: ClimateInitiative[] = [
+  {
+    id: 'ci1',
+    title: 'Community Urban Forest Canopy expansion',
+    location: 'Nairobi, Kenya',
+    category: 'Ocean & Forest',
+    description: 'Planting 50,000 native tree saplings across urban school grounds and riverbanks to mitigate urban heat islands.',
+    organizer: 'Green Canopy Initiative',
+    targetImpact: '500 Tons CO2/yr & 3°C Local Cooling',
+    supporters: 342,
+    status: 'Active',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString()
+  },
+  {
+    id: 'ci2',
+    title: 'Solar Power Co-op for Smallholder Farmers',
+    location: 'Oaxaca, Mexico',
+    category: 'Renewable Energy',
+    description: 'Installing solar-powered water irrigation pumps to replace diesel engines for 120 agricultural families.',
+    organizer: 'Sol de la Tierra',
+    targetImpact: '180 Tons CO2/yr',
+    supporters: 215,
+    status: 'Proposed',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
+  }
+];
 
 // Pre-populated Data
 let users: User[] = [
@@ -91,6 +227,18 @@ let ideas: Idea[] = [
     likes: 8,
     comments: [],
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
+  },
+  {
+    id: '4',
+    title: 'Floating Solar Arrays on Water Reservoirs',
+    category: 'Climate',
+    description: 'Deploying dual-purpose floating photovoltaic panels on hydroelectric and municipal reservoirs to prevent water evaporation while generating clean power.',
+    author: 'Dr. Katherine Hayhoe',
+    likes: 31,
+    comments: [
+      { id: '102', author: 'Renewable Fan', text: 'Reduces algae growth while boosting panel efficiency due to water cooling!', createdAt: new Date().toISOString() }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
   }
 ];
 
@@ -187,6 +335,109 @@ app.get('/api/users/me', (req: Request, res: Response) => {
 
   const { password: _, ...userWithoutPassword } = user;
   res.json({ user: userWithoutPassword });
+});
+
+// --- CLIMATE CHANGE SOLUTIONS APIS ---
+
+app.get('/api/climate/solutions', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...climateSolutions];
+
+  if (category) {
+    results = results.filter(s => s.category.toLowerCase() === String(category).toLowerCase());
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      s.description.toLowerCase().includes(q) ||
+      s.keyTechnologies.some(tech => tech.toLowerCase().includes(q))
+    );
+  }
+
+  res.json({
+    total: results.length,
+    solutions: results
+  });
+});
+
+app.post('/api/climate/calculator', (req: Request, res: Response) => {
+  const { renewablePercentage = 0, solarCapacityKw = 0, treeCount = 0, evKmPerYear = 0, wasteRecycledKg = 0 } = req.body;
+
+  const solarCo2Saved = (Number(solarCapacityKw) || 0) * 1200 * 0.85; // ~1200 kWh/kW/yr * 0.85 kg CO2/kWh
+  const treeCo2Saved = (Number(treeCount) || 0) * 22; // ~22 kg CO2 per mature tree per yr
+  const evCo2Saved = ((Number(evKmPerYear) || 0) / 100) * 12; // ~12 kg CO2 saved per 100km over ICE vehicle
+  const wasteCo2Saved = (Number(wasteRecycledKg) || 0) * 1.5; // ~1.5 kg CO2 saved per kg recycled
+  const gridCo2Saved = ((Number(renewablePercentage) || 0) / 100) * 3500; // Average household 3500 kg CO2/yr offset
+
+  const totalCo2SavedKg = Math.round(gridCo2Saved + solarCo2Saved + treeCo2Saved + evCo2Saved + wasteCo2Saved);
+  const totalCo2SavedTons = +(totalCo2SavedKg / 1000).toFixed(2);
+
+  const equivalentTreesPlanted = Math.round(totalCo2SavedKg / 22);
+  const equivalentCarsOffRoad = +(totalCo2SavedKg / 4600).toFixed(1); // Avg passenger vehicle = 4,600 kg CO2/yr
+
+  let impactGrade = 'C';
+  if (totalCo2SavedKg > 10000) impactGrade = 'A+';
+  else if (totalCo2SavedKg > 5000) impactGrade = 'A';
+  else if (totalCo2SavedKg > 2000) impactGrade = 'B+';
+  else if (totalCo2SavedKg > 800) impactGrade = 'B';
+
+  res.json({
+    inputs: { renewablePercentage, solarCapacityKw, treeCount, evKmPerYear, wasteRecycledKg },
+    results: {
+      totalCo2SavedKg,
+      totalCo2SavedTons,
+      equivalentTreesPlanted,
+      equivalentCarsOffRoad,
+      impactGrade,
+      breakdown: {
+        gridCo2SavedKg: Math.round(gridCo2Saved),
+        solarCo2SavedKg: Math.round(solarCo2Saved),
+        treeCo2SavedKg: Math.round(treeCo2Saved),
+        evCo2SavedKg: Math.round(evCo2Saved),
+        wasteCo2SavedKg: Math.round(wasteCo2Saved)
+      }
+    }
+  });
+});
+
+app.get('/api/climate/initiatives', (req: Request, res: Response) => {
+  res.json(climateInitiatives);
+});
+
+app.post('/api/climate/initiatives', (req: Request, res: Response) => {
+  const { title, location, category, description, organizer, targetImpact } = req.body;
+  if (!title || !location || !category || !description || !organizer) {
+    return res.status(400).json({ error: 'Missing required initiative fields: title, location, category, description, organizer' });
+  }
+
+  const newInitiative: ClimateInitiative = {
+    id: generateId(),
+    title,
+    location,
+    category,
+    description,
+    organizer,
+    targetImpact: targetImpact || 'Under Assessment',
+    supporters: 1,
+    status: 'Proposed',
+    createdAt: new Date().toISOString()
+  };
+
+  climateInitiatives.unshift(newInitiative);
+  res.status(201).json(newInitiative);
+});
+
+app.post('/api/climate/initiatives/:id/support', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const initiative = climateInitiatives.find(i => i.id === id);
+  if (!initiative) {
+    return res.status(404).json({ error: 'Initiative not found' });
+  }
+
+  initiative.supporters += 1;
+  res.json({ success: true, supporters: initiative.supporters });
 });
 
 // 1. Health Status API
