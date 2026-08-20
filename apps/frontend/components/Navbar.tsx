@@ -31,6 +31,7 @@ const Navbar = () => {
     { name: 'About', href: '/about' },
     { name: 'Climate Solutions', href: '/climate' },
     { name: 'Education', href: '/education' },
+    { name: 'Environment', href: '/environment' },
     { name: 'Services', href: '/services' },
     { name: 'Integrations', href: '/integrations' },
     { name: 'World Bank', href: '/worldbank' },

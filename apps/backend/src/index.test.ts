@@ -124,6 +124,64 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('Environment Protection Endpoints', () => {
+    it('GET /api/environment/initiatives should return list of initiatives', async () => {
+      const response = await request(app).get('/api/environment/initiatives');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('category');
+    });
+
+    it('POST /api/environment/initiatives should create new initiative', async () => {
+      const newInitiative = {
+        title: 'Community Tree Nursery',
+        category: 'Reforestation',
+        description: 'Establishing local native plant nurseries to reforest degraded watersheds.',
+        location: 'Lima, Peru',
+        impact: '10,000 Saplings Produced/Yr',
+        author: 'Andes Green Collective'
+      };
+
+      const response = await request(app).post('/api/environment/initiatives').send(newInitiative);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.title).toBe('Community Tree Nursery');
+      expect(response.body.upvotes).toBe(1);
+    });
+
+    it('POST /api/environment/initiatives/:id/upvote should increment upvote count', async () => {
+      const response = await request(app).post('/api/environment/initiatives/env-1/upvote');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.upvotes).toBeGreaterThan(0);
+    });
+
+    it('GET /api/environment/pledges should return pledge statistics', async () => {
+      const response = await request(app).get('/api/environment/pledges');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('totalPledges');
+      expect(response.body).toHaveProperty('totalCo2ReductionKg');
+      expect(Array.isArray(response.body.recentPledges)).toBe(true);
+    });
+
+    it('POST /api/environment/pledges should record new pledge', async () => {
+      const pledge = {
+        name: 'Elena Rostova',
+        country: 'Estonia',
+        pledgeType: '100% Electric Transit & Bike Commuting',
+        co2ReductionEst: 1500
+      };
+
+      const response = await request(app).post('/api/environment/pledges').send(pledge);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toBe('Eco-pledge recorded successfully');
+      expect(response.body.pledge.name).toBe('Elena Rostova');
+      expect(response.body.totalPledges).toBeGreaterThan(0);
+    });
+  });
+
   describe('POST /api/ai/tutor', () => {
     it('should return 400 if required fields are missing', async () => {
       const response = await request(app).post('/api/ai/tutor').send({ question: 'What is physics?' });
