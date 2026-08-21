@@ -29,6 +29,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
+    { name: 'Culture', href: '/culture' },
     { name: 'Climate Solutions', href: '/climate' },
     { name: 'Education', href: '/education' },
     { name: 'Chat & Forum', href: '/chat' },

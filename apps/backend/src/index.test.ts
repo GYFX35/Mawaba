@@ -430,4 +430,64 @@ describe('Backend API Endpoints', () => {
       expect(response.body.reply.video).toBe(replyData.video);
     });
   });
+
+  describe('Global Culture APIs', () => {
+    it('GET /api/culture/items should return curated culture items', async () => {
+      const response = await request(app).get('/api/culture/items');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('region');
+      expect(response.body[0]).toHaveProperty('country');
+      expect(response.body[0]).toHaveProperty('category');
+    });
+
+    it('GET /api/culture/items should support filtering by region and category', async () => {
+      const response = await request(app).get('/api/culture/items?region=Africa&category=Music%20%26%20Dance');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.every((item: any) => item.region === 'Africa')).toBe(true);
+    });
+
+    it('POST /api/culture/items should create new cultural publication with photos and video', async () => {
+      const newCulturePost = {
+        title: 'Diwali Festival of Lights Traditions',
+        country: 'India',
+        region: 'Asia-Pacific',
+        category: 'Festival',
+        description: 'Diwali symbolizes the spiritual victory of light over darkness. Families illuminate oil lamps (diyas), decorate entrances with colorful rangoli patterns, and share traditional sweets.',
+        author: 'Priya Sharma',
+        image: 'https://images.unsplash.com/photo-1576402187878-974f70c890a5',
+        video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
+      };
+
+      const response = await request(app).post('/api/culture/items').send(newCulturePost);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.title).toBe('Diwali Festival of Lights Traditions');
+      expect(response.body.likes).toBe(0);
+      expect(response.body.video).toBe(newCulturePost.video);
+    });
+
+    it('POST /api/culture/items/:id/like should increment likes', async () => {
+      const response = await request(app).post('/api/culture/items/cult-1/like');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.likes).toBeGreaterThan(64);
+    });
+
+    it('POST /api/culture/items/:id/comments should add comment to culture item', async () => {
+      const commentData = {
+        author: 'Kwame',
+        text: 'The jump height during the Adumu dance is truly incredible!'
+      };
+
+      const response = await request(app).post('/api/culture/items/cult-1/comments').send(commentData);
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.comment.author).toBe('Kwame');
+      expect(response.body.comment.text).toBe(commentData.text);
+    });
+  });
 });
