@@ -26,6 +26,7 @@ const Footer = () => {
             <h3 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">Platform</h3>
             <ul className="space-y-3 text-sm">
               <li><Link href="/about" className="hover:text-white transition-colors">About Us</Link></li>
+              <li><Link href="/culture" className="hover:text-white transition-colors">Global Culture & Traditions</Link></li>
               <li><Link href="/climate" className="hover:text-white transition-colors">Climate Solutions</Link></li>
               <li><Link href="/services" className="hover:text-white transition-colors">What We Offer</Link></li>
               <li><Link href="/education" className="hover:text-white transition-colors">Global Education</Link></li>

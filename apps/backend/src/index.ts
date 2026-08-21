@@ -130,6 +130,28 @@ interface ForumTopicItem {
   createdAt: string;
 }
 
+interface CultureComment {
+  id: string;
+  author: string;
+  text: string;
+  createdAt: string;
+}
+
+interface CultureItem {
+  id: string;
+  title: string;
+  country: string;
+  region: 'Africa' | 'Asia-Pacific' | 'Europe' | 'Americas' | 'Middle East' | 'Oceania';
+  category: 'Tradition' | 'Festival' | 'Music & Dance' | 'Culinary Heritage' | 'Clothing & Crafts' | 'History & Folklore';
+  description: string;
+  author: string;
+  image?: string;
+  video?: string;
+  likes: number;
+  comments: CultureComment[];
+  createdAt: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -356,6 +378,83 @@ let environmentInitiatives: EnvironmentInitiative[] = [
     author: 'Green Canopy Initiative',
     upvotes: 31,
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
+  }
+];
+
+let cultureItems: CultureItem[] = [
+  {
+    id: 'cult-1',
+    title: 'Maasai Adumu Warrior Dance & Heritage',
+    country: 'Kenya & Tanzania',
+    region: 'Africa',
+    category: 'Music & Dance',
+    description: 'The iconic Adumu jumping dance performed during Eunoto coming-of-age ceremonies. Maasai warriors gather in circles singing rhythmic chants while jumping gracefully to exhibit endurance and strength.',
+    author: 'Joseph Ole Kipeno',
+    image: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80',
+    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    likes: 64,
+    comments: [
+      { id: 'cc-1', author: 'Amina Diallo', text: 'Preserving African oral traditions and ceremonial dances is essential for global heritage!', createdAt: new Date(Date.now() - 3600000 * 5).toISOString() }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
+  },
+  {
+    id: 'cult-2',
+    title: 'Gion Matsuri Ancient Float Procession',
+    country: 'Japan',
+    region: 'Asia-Pacific',
+    category: 'Festival',
+    description: 'Celebrated since 869 AD in Kyoto, Gion Matsuri features massive Yamaboko floats meticulously crafted without a single nail, adorned with centuries-old tapestries and traditional Gion-bayashi music.',
+    author: 'Kenji Takahashi',
+    image: 'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?auto=format&fit=crop&w=800&q=80',
+    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    likes: 82,
+    comments: [
+      { id: 'cc-2', author: 'Yuki Tanaka', text: 'The woodwork craftsmanship and float decorations are unmatched.', createdAt: new Date(Date.now() - 3600000 * 12).toISOString() }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
+  },
+  {
+    id: 'cult-3',
+    title: 'Inti Raymi Sun Festival Ceremony',
+    country: 'Peru',
+    region: 'Americas',
+    category: 'Tradition',
+    description: 'An ancient Inca solstice ceremony held at Sacsayhuamán in Cusco. Re-enactors honor Inti (the Sun God) with traditional Quechua music, golden costumes, and ancestral offerings.',
+    author: 'Camila Quispe',
+    image: 'https://images.unsplash.com/photo-1526392060635-9d6019884377?auto=format&fit=crop&w=800&q=80',
+    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    likes: 57,
+    comments: [],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString()
+  },
+  {
+    id: 'cult-4',
+    title: 'Dabke Folk Dance & Levantine Rhythms',
+    country: 'Lebanon & Palestine',
+    region: 'Middle East',
+    category: 'Music & Dance',
+    description: 'Dabke is a traditional Levantine line dance uniting communities during weddings, harvests, and celebrations. Dancers stamp synchronization guided by the Lawweeh leader and rhythmic Mijwiz flutes.',
+    author: 'Tariq Mansour',
+    image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?auto=format&fit=crop&w=800&q=80',
+    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnTheLakeside.mp4',
+    likes: 71,
+    comments: [],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 1).toISOString()
+  },
+  {
+    id: 'cult-5',
+    title: 'Venetian Carnival Mask Handcrafting',
+    country: 'Italy',
+    region: 'Europe',
+    category: 'Clothing & Crafts',
+    description: 'Master artisans in Venice craft intricate papier-mâché masks decorated with gold leaf, feathers, and hand-painted Baroque designs, continuing a tradition that dates back to the 12th century.',
+    author: 'Matteo Rossi',
+    image: 'https://images.unsplash.com/photo-1514890547357-a9ee288728e0?auto=format&fit=crop&w=800&q=80',
+    video: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+    likes: 49,
+    comments: [],
+    createdAt: new Date(Date.now() - 3600000 * 18).toISOString()
   }
 ];
 
@@ -920,6 +1019,96 @@ app.post('/api/forum/topics/:id/replies', (req: Request, res: Response) => {
 
   topic.replies.push(newReply);
   res.status(201).json({ success: true, reply: newReply, topic });
+});
+
+// 9. Global Culture Endpoints
+app.get('/api/culture/items', (req: Request, res: Response) => {
+  const { region, category, search } = req.query;
+  let results = [...cultureItems];
+
+  if (region && region !== 'All') {
+    results = results.filter(
+      item => item.region.toLowerCase() === String(region).toLowerCase()
+    );
+  }
+
+  if (category && category !== 'All') {
+    results = results.filter(
+      item => item.category.toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      item =>
+        item.title.toLowerCase().includes(q) ||
+        item.description.toLowerCase().includes(q) ||
+        item.country.toLowerCase().includes(q) ||
+        item.author.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/culture/items', (req: Request, res: Response) => {
+  const { title, country, region, category, description, author, image, video } = req.body;
+  if (!title || !country || !region || !category || !description || !author) {
+    return res.status(400).json({ error: 'Missing required fields: title, country, region, category, description, author' });
+  }
+
+  const newItem: CultureItem = {
+    id: 'cult-' + generateId(),
+    title: title.trim(),
+    country: country.trim(),
+    region,
+    category,
+    description: description.trim(),
+    author: author.trim(),
+    image: image || undefined,
+    video: video || undefined,
+    likes: 0,
+    comments: [],
+    createdAt: new Date().toISOString()
+  };
+
+  cultureItems.unshift(newItem);
+  res.status(201).json(newItem);
+});
+
+app.post('/api/culture/items/:id/like', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const item = cultureItems.find(c => c.id === id);
+  if (!item) {
+    return res.status(404).json({ error: 'Culture item not found' });
+  }
+
+  item.likes += 1;
+  res.json({ success: true, likes: item.likes, item });
+});
+
+app.post('/api/culture/items/:id/comments', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { author, text } = req.body;
+  if (!author || !text) {
+    return res.status(400).json({ error: 'Author and comment text are required' });
+  }
+
+  const item = cultureItems.find(c => c.id === id);
+  if (!item) {
+    return res.status(404).json({ error: 'Culture item not found' });
+  }
+
+  const newComment: CultureComment = {
+    id: 'cc-' + generateId(),
+    author: author.trim(),
+    text: text.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  item.comments.push(newComment);
+  res.status(201).json({ success: true, comment: newComment, item });
 });
 
 // 6. World Bank Open Data APIs
