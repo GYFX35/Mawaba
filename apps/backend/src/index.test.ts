@@ -355,19 +355,21 @@ describe('Backend API Endpoints', () => {
       expect(response.body.every((m: any) => m.room.toLowerCase().includes('stem'))).toBe(true);
     });
 
-    it('POST /api/chat/messages should reject missing username or message', async () => {
+    it('POST /api/chat/messages should reject missing username and message/media', async () => {
       const response = await request(app).post('/api/chat/messages').send({ username: 'Alice' });
       expect(response.status).toBe(400);
-      expect(response.body.error).toBe('Username and message are required');
+      expect(response.body.error).toBe('Username and message or media attachment are required');
     });
 
-    it('POST /api/chat/messages should publish a new message with optional camera image attachment', async () => {
+    it('POST /api/chat/messages should publish a new message with optional camera image and video attachment', async () => {
       const sampleCameraSnapshot = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+      const sampleVideo = 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAA==';
       const newMsg = {
         username: 'Elena',
-        message: 'Live photo snapshot from our lab test!',
+        message: 'Live video and photo snapshot from our lab test!',
         room: 'STEM & AI',
-        image: sampleCameraSnapshot
+        image: sampleCameraSnapshot,
+        video: sampleVideo
       };
 
       const response = await request(app).post('/api/chat/messages').send(newMsg);
@@ -375,6 +377,7 @@ describe('Backend API Endpoints', () => {
       expect(response.body).toHaveProperty('id');
       expect(response.body.username).toBe('Elena');
       expect(response.body.image).toBe(sampleCameraSnapshot);
+      expect(response.body.video).toBe(sampleVideo);
     });
   });
 
@@ -388,19 +391,21 @@ describe('Backend API Endpoints', () => {
       expect(response.body[0]).toHaveProperty('category');
     });
 
-    it('POST /api/forum/topics should create a new topic with camera image support', async () => {
+    it('POST /api/forum/topics should create a new topic with camera image and video support', async () => {
       const topicData = {
         title: 'Capturing Solar Panel Degradation with Mobile Vision',
         category: 'Climate & Earth',
         content: 'We can utilize standard phone cameras to detect solar surface defects via AI vision models.',
         author: 'Dr. Solar',
-        image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ'
+        image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ',
+        video: 'data:video/webm;base64,GkXfo59ChoEBQveBAAGU'
       };
 
       const response = await request(app).post('/api/forum/topics').send(topicData);
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
       expect(response.body.title).toBe('Capturing Solar Panel Degradation with Mobile Vision');
+      expect(response.body.video).toBe('data:video/webm;base64,GkXfo59ChoEBQveBAAGU');
       expect(response.body.likes).toBe(0);
     });
 
@@ -411,16 +416,18 @@ describe('Backend API Endpoints', () => {
       expect(response.body.likes).toBeGreaterThan(18);
     });
 
-    it('POST /api/forum/topics/:id/replies should post a reply to a topic', async () => {
+    it('POST /api/forum/topics/:id/replies should post a reply to a topic with video support', async () => {
       const replyData = {
         author: 'Student Bob',
-        text: 'Fascinating topic! Can we test this with basic WebRTC video feeds?'
+        text: 'Fascinating topic! Can we test this with basic WebRTC video feeds?',
+        video: 'data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28ybXA0MQAAAA=='
       };
 
       const response = await request(app).post('/api/forum/topics/ft-1/replies').send(replyData);
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
       expect(response.body.reply.author).toBe('Student Bob');
+      expect(response.body.reply.video).toBe(replyData.video);
     });
   });
 });
