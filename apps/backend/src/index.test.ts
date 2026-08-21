@@ -336,4 +336,91 @@ describe('Backend API Endpoints', () => {
       expect(supportRes.body.supporters).toBe(2);
     });
   });
+
+  describe('Global Chat APIs', () => {
+    it('GET /api/chat/messages should return list of global chat messages', async () => {
+      const response = await request(app).get('/api/chat/messages');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('username');
+      expect(response.body[0]).toHaveProperty('message');
+      expect(response.body[0]).toHaveProperty('room');
+    });
+
+    it('GET /api/chat/messages?room=STEM%20%26%20AI should filter messages by room', async () => {
+      const response = await request(app).get('/api/chat/messages?room=STEM%20%26%20AI');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.every((m: any) => m.room.toLowerCase().includes('stem'))).toBe(true);
+    });
+
+    it('POST /api/chat/messages should reject missing username or message', async () => {
+      const response = await request(app).post('/api/chat/messages').send({ username: 'Alice' });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Username and message are required');
+    });
+
+    it('POST /api/chat/messages should publish a new message with optional camera image attachment', async () => {
+      const sampleCameraSnapshot = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+      const newMsg = {
+        username: 'Elena',
+        message: 'Live photo snapshot from our lab test!',
+        room: 'STEM & AI',
+        image: sampleCameraSnapshot
+      };
+
+      const response = await request(app).post('/api/chat/messages').send(newMsg);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.username).toBe('Elena');
+      expect(response.body.image).toBe(sampleCameraSnapshot);
+    });
+  });
+
+  describe('Community Forum APIs', () => {
+    it('GET /api/forum/topics should return list of topics', async () => {
+      const response = await request(app).get('/api/forum/topics');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('category');
+    });
+
+    it('POST /api/forum/topics should create a new topic with camera image support', async () => {
+      const topicData = {
+        title: 'Capturing Solar Panel Degradation with Mobile Vision',
+        category: 'Climate & Earth',
+        content: 'We can utilize standard phone cameras to detect solar surface defects via AI vision models.',
+        author: 'Dr. Solar',
+        image: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJ'
+      };
+
+      const response = await request(app).post('/api/forum/topics').send(topicData);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.title).toBe('Capturing Solar Panel Degradation with Mobile Vision');
+      expect(response.body.likes).toBe(0);
+    });
+
+    it('POST /api/forum/topics/:id/like should increment topic likes', async () => {
+      const response = await request(app).post('/api/forum/topics/ft-1/like');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.likes).toBeGreaterThan(18);
+    });
+
+    it('POST /api/forum/topics/:id/replies should post a reply to a topic', async () => {
+      const replyData = {
+        author: 'Student Bob',
+        text: 'Fascinating topic! Can we test this with basic WebRTC video feeds?'
+      };
+
+      const response = await request(app).post('/api/forum/topics/ft-1/replies').send(replyData);
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.reply.author).toBe('Student Bob');
+    });
+  });
 });
