@@ -103,6 +103,7 @@ interface ChatMessageItem {
   message: string;
   room: string;
   image?: string;
+  video?: string;
   avatar?: string;
   timestamp: string;
 }
@@ -112,6 +113,7 @@ interface ForumReplyItem {
   author: string;
   text: string;
   image?: string;
+  video?: string;
   createdAt: string;
 }
 
@@ -122,6 +124,7 @@ interface ForumTopicItem {
   content: string;
   author: string;
   image?: string;
+  video?: string;
   likes: number;
   replies: ForumReplyItem[];
   createdAt: string;
@@ -816,17 +819,18 @@ app.get('/api/chat/messages', (req: Request, res: Response) => {
 });
 
 app.post('/api/chat/messages', (req: Request, res: Response) => {
-  const { username, message, room, image, avatar } = req.body;
-  if (!username || !message) {
-    return res.status(400).json({ error: 'Username and message are required' });
+  const { username, message, room, image, video, avatar } = req.body;
+  if (!username || (!message && !image && !video)) {
+    return res.status(400).json({ error: 'Username and message or media attachment are required' });
   }
 
   const newMessage: ChatMessageItem = {
     id: 'c-' + generateId(),
     username: username.trim(),
-    message: message.trim(),
+    message: message ? message.trim() : '',
     room: room ? room.trim() : 'General',
     image: image || undefined,
+    video: video || undefined,
     avatar: avatar || undefined,
     timestamp: new Date().toISOString()
   };
@@ -860,7 +864,7 @@ app.get('/api/forum/topics', (req: Request, res: Response) => {
 });
 
 app.post('/api/forum/topics', (req: Request, res: Response) => {
-  const { title, category, content, author, image } = req.body;
+  const { title, category, content, author, image, video } = req.body;
   if (!title || !category || !content || !author) {
     return res.status(400).json({ error: 'Missing required fields: title, category, content, author' });
   }
@@ -872,6 +876,7 @@ app.post('/api/forum/topics', (req: Request, res: Response) => {
     content: content.trim(),
     author: author.trim(),
     image: image || undefined,
+    video: video || undefined,
     likes: 0,
     replies: [],
     createdAt: new Date().toISOString()
@@ -894,9 +899,9 @@ app.post('/api/forum/topics/:id/like', (req: Request, res: Response) => {
 
 app.post('/api/forum/topics/:id/replies', (req: Request, res: Response) => {
   const { id } = req.params;
-  const { author, text, image } = req.body;
-  if (!author || !text) {
-    return res.status(400).json({ error: 'Author and text are required for replies' });
+  const { author, text, image, video } = req.body;
+  if (!author || (!text && !image && !video)) {
+    return res.status(400).json({ error: 'Author and text or media attachment are required for replies' });
   }
 
   const topic = forumTopics.find(t => t.id === id);
@@ -907,8 +912,9 @@ app.post('/api/forum/topics/:id/replies', (req: Request, res: Response) => {
   const newReply: ForumReplyItem = {
     id: 'fr-' + generateId(),
     author: author.trim(),
-    text: text.trim(),
+    text: text ? text.trim() : '',
     image: image || undefined,
+    video: video || undefined,
     createdAt: new Date().toISOString()
   };
 
