@@ -97,6 +97,16 @@ interface User {
   createdAt: string;
 }
 
+interface MailLog {
+  id: string;
+  to: string;
+  subject: string;
+  body: string;
+  type: 'welcome' | 'custom' | 'notification';
+  status: 'sent' | 'queued' | 'failed';
+  sentAt: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -332,8 +342,25 @@ let ecoPledges: EcoPledge[] = [
   { id: 'p-3', name: 'Lucas Rossi', country: 'Brazil', pledgeType: 'Planting 10 Native Trees Annually', co2ReductionEst: 1200, createdAt: new Date(Date.now() - 3600000 * 10).toISOString() }
 ];
 
+let mailLogs: MailLog[] = [];
+
 // Helper to generate IDs
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+// Helper function to simulate dispatching emails & logging them
+const sendEmail = (to: string, subject: string, body: string, type: 'welcome' | 'custom' | 'notification' = 'custom'): MailLog => {
+  const mailLog: MailLog = {
+    id: 'mail-' + generateId(),
+    to,
+    subject,
+    body,
+    type,
+    status: 'sent',
+    sentAt: new Date().toISOString()
+  };
+  mailLogs.unshift(mailLog);
+  return mailLog;
+};
 
 // --- ENDPOINTS ---
 
@@ -369,11 +396,86 @@ app.post('/api/users/register', (req: Request, res: Response) => {
 
   users.push(newUser);
 
+  // Trigger welcome email via Mail service
+  const welcomeSubject = 'Welcome to Mawaba Global Innovation Platform!';
+  const welcomeBody = `Hello ${newUser.name},\n\nThank you for signing up for Mawaba! We are excited to have you join our global community exploring AI tutoring, climate solutions, and open innovation.\n\nBest regards,\nThe Mawaba Team`;
+  const mailDispatch = sendEmail(newUser.email, welcomeSubject, welcomeBody, 'welcome');
+
   // Exclude password from output response
   const { password: _, ...userWithoutPassword } = newUser;
   res.status(201).json({
     message: 'User account created successfully',
-    user: userWithoutPassword
+    user: userWithoutPassword,
+    mailConfirmation: {
+      sent: true,
+      mailId: mailDispatch.id,
+      recipient: mailDispatch.to,
+      subject: mailDispatch.subject
+    }
+  });
+});
+
+// --- MAIL SERVICE APIS ---
+
+app.post('/api/mail/send', (req: Request, res: Response) => {
+  const { to, subject, body, type } = req.body;
+
+  if (!to || !subject || !body) {
+    return res.status(400).json({ error: 'Recipient address (to), subject, and body are required' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(to)) {
+    return res.status(400).json({ error: 'Invalid recipient email address format' });
+  }
+
+  const mailLog = sendEmail(to.trim().toLowerCase(), subject, body, type || 'custom');
+
+  res.status(200).json({
+    message: 'Email dispatched successfully',
+    mail: mailLog
+  });
+});
+
+app.post('/api/mail/welcome', (req: Request, res: Response) => {
+  const { name, email } = req.body;
+
+  if (!email) {
+    return res.status(400).json({ error: 'Recipient email is required' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address format' });
+  }
+
+  const recipientName = name ? name.trim() : 'Valued User';
+  const subject = 'Welcome to Mawaba Global Innovation Platform!';
+  const body = `Hello ${recipientName},\n\nWelcome to Mawaba! Your account has been initialized and you now have access to our AI Tutor, climate change solution engine, and world bank indicators dashboard.\n\nWarm regards,\nTeam Mawaba`;
+
+  const mailLog = sendEmail(email.trim().toLowerCase(), subject, body, 'welcome');
+
+  res.status(200).json({
+    message: 'Welcome email sent successfully',
+    mail: mailLog
+  });
+});
+
+app.get('/api/mail/logs', (req: Request, res: Response) => {
+  const { to, type } = req.query;
+  let filteredLogs = [...mailLogs];
+
+  if (to) {
+    filteredLogs = filteredLogs.filter(m => m.to.toLowerCase() === String(to).toLowerCase());
+  }
+
+  if (type) {
+    filteredLogs = filteredLogs.filter(m => m.type.toLowerCase() === String(type).toLowerCase());
+  }
+
+  res.json({
+    total: filteredLogs.length,
+    logs: filteredLogs
   });
 });
 

@@ -3,7 +3,7 @@ import app from './index';
 
 describe('Backend API Endpoints', () => {
   describe('User Account Endpoints', () => {
-    it('should register a new user successfully', async () => {
+    it('should register a new user successfully and dispatch welcome mail', async () => {
       const response = await request(app).post('/api/users/register').send({
         name: 'Isaac Newton',
         email: 'isaac@gravity.org',
@@ -16,6 +16,9 @@ describe('Backend API Endpoints', () => {
       expect(response.body.user.name).toBe('Isaac Newton');
       expect(response.body.user.email).toBe('isaac@gravity.org');
       expect(response.body.user.password).toBeUndefined(); // Should not return password
+      expect(response.body.mailConfirmation).toBeDefined();
+      expect(response.body.mailConfirmation.sent).toBe(true);
+      expect(response.body.mailConfirmation.recipient).toBe('isaac@gravity.org');
     });
 
     it('should reject registration missing required fields', async () => {
@@ -79,6 +82,54 @@ describe('Backend API Endpoints', () => {
 
       expect(response.status).toBe(401);
       expect(response.body.error).toBe('Invalid email or password');
+    });
+  });
+
+  describe('Mail Service Endpoints', () => {
+    it('POST /api/mail/send should dispatch custom email', async () => {
+      const response = await request(app).post('/api/mail/send').send({
+        to: 'galileo@astronomy.org',
+        subject: 'Telescope Observations',
+        body: 'The moons of Jupiter are visible tonight.'
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Email dispatched successfully');
+      expect(response.body.mail).toBeDefined();
+      expect(response.body.mail.to).toBe('galileo@astronomy.org');
+      expect(response.body.mail.status).toBe('sent');
+    });
+
+    it('POST /api/mail/send should reject invalid email recipient format', async () => {
+      const response = await request(app).post('/api/mail/send').send({
+        to: 'invalid-email-format',
+        subject: 'Test Subject',
+        body: 'Test Body'
+      });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid recipient email address format');
+    });
+
+    it('POST /api/mail/welcome should dispatch welcome email', async () => {
+      const response = await request(app).post('/api/mail/welcome').send({
+        name: 'Nikola Tesla',
+        email: 'nikola@energy.org'
+      });
+
+      expect(response.status).toBe(200);
+      expect(response.body.message).toBe('Welcome email sent successfully');
+      expect(response.body.mail.to).toBe('nikola@energy.org');
+      expect(response.body.mail.type).toBe('welcome');
+    });
+
+    it('GET /api/mail/logs should retrieve email logs', async () => {
+      const response = await request(app).get('/api/mail/logs');
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('total');
+      expect(Array.isArray(response.body.logs)).toBe(true);
+      expect(response.body.logs.length).toBeGreaterThan(0);
     });
   });
 

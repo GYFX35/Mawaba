@@ -18,6 +18,7 @@ const Signup = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [mailSentInfo, setMailSentInfo] = useState<{ sent: boolean; recipient?: string; subject?: string } | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -71,6 +72,9 @@ const Signup = () => {
       }
 
       setSuccess(true);
+      if (data.mailConfirmation) {
+        setMailSentInfo(data.mailConfirmation);
+      }
       // Store current user session in local storage
       if (typeof window !== 'undefined' && data.user) {
         localStorage.setItem('mawaba_user', JSON.stringify(data.user));
@@ -78,7 +82,7 @@ const Signup = () => {
 
       setTimeout(() => {
         router.push('/');
-      }, 2000);
+      }, 2500);
     } catch (err: any) {
       setError(err.message || 'An unexpected error occurred.');
     } finally {
@@ -117,10 +121,25 @@ const Signup = () => {
               </div>
               <h3 className="text-lg font-bold text-green-900">Account Created Successfully!</h3>
               <p className="text-sm text-green-700">
-                Welcome aboard, <span className="font-semibold">{formData.name}</span>! Redirecting you to the home dashboard...
+                Welcome aboard, <span className="font-semibold">{formData.name}</span>!
               </p>
-              <div className="pt-2 flex justify-center">
-                <div className="w-6 h-6 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
+
+              {mailSentInfo && mailSentInfo.sent && (
+                <div className="mt-3 p-3.5 bg-white/80 rounded-xl border border-green-200 text-left text-xs space-y-1 text-gray-700 shadow-sm">
+                  <div className="flex items-center gap-1.5 font-bold text-green-800">
+                    <Mail className="h-4 w-4 text-green-600" />
+                    <span>Welcome Email Dispatched</span>
+                  </div>
+                  <p><span className="font-semibold">To:</span> {mailSentInfo.recipient}</p>
+                  <p><span className="font-semibold">Subject:</span> {mailSentInfo.subject}</p>
+                </div>
+              )}
+
+              <p className="text-xs text-green-600 pt-1">
+                Redirecting you to the home dashboard...
+              </p>
+              <div className="pt-1 flex justify-center">
+                <div className="w-5 h-5 border-2 border-green-600 border-t-transparent rounded-full animate-spin"></div>
               </div>
             </div>
           ) : (
