@@ -97,6 +97,36 @@ interface User {
   createdAt: string;
 }
 
+interface ChatMessageItem {
+  id: string;
+  username: string;
+  message: string;
+  room: string;
+  image?: string;
+  avatar?: string;
+  timestamp: string;
+}
+
+interface ForumReplyItem {
+  id: string;
+  author: string;
+  text: string;
+  image?: string;
+  createdAt: string;
+}
+
+interface ForumTopicItem {
+  id: string;
+  title: string;
+  category: 'General' | 'STEM & AI' | 'Climate & Earth' | 'Business & Trade' | 'Literature & Culture';
+  content: string;
+  author: string;
+  image?: string;
+  likes: number;
+  replies: ForumReplyItem[];
+  createdAt: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -330,6 +360,60 @@ let ecoPledges: EcoPledge[] = [
   { id: 'p-1', name: 'Sophia Chen', country: 'Singapore', pledgeType: 'Switching to 100% Renewable Home Power', co2ReductionEst: 2400, createdAt: new Date(Date.now() - 3600000 * 48).toISOString() },
   { id: 'p-2', name: 'Amina Diallo', country: 'Senegal', pledgeType: 'Zero Single-Use Plastics & Active Composting', co2ReductionEst: 650, createdAt: new Date(Date.now() - 3600000 * 24).toISOString() },
   { id: 'p-3', name: 'Lucas Rossi', country: 'Brazil', pledgeType: 'Planting 10 Native Trees Annually', co2ReductionEst: 1200, createdAt: new Date(Date.now() - 3600000 * 10).toISOString() }
+];
+
+let globalChatMessages: ChatMessageItem[] = [
+  {
+    id: 'c1',
+    username: 'AminaDiallo',
+    message: 'Hello everyone! Sharing a snapshot from our local community clean-up drive.',
+    room: 'Climate & Earth',
+    timestamp: new Date(Date.now() - 3600000 * 2).toISOString()
+  },
+  {
+    id: 'c2',
+    username: 'DevGuru',
+    message: 'Has anyone tested the latest Next.js camera snapshot API in production?',
+    room: 'STEM & AI',
+    timestamp: new Date(Date.now() - 3600000 * 1).toISOString()
+  },
+  {
+    id: 'c3',
+    username: 'GlobalTrader',
+    message: 'Micro-loans for sustainable energy in West Africa are up 35% this quarter!',
+    room: 'Global Trade',
+    timestamp: new Date(Date.now() - 1800000).toISOString()
+  }
+];
+
+let forumTopics: ForumTopicItem[] = [
+  {
+    id: 'ft-1',
+    title: 'Integrating Real-time AI Vision Sensors in Remote Education',
+    category: 'STEM & AI',
+    content: 'Using device cameras to process real-time gestures and physical experiment setups can transform distance learning for physics and chemistry labs.',
+    author: 'Dr. Sarah Connor',
+    likes: 18,
+    replies: [
+      {
+        id: 'fr-1',
+        author: 'Prof. Alan',
+        text: 'Agreed! WebRTC plus canvas frame extraction makes camera access smooth in standard web browsers.',
+        createdAt: new Date(Date.now() - 3600000 * 3).toISOString()
+      }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString()
+  },
+  {
+    id: 'ft-2',
+    title: 'Community Solar and Circular Economy in Emerging Markets',
+    category: 'Climate & Earth',
+    content: 'How can small towns convert agricultural waste into biochar while utilizing off-grid solar microgrids? Share snapshots of your regional projects here!',
+    author: 'Kwame Osei',
+    likes: 27,
+    replies: [],
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
+  }
 ];
 
 // Helper to generate IDs
@@ -717,6 +801,119 @@ app.post('/api/environment/pledges', (req: Request, res: Response) => {
     totalPledges: ecoPledges.length,
     totalCo2ReductionKg: totalCo2Saved
   });
+});
+
+// 7. Global Chat Endpoints
+app.get('/api/chat/messages', (req: Request, res: Response) => {
+  const { room } = req.query;
+  if (room) {
+    const filtered = globalChatMessages.filter(
+      m => m.room.toLowerCase() === String(room).toLowerCase()
+    );
+    return res.json(filtered);
+  }
+  res.json(globalChatMessages);
+});
+
+app.post('/api/chat/messages', (req: Request, res: Response) => {
+  const { username, message, room, image, avatar } = req.body;
+  if (!username || !message) {
+    return res.status(400).json({ error: 'Username and message are required' });
+  }
+
+  const newMessage: ChatMessageItem = {
+    id: 'c-' + generateId(),
+    username: username.trim(),
+    message: message.trim(),
+    room: room ? room.trim() : 'General',
+    image: image || undefined,
+    avatar: avatar || undefined,
+    timestamp: new Date().toISOString()
+  };
+
+  globalChatMessages.push(newMessage);
+  res.status(201).json(newMessage);
+});
+
+// 8. Forum Topic Endpoints
+app.get('/api/forum/topics', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...forumTopics];
+
+  if (category && category !== 'All') {
+    results = results.filter(
+      t => t.category.toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      t =>
+        t.title.toLowerCase().includes(q) ||
+        t.content.toLowerCase().includes(q) ||
+        t.author.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/forum/topics', (req: Request, res: Response) => {
+  const { title, category, content, author, image } = req.body;
+  if (!title || !category || !content || !author) {
+    return res.status(400).json({ error: 'Missing required fields: title, category, content, author' });
+  }
+
+  const newTopic: ForumTopicItem = {
+    id: 'ft-' + generateId(),
+    title: title.trim(),
+    category,
+    content: content.trim(),
+    author: author.trim(),
+    image: image || undefined,
+    likes: 0,
+    replies: [],
+    createdAt: new Date().toISOString()
+  };
+
+  forumTopics.unshift(newTopic);
+  res.status(201).json(newTopic);
+});
+
+app.post('/api/forum/topics/:id/like', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const topic = forumTopics.find(t => t.id === id);
+  if (!topic) {
+    return res.status(404).json({ error: 'Forum topic not found' });
+  }
+
+  topic.likes += 1;
+  res.json({ success: true, likes: topic.likes, topic });
+});
+
+app.post('/api/forum/topics/:id/replies', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { author, text, image } = req.body;
+  if (!author || !text) {
+    return res.status(400).json({ error: 'Author and text are required for replies' });
+  }
+
+  const topic = forumTopics.find(t => t.id === id);
+  if (!topic) {
+    return res.status(404).json({ error: 'Forum topic not found' });
+  }
+
+  const newReply: ForumReplyItem = {
+    id: 'fr-' + generateId(),
+    author: author.trim(),
+    text: text.trim(),
+    image: image || undefined,
+    createdAt: new Date().toISOString()
+  };
+
+  topic.replies.push(newReply);
+  res.status(201).json({ success: true, reply: newReply, topic });
 });
 
 // 6. World Bank Open Data APIs
