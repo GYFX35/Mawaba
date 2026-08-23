@@ -30,6 +30,7 @@ const Navbar = () => {
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'About', href: '/about' },
+    { name: 'Videos Hub', href: '/videos' },
     { name: 'Gaming Hub', href: '/games' },
     { name: 'Culture', href: '/culture' },
     { name: 'Climate Solutions', href: '/climate' },
