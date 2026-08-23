@@ -599,6 +599,98 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('Videos Hub Entertainment APIs', () => {
+    it('GET /api/videos should return list of videos', async () => {
+      const response = await request(app).get('/api/videos');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('videoUrl');
+      expect(response.body[0]).toHaveProperty('likes');
+      expect(response.body[0]).toHaveProperty('shares');
+      expect(response.body[0]).toHaveProperty('downloads');
+    });
+
+    it('GET /api/videos should support category and search filtering', async () => {
+      const response = await request(app).get('/api/videos?category=Gaming%20%26%20Esports');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].title).toContain('Cyberpunk Drone Race');
+    });
+
+    it('GET /api/videos/:id should return video details and increment views', async () => {
+      const initialRes = await request(app).get('/api/videos/vid-1');
+      expect(initialRes.status).toBe(200);
+      const initialViews = initialRes.body.views;
+
+      const response = await request(app).get('/api/videos/vid-1');
+      expect(response.status).toBe(200);
+      expect(response.body.views).toBe(initialViews + 1);
+    });
+
+    it('POST /api/videos/submit should create and publish a new video', async () => {
+      const newVideoPayload = {
+        title: 'Deep Ocean Exploration Vlog',
+        category: 'Culture & Vlogs',
+        description: 'Underwater ROV footage of hydrothermal vents and deep-sea creatures.',
+        author: 'Oceanic Research',
+        videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4'
+      };
+
+      const response = await request(app).post('/api/videos/submit').send(newVideoPayload);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.title).toBe('Deep Ocean Exploration Vlog');
+      expect(response.body.likes).toBe(0);
+      expect(response.body.shares).toBe(0);
+      expect(response.body.downloads).toBe(0);
+    });
+
+    it('POST /api/videos/submit should reject missing required fields', async () => {
+      const response = await request(app).post('/api/videos/submit').send({ title: 'Incomplete Video' });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Missing required video fields');
+    });
+
+    it('POST /api/videos/:id/like should increment likes count', async () => {
+      const response = await request(app).post('/api/videos/vid-1/like');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.likes).toBeGreaterThan(128);
+    });
+
+    it('POST /api/videos/:id/share should increment shares count and return shareable URL', async () => {
+      const response = await request(app).post('/api/videos/vid-1/share');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.shares).toBeGreaterThan(45);
+      expect(response.body.shareUrl).toContain('/videos?id=vid-1');
+    });
+
+    it('POST /api/videos/:id/download should increment downloads count and return download URL', async () => {
+      const response = await request(app).post('/api/videos/vid-1/download');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.downloads).toBeGreaterThan(32);
+      expect(response.body.downloadUrl).toBeDefined();
+    });
+
+    it('POST /api/videos/:id/comments should append comment to video', async () => {
+      const commentPayload = {
+        author: 'Samantha',
+        text: 'Super high quality video playback!'
+      };
+
+      const response = await request(app).post('/api/videos/vid-1/comments').send(commentPayload);
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.comment.author).toBe('Samantha');
+      expect(response.body.comment.text).toBe('Super high quality video playback!');
+    });
+  });
+
   describe('Gaming Feature & Monetization APIs', () => {
     it('GET /api/games should return list of games', async () => {
       const response = await request(app).get('/api/games');

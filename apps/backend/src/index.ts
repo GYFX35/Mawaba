@@ -130,6 +130,29 @@ interface ForumTopicItem {
   createdAt: string;
 }
 
+interface VideoComment {
+  id: string;
+  author: string;
+  text: string;
+  createdAt: string;
+}
+
+interface VideoItem {
+  id: string;
+  title: string;
+  category: 'Entertainment' | 'Gaming & Esports' | 'Music & Dance' | 'Culture & Vlogs' | 'Education & Sci-Fi' | 'Comedy & Shorts';
+  description: string;
+  author: string;
+  thumbnailUrl?: string;
+  videoUrl: string;
+  likes: number;
+  shares: number;
+  downloads: number;
+  views: number;
+  comments: VideoComment[];
+  createdAt: string;
+}
+
 interface CultureComment {
   id: string;
   author: string;
@@ -525,6 +548,73 @@ let gameTransactions: GameTransaction[] = [
     type: 'In-Game Microtransaction',
     paymentMethod: 'Mawaba Pay',
     timestamp: new Date(Date.now() - 3600000 * 12).toISOString()
+  }
+];
+
+let videos: VideoItem[] = [
+  {
+    id: 'vid-1',
+    title: 'Cyberpunk Drone Race Highlights & Stunts',
+    category: 'Gaming & Esports',
+    description: 'High-octane FPV drone racing through neon futuristic skylines. Features incredible acrobatics and close-range maneuvers.',
+    author: 'AeroFlyer Studio',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=800&q=80',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    likes: 128,
+    shares: 45,
+    downloads: 32,
+    views: 1540,
+    comments: [
+      { id: 'vc-1', author: 'Elena R.', text: 'The turns at 0:45 were insane!', createdAt: new Date(Date.now() - 3600000 * 4).toISOString() }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
+  },
+  {
+    id: 'vid-2',
+    title: 'Serengeti Wildlife & Nature Expedition 4K',
+    category: 'Culture & Vlogs',
+    description: 'A breathtaking visual journey documenting majestic lion prides, elephant migrations, and pristine savanna landscapes.',
+    author: 'Savanna Chronicles',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1516426122078-c23e76319801?auto=format&fit=crop&w=800&q=80',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    likes: 215,
+    shares: 89,
+    downloads: 64,
+    views: 3210,
+    comments: [
+      { id: 'vc-2', author: 'Marcus V.', text: 'Pure art. Nature documentation at its finest.', createdAt: new Date(Date.now() - 3600000 * 10).toISOString() }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString()
+  },
+  {
+    id: 'vid-3',
+    title: 'Big Buck Bunny Open Source Animated Short',
+    category: 'Entertainment',
+    description: 'Classic open-source 3D animated comedy featuring Big Buck Bunny and mischievous forest critters.',
+    author: 'Blender Foundation',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?auto=format&fit=crop&w=800&q=80',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    likes: 310,
+    shares: 112,
+    downloads: 98,
+    views: 4890,
+    comments: [],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString()
+  },
+  {
+    id: 'vid-4',
+    title: 'Future Tech & Renewable Solar Highway Showcase',
+    category: 'Education & Sci-Fi',
+    description: 'Exploring how solar paved roads and piezoelectric highways generate clean kinetic electricity for future smart cities.',
+    author: 'CleanTech Lab',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=800&q=80',
+    videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnTheLakeside.mp4',
+    likes: 94,
+    shares: 28,
+    downloads: 19,
+    views: 1120,
+    comments: [],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
   }
 ];
 
@@ -1630,6 +1720,123 @@ app.get('/api/games/monetization/analytics', (req: Request, res: Response) => {
     topEarningGames: [...filteredGames].sort((a, b) => b.totalEarnings - a.totalEarnings).slice(0, 5),
     recentTransactions: filteredTx.slice(0, 10)
   });
+});
+
+// 11. Videos Hub Entertainment Endpoints
+app.get('/api/videos', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...videos];
+
+  if (category && category !== 'All') {
+    results = results.filter(
+      v => v.category.toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      v =>
+        v.title.toLowerCase().includes(q) ||
+        v.description.toLowerCase().includes(q) ||
+        v.author.toLowerCase().includes(q) ||
+        v.category.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.get('/api/videos/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const video = videos.find(v => v.id === id);
+  if (!video) {
+    return res.status(404).json({ error: 'Video not found' });
+  }
+  video.views += 1;
+  res.json(video);
+});
+
+app.post('/api/videos/submit', (req: Request, res: Response) => {
+  const { title, category, description, author, videoUrl, thumbnailUrl } = req.body;
+  if (!title || !category || !description || !author || !videoUrl) {
+    return res.status(400).json({ error: 'Missing required video fields: title, category, description, author, videoUrl' });
+  }
+
+  const newVideo: VideoItem = {
+    id: 'vid-' + generateId(),
+    title: title.trim(),
+    category,
+    description: description.trim(),
+    author: author.trim(),
+    videoUrl: videoUrl.trim(),
+    thumbnailUrl: thumbnailUrl ? thumbnailUrl.trim() : undefined,
+    likes: 0,
+    shares: 0,
+    downloads: 0,
+    views: 1,
+    comments: [],
+    createdAt: new Date().toISOString()
+  };
+
+  videos.unshift(newVideo);
+  res.status(201).json(newVideo);
+});
+
+app.post('/api/videos/:id/like', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const video = videos.find(v => v.id === id);
+  if (!video) {
+    return res.status(404).json({ error: 'Video not found' });
+  }
+
+  video.likes += 1;
+  res.json({ success: true, likes: video.likes, video });
+});
+
+app.post('/api/videos/:id/share', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const video = videos.find(v => v.id === id);
+  if (!video) {
+    return res.status(404).json({ error: 'Video not found' });
+  }
+
+  video.shares += 1;
+  res.json({ success: true, shares: video.shares, shareUrl: `http://localhost:3000/videos?id=${video.id}`, video });
+});
+
+app.post('/api/videos/:id/download', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const video = videos.find(v => v.id === id);
+  if (!video) {
+    return res.status(404).json({ error: 'Video not found' });
+  }
+
+  video.downloads += 1;
+  res.json({ success: true, downloads: video.downloads, downloadUrl: video.videoUrl, video });
+});
+
+app.post('/api/videos/:id/comments', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { author, text } = req.body;
+  if (!author || !text) {
+    return res.status(400).json({ error: 'Author and comment text are required' });
+  }
+
+  const video = videos.find(v => v.id === id);
+  if (!video) {
+    return res.status(404).json({ error: 'Video not found' });
+  }
+
+  const newComment: VideoComment = {
+    id: 'vc-' + generateId(),
+    author: author.trim(),
+    text: text.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  video.comments.push(newComment);
+  res.status(201).json({ success: true, comment: newComment, video });
 });
 
 // 9. Global Culture Endpoints
