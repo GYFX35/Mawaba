@@ -490,4 +490,77 @@ describe('Backend API Endpoints', () => {
       expect(response.body.comment.text).toBe(commentData.text);
     });
   });
+
+  describe('DTC (Direct-to-Consumer) APIs', () => {
+    it('GET /api/dtc/products should return product catalog', async () => {
+      const response = await request(app).get('/api/dtc/products');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('name');
+      expect(response.body[0]).toHaveProperty('price');
+      expect(response.body[0]).toHaveProperty('stock');
+    });
+
+    it('GET /api/dtc/products should support category and search filtering', async () => {
+      const response = await request(app).get('/api/dtc/products?search=Bamboo');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].name).toContain('Bamboo');
+    });
+
+    it('POST /api/dtc/products should create a new DTC product', async () => {
+      const newProduct = {
+        name: 'Organic Cotton Fair-Trade Tote Bag',
+        category: 'Sustainable Living',
+        price: 15.00,
+        stock: 50,
+        description: 'Durable organic cotton tote with reinforced handles.'
+      };
+
+      const response = await request(app).post('/api/dtc/products').send(newProduct);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.name).toBe('Organic Cotton Fair-Trade Tote Bag');
+      expect(response.body.rating).toBe(5.0);
+    });
+
+    it('GET /api/dtc/orders should return list of customer orders', async () => {
+      const response = await request(app).get('/api/dtc/orders');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('customerName');
+      expect(response.body[0]).toHaveProperty('totalAmount');
+    });
+
+    it('POST /api/dtc/orders should create a new DTC customer order and update stock', async () => {
+      const orderPayload = {
+        customerName: 'Marcus Aurelius',
+        customerEmail: 'marcus@stoic.org',
+        shippingAddress: '1 Capitol Hill, Rome',
+        paymentMethod: 'Credit Card',
+        items: [
+          { productId: 'dtc-p1', quantity: 1, price: 28.99 }
+        ]
+      };
+
+      const response = await request(app).post('/api/dtc/orders').send(orderPayload);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.customerName).toBe('Marcus Aurelius');
+      expect(response.body.totalAmount).toBe(28.99);
+      expect(response.body.status).toBe('Processing');
+    });
+
+    it('GET /api/dtc/analytics should return sales and conversion metrics', async () => {
+      const response = await request(app).get('/api/dtc/analytics');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('metrics');
+      expect(response.body.metrics).toHaveProperty('totalRevenue');
+      expect(response.body.metrics).toHaveProperty('conversionRate');
+      expect(Array.isArray(response.body.topProducts)).toBe(true);
+    });
+  });
 });

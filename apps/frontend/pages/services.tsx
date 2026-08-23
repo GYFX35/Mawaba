@@ -33,6 +33,11 @@ const ServicesPage: NextPage = () => {
       title: "Global POS Integration",
       desc: "Seamlessly connect with NCR, Square, Toast, and other global commerce platforms.",
       icon: <Globe className="h-10 w-10 text-blue-600" />
+    },
+    {
+      title: "Direct-to-Consumer (DTC) Tools",
+      desc: "Empower global brands with direct customer sales, inventory catalog management, and conversion analytics.",
+      icon: <Briefcase className="h-10 w-10 text-blue-600" />
     }
   ];
 

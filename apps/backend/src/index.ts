@@ -152,6 +152,37 @@ interface CultureItem {
   createdAt: string;
 }
 
+interface DtcProduct {
+  id: string;
+  name: string;
+  category: string;
+  price: number;
+  stock: number;
+  description: string;
+  image?: string;
+  rating: number;
+  createdAt: string;
+}
+
+interface DtcOrderItem {
+  productId: string;
+  productName: string;
+  quantity: number;
+  price: number;
+}
+
+interface DtcOrder {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  shippingAddress: string;
+  items: DtcOrderItem[];
+  totalAmount: number;
+  status: 'Pending' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  paymentMethod: string;
+  createdAt: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -485,6 +516,72 @@ let globalChatMessages: ChatMessageItem[] = [
     message: 'Micro-loans for sustainable energy in West Africa are up 35% this quarter!',
     room: 'Global Trade',
     timestamp: new Date(Date.now() - 1800000).toISOString()
+  }
+];
+
+let dtcProducts: DtcProduct[] = [
+  {
+    id: 'dtc-p1',
+    name: 'Eco-Friendly Bamboo Hydration Flask',
+    category: 'Sustainable Living',
+    price: 28.99,
+    stock: 145,
+    description: 'Double-walled insulated bamboo tumbler that keeps beverages cold for 24 hours while reducing plastic footprint.',
+    image: 'https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80',
+    rating: 4.8,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString()
+  },
+  {
+    id: 'dtc-p2',
+    name: 'Solar-Powered Portable Charger 20000mAh',
+    category: 'Clean Tech & Electronics',
+    price: 49.50,
+    stock: 82,
+    description: 'High-efficiency monocrystalline solar power bank equipped with fast dual USB-C charging ports for off-grid power.',
+    image: 'https://images.unsplash.com/photo-1593941707882-a5bba14938c7?auto=format&fit=crop&w=800&q=80',
+    rating: 4.9,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString()
+  },
+  {
+    id: 'dtc-p3',
+    name: 'Artisanal Organic Fair-Trade Coffee Beans',
+    category: 'Food & Gourmet',
+    price: 19.99,
+    stock: 210,
+    description: 'Directly sourced shade-grown arabica coffee beans roasted locally by smallholder cooperatives in Ethiopia.',
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=800&q=80',
+    rating: 4.7,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString()
+  }
+];
+
+let dtcOrders: DtcOrder[] = [
+  {
+    id: 'dtc-ord-1001',
+    customerName: 'Elena Rostova',
+    customerEmail: 'elena@example.com',
+    shippingAddress: '42 Greenway Blvd, Seattle, WA',
+    items: [
+      { productId: 'dtc-p1', productName: 'Eco-Friendly Bamboo Hydration Flask', quantity: 2, price: 28.99 },
+      { productId: 'dtc-p3', productName: 'Artisanal Organic Fair-Trade Coffee Beans', quantity: 1, price: 19.99 }
+    ],
+    totalAmount: 77.97,
+    status: 'Shipped',
+    paymentMethod: 'Credit Card / Direct Pay',
+    createdAt: new Date(Date.now() - 3600000 * 36).toISOString()
+  },
+  {
+    id: 'dtc-ord-1002',
+    customerName: 'Kofi Mensah',
+    customerEmail: 'kofi@example.com',
+    shippingAddress: '15 Harvest Way, Austin, TX',
+    items: [
+      { productId: 'dtc-p2', productName: 'Solar-Powered Portable Charger 20000mAh', quantity: 1, price: 49.50 }
+    ],
+    totalAmount: 49.50,
+    status: 'Processing',
+    paymentMethod: 'Mawaba Pay Express',
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
   }
 ];
 
@@ -1019,6 +1116,138 @@ app.post('/api/forum/topics/:id/replies', (req: Request, res: Response) => {
 
   topic.replies.push(newReply);
   res.status(201).json({ success: true, reply: newReply, topic });
+});
+
+// 9b. DTC (Direct-to-Consumer) Tools & E-Commerce APIs
+app.get('/api/dtc/products', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...dtcProducts];
+
+  if (category && category !== 'All') {
+    results = results.filter(
+      p => p.category.toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      p =>
+        p.name.toLowerCase().includes(q) ||
+        p.description.toLowerCase().includes(q) ||
+        p.category.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/dtc/products', (req: Request, res: Response) => {
+  const { name, category, price, stock, description, image } = req.body;
+  if (!name || !category || price === undefined || stock === undefined || !description) {
+    return res.status(400).json({ error: 'Missing required fields: name, category, price, stock, description' });
+  }
+
+  const newProduct: DtcProduct = {
+    id: 'dtc-p' + generateId(),
+    name: name.trim(),
+    category: category.trim(),
+    price: Number(price),
+    stock: Number(stock),
+    description: description.trim(),
+    image: image || undefined,
+    rating: 5.0,
+    createdAt: new Date().toISOString()
+  };
+
+  dtcProducts.unshift(newProduct);
+  res.status(201).json(newProduct);
+});
+
+app.get('/api/dtc/orders', (req: Request, res: Response) => {
+  const { status, email } = req.query;
+  let results = [...dtcOrders];
+
+  if (status && status !== 'All') {
+    results = results.filter(
+      o => o.status.toLowerCase() === String(status).toLowerCase()
+    );
+  }
+
+  if (email) {
+    results = results.filter(
+      o => o.customerEmail.toLowerCase() === String(email).toLowerCase()
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/dtc/orders', (req: Request, res: Response) => {
+  const { customerName, customerEmail, shippingAddress, items, paymentMethod } = req.body;
+  if (!customerName || !customerEmail || !shippingAddress || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Missing required order details or empty items list' });
+  }
+
+  let calculatedTotal = 0;
+  const processedItems: DtcOrderItem[] = [];
+
+  for (const item of items) {
+    const product = dtcProducts.find(p => p.id === item.productId);
+    const itemPrice = product ? product.price : (item.price || 0);
+    const itemName = product ? product.name : (item.productName || 'DTC Product');
+    const qty = Number(item.quantity) || 1;
+
+    calculatedTotal += itemPrice * qty;
+    processedItems.push({
+      productId: item.productId || 'custom',
+      productName: itemName,
+      quantity: qty,
+      price: itemPrice
+    });
+
+    if (product && product.stock >= qty) {
+      product.stock -= qty;
+    }
+  }
+
+  const newOrder: DtcOrder = {
+    id: 'dtc-ord-' + generateId(),
+    customerName: customerName.trim(),
+    customerEmail: customerEmail.trim().toLowerCase(),
+    shippingAddress: shippingAddress.trim(),
+    items: processedItems,
+    totalAmount: +calculatedTotal.toFixed(2),
+    status: 'Processing',
+    paymentMethod: paymentMethod ? paymentMethod.trim() : 'Direct Digital Wallet',
+    createdAt: new Date().toISOString()
+  };
+
+  dtcOrders.unshift(newOrder);
+  res.status(201).json(newOrder);
+});
+
+app.get('/api/dtc/analytics', (req: Request, res: Response) => {
+  const totalRevenue = dtcOrders.reduce((acc, o) => acc + o.totalAmount, 0);
+  const totalOrders = dtcOrders.length;
+  const averageOrderValue = totalOrders > 0 ? +(totalRevenue / totalOrders).toFixed(2) : 0;
+  const totalProductsSold = dtcOrders.reduce(
+    (acc, o) => acc + o.items.reduce((sum, i) => sum + i.quantity, 0),
+    0
+  );
+
+  res.json({
+    metrics: {
+      totalRevenue: +totalRevenue.toFixed(2),
+      totalOrders,
+      averageOrderValue,
+      totalProductsSold,
+      conversionRate: '3.42%',
+      repeatCustomerRate: '28.5%'
+    },
+    topProducts: dtcProducts.slice(0, 5),
+    recentOrders: dtcOrders.slice(0, 5)
+  });
 });
 
 // 9. Global Culture Endpoints
