@@ -598,4 +598,114 @@ describe('Backend API Endpoints', () => {
       expect(Array.isArray(response.body.topProducts)).toBe(true);
     });
   });
+
+  describe('Gaming Feature & Monetization APIs', () => {
+    it('GET /api/games should return list of games', async () => {
+      const response = await request(app).get('/api/games');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('monetizationModel');
+      expect(response.body[0]).toHaveProperty('devRevenueShare');
+    });
+
+    it('GET /api/games should filter by genre and monetizationModel', async () => {
+      const response = await request(app).get('/api/games?genre=Eco%20%26%20Climate&monetization=Ad-Supported');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].title).toBe('EcoGrid: Renewable Energy Tycoon');
+    });
+
+    it('GET /api/games/:id should return single game details or 404', async () => {
+      const resOk = await request(app).get('/api/games/game-1');
+      expect(resOk.status).toBe(200);
+      expect(resOk.body.title).toBe('EcoGrid: Renewable Energy Tycoon');
+
+      const resNotFound = await request(app).get('/api/games/non-existent-game');
+      expect(resNotFound.status).toBe(404);
+      expect(resNotFound.body.error).toBe('Game not found');
+    });
+
+    it('POST /api/games/submit should register and publish a new developer game', async () => {
+      const newGamePayload = {
+        title: 'Solar Racer 3000',
+        developer: 'Future Craft',
+        developerEmail: 'future@craft.io',
+        genre: 'Action & Arcade',
+        description: 'Race high-speed solar-powered hover vehicles while managing battery capacity and light shadow paths.',
+        thumbnailUrl: 'https://images.unsplash.com/photo-1511512578047-dfb367046420',
+        gameUrl: 'https://cdn.html5games.com/solarracer',
+        monetizationModel: 'Premium Purchase',
+        price: 3.99
+      };
+
+      const response = await request(app).post('/api/games/submit').send(newGamePayload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('Game submitted and published successfully');
+      expect(response.body.game).toHaveProperty('id');
+      expect(response.body.game.title).toBe('Solar Racer 3000');
+      expect(response.body.game.devRevenueShare).toBe(85);
+      expect(response.body.game.price).toBe(3.99);
+    });
+
+    it('POST /api/games/submit should reject missing required fields or invalid price', async () => {
+      const resMissing = await request(app).post('/api/games/submit').send({ title: 'Incomplete Game' });
+      expect(resMissing.status).toBe(400);
+      expect(resMissing.body.error).toContain('Missing required game submission fields');
+
+      const resZeroPrice = await request(app).post('/api/games/submit').send({
+        title: 'Free Premium Game',
+        developer: 'Dev',
+        developerEmail: 'dev@test.com',
+        genre: 'Puzzle & Logic',
+        description: 'Test puzzle game',
+        monetizationModel: 'Premium Purchase',
+        price: 0
+      });
+      expect(resZeroPrice.status).toBe(400);
+      expect(resZeroPrice.body.error).toBe('Premium games require a price greater than $0');
+    });
+
+    it('POST /api/games/:id/play should increment play count and accumulate ad revenue if ad-supported', async () => {
+      const initialRes = await request(app).get('/api/games/game-1');
+      const initialPlays = initialRes.body.playCount;
+      const initialEarnings = initialRes.body.totalEarnings;
+
+      const response = await request(app).post('/api/games/game-1/play');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.playCount).toBe(initialPlays + 1);
+      expect(response.body.totalEarnings).toBeGreaterThan(initialEarnings);
+    });
+
+    it('POST /api/games/:id/purchase should record monetization transaction with 85% dev payout split', async () => {
+      const purchasePayload = {
+        userEmail: 'gamer@mawaba.org',
+        amount: 4.99,
+        type: 'Purchase',
+        paymentMethod: 'Credit Card'
+      };
+
+      const response = await request(app).post('/api/games/game-2/purchase').send(purchasePayload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('Monetization transaction executed successfully');
+      expect(response.body.transaction).toHaveProperty('id');
+      expect(response.body.transaction.amount).toBe(4.99);
+      expect(response.body.transaction.devPayoutAmount).toBe(4.24); // 85% of 4.99 = 4.2415
+      expect(response.body.transaction.platformFeeAmount).toBe(0.75);
+    });
+
+    it('GET /api/games/monetization/analytics should return revenue summary and developer payouts', async () => {
+      const response = await request(app).get('/api/games/monetization/analytics');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('summary');
+      expect(response.body.summary).toHaveProperty('grossRevenue');
+      expect(response.body.summary).toHaveProperty('developerPayoutTotal');
+      expect(response.body.summary.devShareRate).toBe('85%');
+      expect(Array.isArray(response.body.topEarningGames)).toBe(true);
+      expect(Array.isArray(response.body.recentTransactions)).toBe(true);
+    });
+  });
 });
