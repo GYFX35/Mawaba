@@ -183,6 +183,38 @@ interface DtcOrder {
   createdAt: string;
 }
 
+interface GameItem {
+  id: string;
+  title: string;
+  developer: string;
+  developerEmail: string;
+  genre: 'Action & Arcade' | 'Puzzle & Logic' | 'Strategy & Simulation' | 'Educational & Sci-Fi' | 'Eco & Climate';
+  description: string;
+  thumbnailUrl: string;
+  gameUrl: string; // Embeddable HTML5 URL or game engine canvas code
+  monetizationModel: 'Free' | 'Ad-Supported' | 'Premium Purchase' | 'In-Game Pass / Subscription';
+  price: number; // $0 if Free or Ad-Supported, otherwise purchase price
+  playCount: number;
+  rating: number;
+  totalEarnings: number; // Revenue accumulated from purchases/ads/tips
+  devRevenueShare: number; // e.g. 85 for 85% developer payout
+  status: 'Approved' | 'Pending Review' | 'Rejected';
+  createdAt: string;
+}
+
+interface GameTransaction {
+  id: string;
+  gameId: string;
+  gameTitle: string;
+  userEmail: string;
+  amount: number;
+  devPayoutAmount: number;
+  platformFeeAmount: number;
+  type: 'Purchase' | 'In-Game Microtransaction' | 'Developer Tip' | 'Ad View Revenue';
+  paymentMethod: string;
+  timestamp: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -409,6 +441,90 @@ let environmentInitiatives: EnvironmentInitiative[] = [
     author: 'Green Canopy Initiative',
     upvotes: 31,
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
+  }
+];
+
+let games: GameItem[] = [
+  {
+    id: 'game-1',
+    title: 'EcoGrid: Renewable Energy Tycoon',
+    developer: 'AeroGames Studio',
+    developerEmail: 'dev@aerogames.io',
+    genre: 'Eco & Climate',
+    description: 'Build and optimize clean solar, wind, and hydroelectric power grids across global cities while balancing carbon targets and community budgets.',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&w=800&q=80',
+    gameUrl: 'https://cdn.html5games.com/ecogrid',
+    monetizationModel: 'Ad-Supported',
+    price: 0,
+    playCount: 1420,
+    rating: 4.9,
+    totalEarnings: 345.50,
+    devRevenueShare: 85,
+    status: 'Approved',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 15).toISOString()
+  },
+  {
+    id: 'game-2',
+    title: 'Quantum Code Odyssey',
+    developer: 'Cygnus Interactive',
+    developerEmail: 'contact@cygnus.dev',
+    genre: 'Educational & Sci-Fi',
+    description: 'Navigate quantum sub-atomic mazes using real quantum logic gates (Hadamard, CNOT, Pauli-X) to solve puzzles and unlock advanced computing levels.',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?auto=format&fit=crop&w=800&q=80',
+    gameUrl: 'https://cdn.html5games.com/quantumcode',
+    monetizationModel: 'Premium Purchase',
+    price: 4.99,
+    playCount: 890,
+    rating: 4.8,
+    totalEarnings: 820.00,
+    devRevenueShare: 85,
+    status: 'Approved',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString()
+  },
+  {
+    id: 'game-3',
+    title: 'Space Frontier: Orbital Logistics',
+    developer: 'Starbound Indie',
+    developerEmail: 'lunar@starbound.org',
+    genre: 'Action & Arcade',
+    description: 'Action-packed retro arcade simulator managing satellite orbits, space debris removal, and interplanetary cargo drop-offs.',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=800&q=80',
+    gameUrl: 'https://cdn.html5games.com/orbital',
+    monetizationModel: 'In-Game Pass / Subscription',
+    price: 2.99,
+    playCount: 2310,
+    rating: 4.7,
+    totalEarnings: 1120.80,
+    devRevenueShare: 85,
+    status: 'Approved',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString()
+  }
+];
+
+let gameTransactions: GameTransaction[] = [
+  {
+    id: 'gtx-101',
+    gameId: 'game-2',
+    gameTitle: 'Quantum Code Odyssey',
+    userEmail: 'marie@curie.org',
+    amount: 4.99,
+    devPayoutAmount: 4.24,
+    platformFeeAmount: 0.75,
+    type: 'Purchase',
+    paymentMethod: 'Credit Card',
+    timestamp: new Date(Date.now() - 3600000 * 48).toISOString()
+  },
+  {
+    id: 'gtx-102',
+    gameId: 'game-3',
+    gameTitle: 'Space Frontier: Orbital Logistics',
+    userEmail: 'isaac@gravity.org',
+    amount: 2.99,
+    devPayoutAmount: 2.54,
+    platformFeeAmount: 0.45,
+    type: 'In-Game Microtransaction',
+    paymentMethod: 'Mawaba Pay',
+    timestamp: new Date(Date.now() - 3600000 * 12).toISOString()
   }
 ];
 
@@ -1332,6 +1448,187 @@ app.get('/api/dtc/analytics', (req: Request, res: Response) => {
     },
     topProducts: dtcProducts.slice(0, 5),
     recentOrders: dtcOrders.slice(0, 5)
+  });
+});
+
+// 10. Gaming Feature & Developer Monetization APIs
+app.get('/api/games', (req: Request, res: Response) => {
+  const { genre, monetization, search, developerEmail } = req.query;
+  let results = [...games];
+
+  if (genre && genre !== 'All') {
+    results = results.filter(
+      g => g.genre.toLowerCase() === String(genre).toLowerCase()
+    );
+  }
+
+  if (monetization && monetization !== 'All') {
+    results = results.filter(
+      g => g.monetizationModel.toLowerCase() === String(monetization).toLowerCase()
+    );
+  }
+
+  if (developerEmail) {
+    results = results.filter(
+      g => g.developerEmail.toLowerCase() === String(developerEmail).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      g =>
+        g.title.toLowerCase().includes(q) ||
+        g.description.toLowerCase().includes(q) ||
+        g.developer.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.get('/api/games/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const game = games.find(g => g.id === id);
+  if (!game) {
+    return res.status(404).json({ error: 'Game not found' });
+  }
+  res.json(game);
+});
+
+app.post('/api/games/submit', (req: Request, res: Response) => {
+  const { title, developer, developerEmail, genre, description, thumbnailUrl, gameUrl, monetizationModel, price } = req.body;
+
+  if (!title || !developer || !developerEmail || !genre || !description || !monetizationModel) {
+    return res.status(400).json({ error: 'Missing required game submission fields: title, developer, developerEmail, genre, description, monetizationModel' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(developerEmail)) {
+    return res.status(400).json({ error: 'Invalid developer email format' });
+  }
+
+  const numericPrice = Number(price) || 0;
+  if (monetizationModel === 'Premium Purchase' && numericPrice <= 0) {
+    return res.status(400).json({ error: 'Premium games require a price greater than $0' });
+  }
+
+  const newGame: GameItem = {
+    id: 'game-' + generateId(),
+    title: title.trim(),
+    developer: developer.trim(),
+    developerEmail: developerEmail.trim().toLowerCase(),
+    genre,
+    description: description.trim(),
+    thumbnailUrl: thumbnailUrl || 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=800&q=80',
+    gameUrl: gameUrl || 'https://cdn.html5games.com/demo',
+    monetizationModel,
+    price: numericPrice,
+    playCount: 1,
+    rating: 5.0,
+    totalEarnings: 0,
+    devRevenueShare: 85, // 85% revenue share to game developer
+    status: 'Approved', // Auto-approved for immediate sandbox play
+    createdAt: new Date().toISOString()
+  };
+
+  games.unshift(newGame);
+  res.status(201).json({
+    message: 'Game submitted and published successfully! You are earning 85% revenue share.',
+    game: newGame
+  });
+});
+
+app.post('/api/games/:id/play', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const game = games.find(g => g.id === id);
+  if (!game) {
+    return res.status(404).json({ error: 'Game not found' });
+  }
+
+  game.playCount += 1;
+
+  // If ad-supported, simulate ad revenue per play ($0.05 per session)
+  if (game.monetizationModel === 'Ad-Supported') {
+    const adEarnings = 0.05;
+    game.totalEarnings = +(game.totalEarnings + adEarnings).toFixed(2);
+  }
+
+  res.json({ success: true, playCount: game.playCount, totalEarnings: game.totalEarnings });
+});
+
+app.post('/api/games/:id/purchase', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { userEmail, amount, type = 'Purchase', paymentMethod = 'Mawaba Express Pay' } = req.body;
+
+  const game = games.find(g => g.id === id);
+  if (!game) {
+    return res.status(404).json({ error: 'Game not found' });
+  }
+
+  const transactionAmount = Number(amount) || game.price || 1.99;
+  if (transactionAmount <= 0) {
+    return res.status(400).json({ error: 'Invalid transaction amount' });
+  }
+
+  const devSharePercent = game.devRevenueShare || 85;
+  const devPayout = +(transactionAmount * (devSharePercent / 100)).toFixed(2);
+  const platformFee = +(transactionAmount - devPayout).toFixed(2);
+
+  game.totalEarnings = +(game.totalEarnings + transactionAmount).toFixed(2);
+
+  const transaction: GameTransaction = {
+    id: 'gtx-' + generateId(),
+    gameId: game.id,
+    gameTitle: game.title,
+    userEmail: userEmail ? String(userEmail).trim() : 'gamer@mawaba.org',
+    amount: transactionAmount,
+    devPayoutAmount: devPayout,
+    platformFeeAmount: platformFee,
+    type,
+    paymentMethod: String(paymentMethod),
+    timestamp: new Date().toISOString()
+  };
+
+  gameTransactions.unshift(transaction);
+
+  res.status(201).json({
+    message: 'Monetization transaction executed successfully!',
+    transaction,
+    gameTotalEarnings: game.totalEarnings
+  });
+});
+
+app.get('/api/games/monetization/analytics', (req: Request, res: Response) => {
+  const { developerEmail } = req.query;
+
+  let filteredGames = [...games];
+  let filteredTx = [...gameTransactions];
+
+  if (developerEmail) {
+    const devEmailLower = String(developerEmail).toLowerCase();
+    filteredGames = filteredGames.filter(g => g.developerEmail === devEmailLower);
+    const devGameIds = new Set(filteredGames.map(g => g.id));
+    filteredTx = filteredTx.filter(tx => devGameIds.has(tx.gameId));
+  }
+
+  const grossRevenue = filteredGames.reduce((sum, g) => sum + g.totalEarnings, 0);
+  const developerPayoutTotal = +(grossRevenue * 0.85).toFixed(2);
+  const platformFeeTotal = +(grossRevenue * 0.15).toFixed(2);
+  const totalPlays = filteredGames.reduce((sum, g) => sum + g.playCount, 0);
+
+  res.json({
+    developerEmail: developerEmail || 'All Developers',
+    summary: {
+      totalGames: filteredGames.length,
+      totalPlays,
+      grossRevenue: +grossRevenue.toFixed(2),
+      developerPayoutTotal,
+      platformFeeTotal,
+      devShareRate: '85%'
+    },
+    topEarningGames: [...filteredGames].sort((a, b) => b.totalEarnings - a.totalEarnings).slice(0, 5),
+    recentTransactions: filteredTx.slice(0, 10)
   });
 });
 
