@@ -91,6 +91,41 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('GET /api/location/detect', () => {
+    it('should return default English location metadata when no headers are provided', async () => {
+      const response = await request(app).get('/api/location/detect');
+      expect(response.status).toBe(200);
+      expect(response.body.language.code).toBe('en');
+      expect(Array.isArray(response.body.supportedLanguages)).toBe(true);
+      expect(response.body.supportedLanguages.length).toBeGreaterThan(5);
+    });
+
+    it('should detect French language and location based on Accept-Language header', async () => {
+      const response = await request(app)
+        .get('/api/location/detect')
+        .set('Accept-Language', 'fr-FR,fr;q=0.9');
+      expect(response.status).toBe(200);
+      expect(response.body.language.code).toBe('fr');
+      expect(response.body.detectedLocation.countryCode).toBe('FR');
+    });
+
+    it('should detect language based on timezone header', async () => {
+      const response = await request(app)
+        .get('/api/location/detect')
+        .set('x-timezone', 'Africa/Nairobi');
+      expect(response.status).toBe(200);
+      expect(response.body.language.code).toBe('sw');
+      expect(response.body.detectedLocation.countryCode).toBe('KE');
+    });
+
+    it('should respect explicit lang query parameter', async () => {
+      const response = await request(app).get('/api/location/detect?lang=es');
+      expect(response.status).toBe(200);
+      expect(response.body.language.code).toBe('es');
+      expect(response.body.language.name).toBe('Español');
+    });
+  });
+
   describe('GET /api/integrations', () => {
     it('should return list of integrations', async () => {
       const response = await request(app).get('/api/integrations');
