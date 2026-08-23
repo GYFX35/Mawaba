@@ -490,4 +490,92 @@ describe('Backend API Endpoints', () => {
       expect(response.body.comment.text).toBe(commentData.text);
     });
   });
+
+  describe('Direct-to-Consumer (D2C) Endpoints', () => {
+    it('GET /api/dtc/products should return product list with search and category filters', async () => {
+      const res = await request(app).get('/api/dtc/products');
+      expect(res.status).toBe(200);
+      expect(res.body).toHaveProperty('total');
+      expect(Array.isArray(res.body.products)).toBe(true);
+      expect(res.body.products.length).toBeGreaterThan(0);
+      expect(res.body.products[0]).toHaveProperty('name');
+      expect(res.body.products[0]).toHaveProperty('price');
+      expect(res.body.products[0]).toHaveProperty('sustainabilityBadge');
+
+      const filterRes = await request(app).get('/api/dtc/products?category=Clean%20Energy');
+      expect(filterRes.status).toBe(200);
+      expect(filterRes.body.products.every((p: any) => p.category === 'Clean Energy')).toBe(true);
+    });
+
+    it('GET /api/dtc/cart & POST /api/dtc/cart should manage user cart items', async () => {
+      const getRes = await request(app).get('/api/dtc/cart');
+      expect(getRes.status).toBe(200);
+      expect(getRes.body).toHaveProperty('items');
+      expect(getRes.body).toHaveProperty('subtotal');
+
+      const addRes = await request(app).post('/api/dtc/cart').send({
+        productId: 'dtc-2',
+        quantity: 2
+      });
+      expect(addRes.status).toBe(200);
+      expect(addRes.body.message).toBe('Cart updated successfully');
+      expect(addRes.body.items.some((i: any) => i.product.id === 'dtc-2')).toBe(true);
+    });
+
+    it('DELETE /api/dtc/cart/:productId should remove item from cart', async () => {
+      const delRes = await request(app).delete('/api/dtc/cart/dtc-2');
+      expect(delRes.status).toBe(200);
+      expect(delRes.body.message).toBe('Item removed from cart');
+      expect(delRes.body.items.some((i: any) => i.product.id === 'dtc-2')).toBe(false);
+    });
+
+    it('POST /api/dtc/checkout should place a D2C order and clear cart', async () => {
+      // First ensure cart has item
+      await request(app).post('/api/dtc/cart').send({ productId: 'dtc-1', quantity: 1 });
+
+      const checkoutRes = await request(app).post('/api/dtc/checkout').send({
+        customerName: 'Isaac Newton',
+        customerEmail: 'isaac@gravity.org',
+        shippingAddress: 'Woolsthorpe Manor, Lincolnshire, UK',
+        paymentMethod: 'Credit Card',
+        promoCode: 'MAWABA10'
+      });
+
+      expect(checkoutRes.status).toBe(201);
+      expect(checkoutRes.body.message).toBe('Direct-to-Consumer order placed successfully');
+      expect(checkoutRes.body.order).toHaveProperty('id');
+      expect(checkoutRes.body.order.customerName).toBe('Isaac Newton');
+      expect(checkoutRes.body.order.discount).toBeGreaterThan(0);
+
+      // Cart should now be empty
+      const cartAfter = await request(app).get('/api/dtc/cart');
+      expect(cartAfter.body.items.length).toBe(0);
+    });
+
+    it('GET /api/dtc/orders should list past customer orders', async () => {
+      const res = await request(app).get('/api/dtc/orders?email=isaac@gravity.org');
+      expect(res.status).toBe(200);
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBeGreaterThan(0);
+      expect(res.body[0].customerEmail).toBe('isaac@gravity.org');
+    });
+
+    it('POST /api/dtc/subscriptions & GET /api/dtc/subscriptions should manage D2C recurring subscriptions', async () => {
+      const subRes = await request(app).post('/api/dtc/subscriptions').send({
+        customerName: 'Marie Curie',
+        customerEmail: 'marie@curie.org',
+        planName: 'Monthly Eco-Living & Artisan Coffee Box',
+        frequency: 'Monthly'
+      });
+
+      expect(subRes.status).toBe(201);
+      expect(subRes.body.message).toContain('subscription created');
+      expect(subRes.body.subscription.status).toBe('Active');
+
+      const listRes = await request(app).get('/api/dtc/subscriptions');
+      expect(listRes.status).toBe(200);
+      expect(Array.isArray(listRes.body)).toBe(true);
+      expect(listRes.body.length).toBeGreaterThan(0);
+    });
+  });
 });

@@ -34,6 +34,7 @@ const Navbar = () => {
     { name: 'Education', href: '/education' },
     { name: 'Chat & Forum', href: '/chat' },
     { name: 'Environment', href: '/environment' },
+    { name: 'D2C Store', href: '/dtc' },
     { name: 'Services', href: '/services' },
     { name: 'Integrations', href: '/integrations' },
     { name: 'World Bank', href: '/worldbank' },

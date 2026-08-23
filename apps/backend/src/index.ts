@@ -152,6 +152,53 @@ interface CultureItem {
   createdAt: string;
 }
 
+export interface D2CProduct {
+  id: string;
+  name: string;
+  brand: string;
+  category: 'Eco Living' | 'Clean Energy' | 'Fair Trade Goods' | 'Educational Kits' | 'Artisan Crafts';
+  price: number;
+  rating: number;
+  reviewsCount: number;
+  description: string;
+  image: string;
+  inStock: boolean;
+  sustainabilityBadge: string;
+  subscriptionAvailable: boolean;
+}
+
+export interface CartItem {
+  product: D2CProduct;
+  quantity: number;
+}
+
+export interface D2COrder {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  shippingAddress: string;
+  items: CartItem[];
+  subtotal: number;
+  shippingFee: number;
+  discount: number;
+  total: number;
+  status: 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+  paymentMethod: 'Credit Card' | 'Mobile Money' | 'PayPal' | 'Crypto';
+  createdAt: string;
+}
+
+export interface D2CSubscription {
+  id: string;
+  customerName: string;
+  customerEmail: string;
+  planName: string;
+  frequency: 'Monthly' | 'Quarterly';
+  pricePerCycle: number;
+  status: 'Active' | 'Paused' | 'Cancelled';
+  nextDeliveryDate: string;
+  createdAt: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -485,6 +532,114 @@ let globalChatMessages: ChatMessageItem[] = [
     message: 'Micro-loans for sustainable energy in West Africa are up 35% this quarter!',
     room: 'Global Trade',
     timestamp: new Date(Date.now() - 1800000).toISOString()
+  }
+];
+
+let d2cProducts: D2CProduct[] = [
+  {
+    id: 'dtc-1',
+    name: 'Portable Solar Power Bank & Lantern',
+    brand: 'Mawaba EcoTech',
+    category: 'Clean Energy',
+    price: 49.99,
+    rating: 4.8,
+    reviewsCount: 124,
+    description: 'Foldable 20,000mAh solar charging unit with dual USB-C ports and ultra-bright LED emergency lantern.',
+    image: 'https://images.unsplash.com/photo-1617788138017-80ad40651399?auto=format&fit=crop&w=800&q=80',
+    inStock: true,
+    sustainabilityBadge: '100% Recycled Plastic Housing',
+    subscriptionAvailable: false
+  },
+  {
+    id: 'dtc-2',
+    name: 'Organic Fair-Trade Micro-Lot Coffee',
+    brand: 'Andean Heritage Co-op',
+    category: 'Fair Trade Goods',
+    price: 18.50,
+    rating: 4.9,
+    reviewsCount: 89,
+    description: 'Shade-grown organic arabica coffee beans directly sourced from smallholder farming families in Peru.',
+    image: 'https://images.unsplash.com/photo-1559056199-641a0ac8b55e?auto=format&fit=crop&w=800&q=80',
+    inStock: true,
+    sustainabilityBadge: 'Direct Trade Certified & Zero Waste Bag',
+    subscriptionAvailable: true
+  },
+  {
+    id: 'dtc-3',
+    name: 'Hands-On Quantum Physics & Robotics Experiment Kit',
+    brand: 'Mawaba STEM Labs',
+    category: 'Educational Kits',
+    price: 64.00,
+    rating: 4.7,
+    reviewsCount: 56,
+    description: 'Interactive DIY electronics & optics laboratory kit designed for high school and university science enthusiasts.',
+    image: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=800&q=80',
+    inStock: true,
+    sustainabilityBadge: 'Biodegradable Components & Open-Source Code',
+    subscriptionAvailable: false
+  },
+  {
+    id: 'dtc-4',
+    name: 'Handwoven Natural Sisal & Baobab Fibre Tote',
+    brand: 'Kikuyu Women Artisans',
+    category: 'Artisan Crafts',
+    price: 36.00,
+    rating: 5.0,
+    reviewsCount: 42,
+    description: 'Durable, hand-dyed cultural shoulder bag crafted using centuries-old East African basketry techniques.',
+    image: 'https://images.unsplash.com/photo-1590874103328-eac38a683ce7?auto=format&fit=crop&w=800&q=80',
+    inStock: true,
+    sustainabilityBadge: 'Ethically Handcrafted & Micro-Loan Backed',
+    subscriptionAvailable: false
+  },
+  {
+    id: 'dtc-5',
+    name: 'Zero-Waste Bamboo & Solid Shampoo Care Set',
+    brand: 'BioLiving',
+    category: 'Eco Living',
+    price: 24.99,
+    rating: 4.6,
+    reviewsCount: 78,
+    description: 'Plastic-free personal hygiene kit featuring organic botanical shampoo bars and compostable bamboo toothbrushes.',
+    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80',
+    inStock: true,
+    sustainabilityBadge: 'Ocean Safe & Carbon Neutral Shipping',
+    subscriptionAvailable: true
+  }
+];
+
+let cartItems: CartItem[] = [
+  { product: d2cProducts[0], quantity: 1 }
+];
+
+let d2cOrders: D2COrder[] = [
+  {
+    id: 'ord-1001',
+    customerName: 'Marie Curie',
+    customerEmail: 'marie@curie.org',
+    shippingAddress: '12 Rue Lhomond, Paris, France',
+    items: [{ product: d2cProducts[1], quantity: 2 }],
+    subtotal: 37.00,
+    shippingFee: 5.00,
+    discount: 0,
+    total: 42.00,
+    status: 'Delivered',
+    paymentMethod: 'Credit Card',
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString()
+  }
+];
+
+let d2cSubscriptions: D2CSubscription[] = [
+  {
+    id: 'sub-501',
+    customerName: 'Marie Curie',
+    customerEmail: 'marie@curie.org',
+    planName: 'Monthly Artisan Coffee & Eco-Living Box',
+    frequency: 'Monthly',
+    pricePerCycle: 29.99,
+    status: 'Active',
+    nextDeliveryDate: new Date(Date.now() + 3600000 * 24 * 15).toISOString().split('T')[0],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 30).toISOString()
   }
 ];
 
@@ -1019,6 +1174,180 @@ app.post('/api/forum/topics/:id/replies', (req: Request, res: Response) => {
 
   topic.replies.push(newReply);
   res.status(201).json({ success: true, reply: newReply, topic });
+});
+
+// 10. Direct to Consumer (D2C) Endpoints
+app.get('/api/dtc/products', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...d2cProducts];
+
+  if (category && category !== 'All') {
+    results = results.filter(p => p.category.toLowerCase() === String(category).toLowerCase());
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(p =>
+      p.name.toLowerCase().includes(q) ||
+      p.brand.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q)
+    );
+  }
+
+  res.json({
+    total: results.length,
+    products: results
+  });
+});
+
+app.get('/api/dtc/cart', (req: Request, res: Response) => {
+  const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const itemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+  res.json({
+    items: cartItems,
+    itemCount,
+    subtotal: +subtotal.toFixed(2),
+    estimatedShipping: cartItems.length > 0 ? 5.00 : 0.00
+  });
+});
+
+app.post('/api/dtc/cart', (req: Request, res: Response) => {
+  const { productId, quantity = 1 } = req.body;
+  if (!productId) {
+    return res.status(400).json({ error: 'productId is required' });
+  }
+
+  const product = d2cProducts.find(p => p.id === productId);
+  if (!product) {
+    return res.status(404).json({ error: 'Product not found' });
+  }
+
+  const existingIndex = cartItems.findIndex(ci => ci.product.id === productId);
+  if (existingIndex > -1) {
+    cartItems[existingIndex].quantity += Number(quantity);
+    if (cartItems[existingIndex].quantity <= 0) {
+      cartItems.splice(existingIndex, 1);
+    }
+  } else {
+    if (Number(quantity) > 0) {
+      cartItems.push({ product, quantity: Number(quantity) });
+    }
+  }
+
+  const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const itemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  res.json({
+    message: 'Cart updated successfully',
+    items: cartItems,
+    itemCount,
+    subtotal: +subtotal.toFixed(2)
+  });
+});
+
+app.delete('/api/dtc/cart/:productId', (req: Request, res: Response) => {
+  const { productId } = req.params;
+  const initialLen = cartItems.length;
+  cartItems = cartItems.filter(ci => ci.product.id !== productId);
+
+  if (cartItems.length === initialLen) {
+    return res.status(404).json({ error: 'Item not found in cart' });
+  }
+
+  const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const itemCount = cartItems.reduce((acc, item) => acc + item.quantity, 0);
+
+  res.json({
+    message: 'Item removed from cart',
+    items: cartItems,
+    itemCount,
+    subtotal: +subtotal.toFixed(2)
+  });
+});
+
+app.post('/api/dtc/checkout', (req: Request, res: Response) => {
+  const { customerName, customerEmail, shippingAddress, paymentMethod = 'Credit Card', promoCode } = req.body;
+  if (!customerName || !customerEmail || !shippingAddress) {
+    return res.status(400).json({ error: 'customerName, customerEmail, and shippingAddress are required' });
+  }
+
+  if (cartItems.length === 0) {
+    return res.status(400).json({ error: 'Cannot checkout with an empty cart' });
+  }
+
+  const subtotal = cartItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
+  const shippingFee = subtotal > 50 ? 0 : 5.00;
+  let discount = 0;
+
+  if (promoCode && String(promoCode).toUpperCase() === 'MAWABA10') {
+    discount = +(subtotal * 0.10).toFixed(2);
+  }
+
+  const total = +(subtotal + shippingFee - discount).toFixed(2);
+
+  const newOrder: D2COrder = {
+    id: 'ord-' + generateId(),
+    customerName: customerName.trim(),
+    customerEmail: customerEmail.trim().toLowerCase(),
+    shippingAddress: shippingAddress.trim(),
+    items: [...cartItems],
+    subtotal: +subtotal.toFixed(2),
+    shippingFee,
+    discount,
+    total,
+    status: 'Processing',
+    paymentMethod,
+    createdAt: new Date().toISOString()
+  };
+
+  d2cOrders.unshift(newOrder);
+  cartItems = []; // Clear cart after successful checkout
+
+  res.status(201).json({
+    message: 'Direct-to-Consumer order placed successfully',
+    order: newOrder
+  });
+});
+
+app.get('/api/dtc/orders', (req: Request, res: Response) => {
+  const { email } = req.query;
+  if (email) {
+    const userOrders = d2cOrders.filter(o => o.customerEmail.toLowerCase() === String(email).toLowerCase());
+    return res.json(userOrders);
+  }
+  res.json(d2cOrders);
+});
+
+app.post('/api/dtc/subscriptions', (req: Request, res: Response) => {
+  const { customerName, customerEmail, planName, frequency = 'Monthly' } = req.body;
+  if (!customerName || !customerEmail || !planName) {
+    return res.status(400).json({ error: 'customerName, customerEmail, and planName are required' });
+  }
+
+  const nextDate = new Date();
+  nextDate.setDate(nextDate.getDate() + 30);
+
+  const newSub: D2CSubscription = {
+    id: 'sub-' + generateId(),
+    customerName: customerName.trim(),
+    customerEmail: customerEmail.trim().toLowerCase(),
+    planName: planName.trim(),
+    frequency: frequency === 'Quarterly' ? 'Quarterly' : 'Monthly',
+    pricePerCycle: frequency === 'Quarterly' ? 79.99 : 29.99,
+    status: 'Active',
+    nextDeliveryDate: nextDate.toISOString().split('T')[0],
+    createdAt: new Date().toISOString()
+  };
+
+  d2cSubscriptions.unshift(newSub);
+  res.status(201).json({
+    message: 'Direct-to-consumer recurring subscription created successfully',
+    subscription: newSub
+  });
+});
+
+app.get('/api/dtc/subscriptions', (req: Request, res: Response) => {
+  res.json(d2cSubscriptions);
 });
 
 // 9. Global Culture Endpoints
