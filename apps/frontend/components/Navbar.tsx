@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { Menu, X, Cpu, User, LogOut } from 'lucide-react';
+import LanguageTranslator from './LanguageTranslator';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -75,7 +76,8 @@ const Navbar = () => {
                 </Link>
               );
             })}
-            <div className="pl-4 flex items-center gap-2">
+            <div className="pl-4 flex items-center gap-2.5">
+              <LanguageTranslator />
               {currentUser ? (
                 <div className="flex items-center gap-3 bg-gray-50 border border-gray-200 px-3.5 py-1.5 rounded-xl">
                   <div className="flex items-center gap-2">
@@ -112,7 +114,8 @@ const Navbar = () => {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-2">
+            <LanguageTranslator />
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="inline-flex items-center justify-center p-2 rounded-xl text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-colors focus:outline-none"

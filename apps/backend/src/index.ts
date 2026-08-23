@@ -807,6 +807,91 @@ app.get('/api/health', (req: Request, res: Response) => {
   });
 });
 
+// Location and Automatic Language Detection Endpoint
+app.get('/api/location/detect', (req: Request, res: Response) => {
+  const acceptLang = (req.headers['accept-language'] || '').toLowerCase();
+  const reqTimezone = ((req.headers['x-timezone'] || req.query.timezone || '') as string).toLowerCase();
+  const reqLang = ((req.query.lang || '') as string).toLowerCase();
+
+  const supportedLanguages = [
+    { code: 'en', name: 'English', flag: '🇺🇸', dir: 'ltr' },
+    { code: 'fr', name: 'Français', flag: '🇫🇷', dir: 'ltr' },
+    { code: 'es', name: 'Español', flag: '🇪🇸', dir: 'ltr' },
+    { code: 'de', name: 'Deutsch', flag: '🇩🇪', dir: 'ltr' },
+    { code: 'zh-CN', name: '中文 (Chinese)', flag: '🇨🇳', dir: 'ltr' },
+    { code: 'ja', name: '日本語 (Japanese)', flag: '🇯🇵', dir: 'ltr' },
+    { code: 'ar', name: 'العربية (Arabic)', flag: '🇸🇦', dir: 'rtl' },
+    { code: 'pt', name: 'Português', flag: '🇵🇹', dir: 'ltr' },
+    { code: 'sw', name: 'Kiswahili', flag: '🇰🇪', dir: 'ltr' },
+    { code: 'hi', name: 'हिन्दी (Hindi)', flag: '🇮🇳', dir: 'ltr' },
+    { code: 'ru', name: 'Русский', flag: '🇷🇺', dir: 'ltr' }
+  ];
+
+  let detectedCode = 'en';
+  let countryCode = 'US';
+  let countryName = 'United States';
+
+  if (reqLang) {
+    const matched = supportedLanguages.find(l => l.code.toLowerCase().startsWith(reqLang));
+    if (matched) detectedCode = matched.code;
+  } else if (reqTimezone.includes('paris') || reqTimezone.includes('france') || acceptLang.includes('fr')) {
+    detectedCode = 'fr';
+    countryCode = 'FR';
+    countryName = 'France';
+  } else if (reqTimezone.includes('madrid') || reqTimezone.includes('mexico') || reqTimezone.includes('buenos_aires') || acceptLang.includes('es')) {
+    detectedCode = 'es';
+    countryCode = 'ES';
+    countryName = 'Spain';
+  } else if (reqTimezone.includes('berlin') || reqTimezone.includes('vienna') || acceptLang.includes('de')) {
+    detectedCode = 'de';
+    countryCode = 'DE';
+    countryName = 'Germany';
+  } else if (reqTimezone.includes('shanghai') || reqTimezone.includes('beijing') || acceptLang.includes('zh')) {
+    detectedCode = 'zh-CN';
+    countryCode = 'CN';
+    countryName = 'China';
+  } else if (reqTimezone.includes('tokyo') || acceptLang.includes('ja')) {
+    detectedCode = 'ja';
+    countryCode = 'JP';
+    countryName = 'Japan';
+  } else if (reqTimezone.includes('cairo') || reqTimezone.includes('riyadh') || reqTimezone.includes('dubai') || acceptLang.includes('ar')) {
+    detectedCode = 'ar';
+    countryCode = 'SA';
+    countryName = 'Saudi Arabia';
+  } else if (reqTimezone.includes('sao_paulo') || reqTimezone.includes('lisbon') || acceptLang.includes('pt')) {
+    detectedCode = 'pt';
+    countryCode = 'BR';
+    countryName = 'Brazil';
+  } else if (reqTimezone.includes('nairobi') || reqTimezone.includes('daressalaam') || acceptLang.includes('sw')) {
+    detectedCode = 'sw';
+    countryCode = 'KE';
+    countryName = 'Kenya';
+  } else if (reqTimezone.includes('kolkata') || reqTimezone.includes('delhi') || acceptLang.includes('hi')) {
+    detectedCode = 'hi';
+    countryCode = 'IN';
+    countryName = 'India';
+  } else if (reqTimezone.includes('moscow') || acceptLang.includes('ru')) {
+    detectedCode = 'ru';
+    countryCode = 'RU';
+    countryName = 'Russia';
+  }
+
+  const langMeta = supportedLanguages.find(l => l.code === detectedCode) || supportedLanguages[0];
+
+  res.json({
+    detectedLocation: {
+      ip: req.ip || '127.0.0.1',
+      countryCode,
+      countryName,
+      timezone: reqTimezone || 'UTC'
+    },
+    language: langMeta,
+    supportedLanguages,
+    autoTranslated: true,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // 2. Ideas/Opinions APIs
 app.get('/api/ideas', (req: Request, res: Response) => {
   res.json(ideas);
