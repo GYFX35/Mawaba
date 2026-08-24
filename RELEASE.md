@@ -1,34 +1,36 @@
-# Release Notes: Mawaba v1.0.0 🚀
+# Release Notes: Mawaba v1.1.0 🚀
 
-We are proud to announce the **first official release (v1.0.0)** of the **Mawaba** Global Interaction & AI-Driven Business platform!
+We are thrilled to announce **Mawaba Version 1.1.0**, featuring a fully unified Next.js frontend and Express TypeScript backend architecture!
 
-Mawaba is designed to empower global innovation, world development, health, and education through high-quality UI/UX and advanced AI service integrations. This release lays the foundation of Mawaba's client application and sets up continuous deployment workflows.
+Mawaba connects global health, education, climate solutions, environmental protection, cultural heritage archives, e-commerce, and gaming tools into a seamless, accessible digital platform.
 
 ---
 
-## What's New in v1.0.0
+## What's New in v1.1.0
 
-### 1. 🎓 Next-Generation Global Education Platform
-We have developed a comprehensive Global Education module (`/education`) that brings high-quality academic disciplines to learners across the globe without boundaries:
-- **STEM & Sciences:** Curriculum covering quantum mechanics, physics, biology, and chemistry.
-- **Literature & Languages:** Global communication, creative writing, and multilingual content.
-- **Business & Economics:** Sustainable development goals, entrepreneurship, and financial literacy.
-- **World Development:** Climate tech, green energy, public health, and social equity.
-- **Interactive AI Tutor Mock Workspace:** Ask questions on any topic and receive simulated real-time, context-specific tutor support.
-- **Peer-to-Peer Forums:** Active discussion rooms connecting emergent learners with university networks.
+### 1. 🔗 Fully Unified Frontend & Backend Ecosystem
+- Integrated all Next.js client modules with Express TypeScript REST API endpoints on port 3001.
+- Centralized base URL resolution via `apps/frontend/components/apiConfig.ts` supporting `NEXT_PUBLIC_API_URL` with seamless fallback for local and production deployment.
+- Enhanced CORS configuration (`process.env.CLIENT_ORIGIN`) and 10MB JSON body payload support for media handling.
 
-### 2. ⚖️ MIT Open Source License Integration
-Mawaba is now officially licensed under the **MIT License** to support global open collaboration:
-- Added root `LICENSE` file.
-- Updated root, frontend, and backend `package.json` files to specify `MIT` license.
-- Created `/license` frontend page containing the complete MIT legal terms with responsive styling.
-- Linked MIT license in footer under Legal.
+### 2. 🎮 Gaming Arcade & Developer Monetization Portal (`/games`)
+- Playable HTML5 browser games, filtering by genre and monetization model.
+- Developer game registration & submission workflow with live 85% revenue split calculation.
+- Microtransactions, game purchases, tipping, and developer analytics.
 
-### 3. 🌐 Automated GitHub Pages & Continuous Deployment
-Set up and optimized static HTML builds for serverless hosting:
-- Configured Next.js static exports (`output: 'export'`) inside `next.config.js`.
-- Enabled `NEXT_PUBLIC_BASE_PATH` environment variable support to automatically prepend `/Mawaba` when running in GitHub production environments.
-- Created GitHub Actions workflow `.github/workflows/deploy.yml` to automatically build, package, and deploy our Next.js frontend to **GitHub Pages** on every push to `main` branch.
+### 3. 🛍️ Direct-to-Consumer (DTC) E-Commerce & Store (`/dtc`)
+- Sustainable product catalog browsing, search, and category filtering.
+- Interactive cart management, promo code processing, checkout receipt modal, and eco-subscriptions.
+
+### 4. 🌍 Global Culture Archive & Heritage Hub (`/culture`)
+- Region and category filtering across global traditions, festivals, and culinary heritage.
+- Interactive comment and like systems, camera snapshot capture, and video recording support.
+
+### 5. 🎬 Videos Hub Entertainment Center (`/videos`)
+- Multi-category video discovery, HTML5 player playback, like/share/download capabilities, inline commenting, and user video submissions.
+
+### 6. 🌿 Climate Solutions & Eco-Pledges (`/climate`, `/environment`)
+- Interactive CO2 impact calculator, renewable initiative upvoting, digital pledge badges, and World Bank Open Data integration.
 
 ---
 
@@ -42,29 +44,39 @@ cd Mawaba
 npm install
 ```
 
-### Run Frontend Locally
+### Run Backend REST API Server
 ```bash
-npm run dev
+npm run dev --workspace=backend
+```
+The REST API server will run on [http://localhost:3001](http://localhost:3001).
+
+### Run Next.js Frontend Client
+```bash
+npm run dev --workspace=frontend
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser.
+
+### Run Backend Unit Tests
+```bash
+npm test --workspace=backend
 ```
 
-### Build Static Export (GitHub Pages Format)
+### Build Production Export
 ```bash
-npm run build
+npm run build --workspace=frontend
+npm run build --workspace=backend
 ```
-This produces an optimized static export inside `apps/frontend/out/` directory, ready to be hosted on GitHub Pages or any static CDN.
 
 ---
 
 ## Creating the Tag and Release on GitHub
 
-To push this release to GitHub, you can execute the following Git commands in your terminal:
+To publish this release on GitHub:
 
 ```bash
-# 1. Tag the commit
-git tag -a v1.0.0 -m "Mawaba Version 1.0.0 First Release"
+# 1. Create annotated release tag
+git tag -a v1.1.0 -m "Mawaba Version 1.1.0 Unified Release"
 
-# 2. Push the branch and tags
+# 2. Push tags to GitHub
 git push origin main --tags
 ```
-
-Once pushed, navigate to the **Releases** tab on your GitHub repository page, choose "Draft a new release", select the tag `v1.0.0`, paste this `RELEASE.md` content into the release notes, and click **Publish Release**!
