@@ -85,10 +85,14 @@ const VideosHubPage = () => {
 
   // HTML5 WebRTC Video Recorder State
   const [isRecording, setIsRecording] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const mediaStreamRef = useRef<MediaStream | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recordedChunksRef = useRef<Blob[]>([]);
+  const timerIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     fetchVideos();
@@ -223,27 +227,66 @@ const VideosHubPage = () => {
   };
 
   // WebRTC Recording Functions
-  const startRecording = async () => {
+  const startCamera = async () => {
+    setCameraError(null);
+    setIsCameraActive(true);
+    setIsRecording(false);
+    setRecordingSeconds(0);
+
     try {
-      setIsRecording(true);
-      recordedChunksRef.current = [];
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+      let stream: MediaStream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+          audio: true
+        });
+      } catch (audioErr) {
+        // Fallback to video only if microphone access fails
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' },
+          audio: false
+        });
+      }
+
       mediaStreamRef.current = stream;
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
+    } catch (err: any) {
+      console.error('Camera access error:', err);
+      setCameraError(err.message || 'Unable to access phone or computer camera. Please check permissions.');
+      setIsCameraActive(false);
+    }
+  };
 
-      const recorder = new MediaRecorder(stream);
+  const startRecording = async () => {
+    if (!mediaStreamRef.current) {
+      await startCamera();
+      if (!mediaStreamRef.current) return;
+    }
+
+    try {
+      setIsRecording(true);
+      recordedChunksRef.current = [];
+      setRecordingSeconds(0);
+
+      const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+        ? 'video/webm;codecs=vp9'
+        : MediaRecorder.isTypeSupported('video/webm')
+        ? 'video/webm'
+        : 'video/mp4';
+
+      const recorder = new MediaRecorder(mediaStreamRef.current, { mimeType });
       mediaRecorderRef.current = recorder;
 
       recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
+        if (event.data && event.data.size > 0) {
           recordedChunksRef.current.push(event.data);
         }
       };
 
       recorder.onstop = () => {
-        const blob = new Blob(recordedChunksRef.current, { type: 'video/webm' });
+        const blob = new Blob(recordedChunksRef.current, { type: mimeType });
         const reader = new FileReader();
         reader.readAsDataURL(blob);
         reader.onloadend = () => {
@@ -254,9 +297,14 @@ const VideosHubPage = () => {
         stopCamera();
       };
 
-      recorder.start();
-    } catch (err) {
-      alert('Camera or Microphone access denied for video recording.');
+      recorder.start(100);
+
+      timerIntervalRef.current = setInterval(() => {
+        setRecordingSeconds(prev => prev + 1);
+      }, 1000);
+    } catch (err: any) {
+      console.error('Recording start error:', err);
+      alert('Camera access denied or recording not supported on this device.');
       setIsRecording(false);
     }
   };
@@ -266,13 +314,36 @@ const VideosHubPage = () => {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
     }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
   };
 
   const stopCamera = () => {
+    if (isRecording) {
+      stopRecording();
+    }
     if (mediaStreamRef.current) {
       mediaStreamRef.current.getTracks().forEach(track => track.stop());
       mediaStreamRef.current = null;
     }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    setIsCameraActive(false);
+    setIsRecording(false);
+  };
+
+  const openSubmitModalWithCamera = () => {
+    setIsSubmitModalOpen(true);
+    setTimeout(() => {
+      startCamera();
+    }, 150);
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -374,8 +445,16 @@ const VideosHubPage = () => {
 
           <div className="mt-10 flex flex-wrap justify-center items-center gap-4">
             <button
+              onClick={openSubmitModalWithCamera}
+              className="inline-flex items-center gap-2.5 bg-gradient-to-r from-amber-500 to-purple-600 hover:from-amber-600 hover:to-purple-700 text-white px-7 py-3.5 rounded-2xl font-bold shadow-xl shadow-purple-900/40 hover:shadow-2xl transition-all transform hover:-translate-y-0.5"
+            >
+              <Camera className="w-5 h-5 text-amber-300 animate-bounce" />
+              <span>Record with Camera</span>
+            </button>
+
+            <button
               onClick={() => setIsSubmitModalOpen(true)}
-              className="inline-flex items-center gap-2.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white px-7 py-3.5 rounded-2xl font-bold shadow-xl shadow-purple-900/40 hover:shadow-2xl transition-all transform hover:-translate-y-0.5"
+              className="inline-flex items-center gap-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/20 px-7 py-3.5 rounded-2xl font-bold backdrop-blur-md transition-all"
             >
               <PlusCircle className="w-5 h-5" />
               <span>Submit Video</span>
@@ -705,37 +784,70 @@ const VideosHubPage = () => {
                 {/* Video Media Source Section */}
                 <div className="p-4 bg-purple-50/60 border border-purple-200/70 rounded-2xl space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-extrabold text-purple-900 uppercase tracking-wide">
-                      Video Source *
+                    <span className="text-xs font-extrabold text-purple-900 uppercase tracking-wide flex items-center gap-1.5">
+                      <Camera className="w-4 h-4 text-purple-600" />
+                      Video Source & Camera Access *
                     </span>
-                    <span className="text-[10px] text-purple-700 font-semibold">WebRTC Recorder, File Upload, or URL</span>
+                    <span className="text-[10px] text-purple-700 font-semibold">Live Camera, Device File Upload, or URL</span>
                   </div>
 
-                  {/* HTML5 WebRTC Video Recorder Preview */}
-                  {isRecording && (
-                    <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+                  {cameraError && (
+                    <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-semibold text-red-700">
+                      ⚠️ {cameraError}
+                    </div>
+                  )}
+
+                  {/* HTML5 WebRTC Video Recorder / Camera Preview */}
+                  {isCameraActive && (
+                    <div className="relative rounded-2xl overflow-hidden bg-black aspect-video border-2 border-purple-400 shadow-inner">
                       <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover" />
-                      <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-2">
-                        <button
-                          type="button"
-                          onClick={stopRecording}
-                          className="bg-red-600 animate-pulse text-white px-5 py-2 rounded-xl text-xs font-bold shadow-lg"
-                        >
-                          Stop & Save Video Recording
-                        </button>
+
+                      {/* Video status overlay */}
+                      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[11px] text-white font-bold flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${isRecording ? 'bg-red-500 animate-ping' : 'bg-emerald-400'}`} />
+                        {isRecording ? `Recording: ${recordingSeconds}s` : 'Camera Live Preview'}
+                      </div>
+
+                      <div className="absolute bottom-3 left-0 right-0 flex justify-center items-center gap-2 px-3">
+                        {!isRecording ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={startRecording}
+                              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg flex items-center gap-1.5"
+                            >
+                              <Video className="w-4 h-4" /> Start Recording
+                            </button>
+                            <button
+                              type="button"
+                              onClick={stopCamera}
+                              className="bg-gray-800 hover:bg-gray-900 text-white px-3 py-2 rounded-xl text-xs font-bold"
+                            >
+                              Turn Off Camera
+                            </button>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={stopRecording}
+                            className="bg-red-600 animate-pulse hover:bg-red-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-xl flex items-center gap-2"
+                          >
+                            <span className="w-2.5 h-2.5 rounded-sm bg-white" /> Stop & Attach Video ({recordingSeconds}s)
+                          </button>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {!isRecording && (
+                  {!isCameraActive && (
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
-                        onClick={startRecording}
-                        className="flex items-center justify-center gap-2 bg-white border border-purple-300 text-purple-800 py-2.5 rounded-xl text-xs font-bold hover:bg-purple-100 transition-all"
+                        onClick={startCamera}
+                        className="flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-2.5 rounded-xl text-xs font-bold shadow-md transition-all"
                       >
-                        <Camera className="w-4 h-4 text-purple-600" />
-                        <span>Record HTML5 Video</span>
+                        <Camera className="w-4 h-4" />
+                        <span>Enable Camera Access</span>
                       </button>
 
                       <label className="flex items-center justify-center gap-2 bg-white border border-purple-300 text-purple-800 py-2.5 rounded-xl text-xs font-bold hover:bg-purple-100 transition-all cursor-pointer">
