@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -95,7 +96,7 @@ export default function EnvironmentProtectionPage() {
   const fetchInitiatives = async () => {
     setLoadingInitiatives(true);
     try {
-      const res = await fetch('http://localhost:3001/api/environment/initiatives');
+      const res = await fetch(getApiUrl('/api/environment/initiatives'));
       if (res.ok) {
         const data = await res.json();
         setInitiatives(data);
@@ -134,7 +135,7 @@ export default function EnvironmentProtectionPage() {
 
   const fetchPledges = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/environment/pledges');
+      const res = await fetch(getApiUrl('/api/environment/pledges'));
       if (res.ok) {
         const data = await res.json();
         setPledgeStats({
@@ -154,7 +155,7 @@ export default function EnvironmentProtectionPage() {
 
   const handleUpvote = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/environment/initiatives/${id}/upvote`, { method: 'POST' });
+      const res = await fetch(getApiUrl(`/api/environment/initiatives/${id}/upvote`), { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         setInitiatives(prev =>
@@ -175,7 +176,7 @@ export default function EnvironmentProtectionPage() {
 
     setSubmittingInitiative(true);
     try {
-      const res = await fetch('http://localhost:3001/api/environment/initiatives', {
+      const res = await fetch(getApiUrl('/api/environment/initiatives'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

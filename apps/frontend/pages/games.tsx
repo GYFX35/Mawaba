@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Layout from '../components/Layout';
@@ -104,7 +105,7 @@ export default function GamesPage() {
   const genres = ['All', 'Action & Arcade', 'Puzzle & Logic', 'Strategy & Simulation', 'Educational & Sci-Fi', 'Eco & Climate'];
   const monetizationModels = ['All', 'Free', 'Ad-Supported', 'Premium Purchase', 'In-Game Pass / Subscription'];
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const API_BASE = API_BASE_URL;
 
   const fetchGames = async () => {
     try {

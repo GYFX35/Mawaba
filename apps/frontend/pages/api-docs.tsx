@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
@@ -152,7 +153,7 @@ const ApiDocsPage: NextPage = () => {
 
   // Code Snippets generator
   const getCodeSnippet = (endpoint: Endpoint) => {
-    const fullUrl = `http://localhost:3001${endpoint.path.replace('{id}', requestParam || '1')}`;
+    const fullUrl = getApiUrl(`${endpoint.path.replace('{id}', requestParam || '1')}`);
     const bodyStr = endpoint.sampleBody ? JSON.stringify(endpoint.sampleBody, null, 2) : '';
 
     if (activeLang === 'curl') {
@@ -178,7 +179,7 @@ const ApiDocsPage: NextPage = () => {
 
   useEffect(() => {
     // Check if backend is running
-    fetch('http://localhost:3001/api/health')
+    fetch(getApiUrl('/api/health'))
       .then(res => {
         if (res.ok) setBackendOnline(true);
         else setBackendOnline(false);
@@ -220,7 +221,7 @@ const ApiDocsPage: NextPage = () => {
       path = path.replace('{id}', requestParam.trim());
     }
 
-    const fullUrl = `http://localhost:3001${path}`;
+    const fullUrl = getApiUrl(`${path}`);
 
     try {
       const options: RequestInit = {

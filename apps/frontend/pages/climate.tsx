@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
@@ -96,7 +97,7 @@ const ClimatePage: NextPage = () => {
   useEffect(() => {
     const fetchSolutions = async () => {
       try {
-        let url = 'http://localhost:3001/api/climate/solutions';
+        let url = getApiUrl('/api/climate/solutions');
         const params = new URLSearchParams();
         if (selectedCategory !== 'All') params.append('category', selectedCategory);
         if (searchQuery) params.append('search', searchQuery);
@@ -162,7 +163,7 @@ const ClimatePage: NextPage = () => {
   useEffect(() => {
     const fetchInitiatives = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/climate/initiatives');
+        const res = await fetch(getApiUrl('/api/climate/initiatives'));
         if (res.ok) {
           const data = await res.json();
           setInitiatives(data);
@@ -178,7 +179,7 @@ const ClimatePage: NextPage = () => {
   useEffect(() => {
     const runCalculator = async () => {
       try {
-        const res = await fetch('http://localhost:3001/api/climate/calculator', {
+        const res = await fetch(getApiUrl('/api/climate/calculator'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -220,7 +221,7 @@ const ClimatePage: NextPage = () => {
     if (!initTitle || !initLocation || !initDesc || !initOrganizer) return;
 
     try {
-      const res = await fetch('http://localhost:3001/api/climate/initiatives', {
+      const res = await fetch(getApiUrl('/api/climate/initiatives'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -273,7 +274,7 @@ const ClimatePage: NextPage = () => {
       prev.map(i => (i.id === id ? { ...i, supporters: i.supporters + 1 } : i))
     );
     try {
-      await fetch(`http://localhost:3001/api/climate/initiatives/${id}/support`, { method: 'POST' });
+      await fetch(getApiUrl(`/api/climate/initiatives/${id}/support`), { method: 'POST' });
     } catch (err) {
       console.warn('Supported locally');
     }
@@ -286,7 +287,7 @@ const ClimatePage: NextPage = () => {
     setAiLoading(true);
 
     try {
-      const res = await fetch('http://localhost:3001/api/ai/tutor', {
+      const res = await fetch(getApiUrl('/api/ai/tutor'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -321,7 +322,7 @@ const ClimatePage: NextPage = () => {
     const fetchWbData = async () => {
       setWbLoading(true);
       try {
-        const res = await fetch(`http://localhost:3001/api/worldbank/indicators?country=${wbCountry}&indicator=${wbIndicator}`);
+        const res = await fetch(getApiUrl(`/api/worldbank/indicators?country=${wbCountry}&indicator=${wbIndicator}`));
         if (res.ok) {
           const data = await res.json();
           setWbData(data);

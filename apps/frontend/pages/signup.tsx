@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -54,7 +55,7 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/users/register', {
+      const response = await fetch(getApiUrl('/api/users/register'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -133,14 +134,15 @@ const Signup = () => {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                <label htmlFor="signup-name" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                   Full Name
                 </label>
                 <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <User className="h-5 w-5" />
+                    <User className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <input
+                    id="signup-name"
                     name="name"
                     type="text"
                     required
@@ -153,14 +155,15 @@ const Signup = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                <label htmlFor="signup-email" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                   Email Address
                 </label>
                 <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Mail className="h-5 w-5" />
+                    <Mail className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <input
+                    id="signup-email"
                     name="email"
                     type="email"
                     required
@@ -173,14 +176,15 @@ const Signup = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                <label htmlFor="signup-password" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                   Password
                 </label>
                 <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Lock className="h-5 w-5" />
+                    <Lock className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <input
+                    id="signup-password"
                     name="password"
                     type="password"
                     required
@@ -193,14 +197,15 @@ const Signup = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                <label htmlFor="signup-confirm-password" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                   Confirm Password
                 </label>
                 <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Lock className="h-5 w-5" />
+                    <Lock className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <input
+                    id="signup-confirm-password"
                     name="confirmPassword"
                     type="password"
                     required

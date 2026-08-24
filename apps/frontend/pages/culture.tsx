@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -107,7 +108,7 @@ const GlobalCulturePage = () => {
       if (selectedCategory !== 'All') params.append('category', selectedCategory);
       if (searchQuery.trim()) params.append('search', searchQuery.trim());
 
-      const res = await fetch(`http://localhost:3001/api/culture/items?${params.toString()}`);
+      const res = await fetch(getApiUrl(`/api/culture/items?${params.toString()}`));
       if (res.ok) {
         const data = await res.json();
         setItems(data);
@@ -228,7 +229,7 @@ const GlobalCulturePage = () => {
 
     try {
       setSubmitting(true);
-      const res = await fetch('http://localhost:3001/api/culture/items', {
+      const res = await fetch(getApiUrl('/api/culture/items'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -273,7 +274,7 @@ const GlobalCulturePage = () => {
 
   const handleLike = async (id: string) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/culture/items/${id}/like`, {
+      const res = await fetch(getApiUrl(`/api/culture/items/${id}/like`), {
         method: 'POST'
       });
       if (res.ok) {
@@ -290,7 +291,7 @@ const GlobalCulturePage = () => {
     if (!commentAuthor.trim() || !commentText.trim()) return;
 
     try {
-      const res = await fetch(`http://localhost:3001/api/culture/items/${id}/comments`, {
+      const res = await fetch(getApiUrl(`/api/culture/items/${id}/comments`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

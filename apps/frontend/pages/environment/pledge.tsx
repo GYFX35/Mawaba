@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -49,7 +50,7 @@ export default function EnvironmentPledgePage() {
 
   const fetchPledges = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/environment/pledges');
+      const res = await fetch(getApiUrl('/api/environment/pledges'));
       if (res.ok) {
         const data = await res.json();
         setRecentPledges(data.recentPledges || []);
@@ -80,7 +81,7 @@ export default function EnvironmentPledgePage() {
 
     setSubmitting(true);
     try {
-      const res = await fetch('http://localhost:3001/api/environment/pledges', {
+      const res = await fetch(getApiUrl('/api/environment/pledges'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

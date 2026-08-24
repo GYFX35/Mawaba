@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import React, { useState, useEffect } from 'react';
@@ -112,7 +113,7 @@ const DtcHubPage: NextPage = () => {
   const fetchProducts = async () => {
     setLoadingProducts(true);
     try {
-      let url = 'http://localhost:3001/api/dtc/products?';
+      let url = getApiUrl('/api/dtc/products?');
       if (selectedCategory !== 'All') url += `category=${encodeURIComponent(selectedCategory)}&`;
       if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}`;
 
@@ -131,7 +132,7 @@ const DtcHubPage: NextPage = () => {
   const fetchOrders = async () => {
     setLoadingOrders(true);
     try {
-      let url = 'http://localhost:3001/api/dtc/orders?';
+      let url = getApiUrl('/api/dtc/orders?');
       if (statusFilter !== 'All') url += `status=${encodeURIComponent(statusFilter)}`;
 
       const res = await fetch(url);
@@ -149,7 +150,7 @@ const DtcHubPage: NextPage = () => {
   const fetchAnalytics = async () => {
     setLoadingAnalytics(true);
     try {
-      const res = await fetch('http://localhost:3001/api/dtc/analytics');
+      const res = await fetch(getApiUrl('/api/dtc/analytics'));
       if (res.ok) {
         const data = await res.json();
         setAnalytics(data);
@@ -166,7 +167,7 @@ const DtcHubPage: NextPage = () => {
     if (!newProdName || !newProdPrice || !newProdStock || !newProdDesc) return;
 
     try {
-      const res = await fetch('http://localhost:3001/api/dtc/products', {
+      const res = await fetch(getApiUrl('/api/dtc/products'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -199,7 +200,7 @@ const DtcHubPage: NextPage = () => {
     if (!selectedProductForOrder || !orderCustName || !orderCustEmail || !orderAddress) return;
 
     try {
-      const res = await fetch('http://localhost:3001/api/dtc/orders', {
+      const res = await fetch(getApiUrl('/api/dtc/orders'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
