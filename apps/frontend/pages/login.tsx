@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState } from 'react';
 import Head from 'next/head';
 import Link from 'next/link';
@@ -36,7 +37,7 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3001/api/users/login', {
+      const response = await fetch(getApiUrl('/api/users/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)
@@ -110,14 +111,15 @@ const Login = () => {
               )}
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                <label htmlFor="login-email" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                   Email Address
                 </label>
                 <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Mail className="h-5 w-5" />
+                    <Mail className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <input
+                    id="login-email"
                     name="email"
                     type="email"
                     required
@@ -130,14 +132,15 @@ const Login = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                <label htmlFor="login-password" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                   Password
                 </label>
                 <div className="relative rounded-xl shadow-sm">
                   <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
-                    <Lock className="h-5 w-5" />
+                    <Lock className="h-5 w-5" aria-hidden="true" />
                   </div>
                   <input
+                    id="login-password"
                     name="password"
                     type="password"
                     required

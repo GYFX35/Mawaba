@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
@@ -50,7 +51,7 @@ const IntegrationsPage: NextPage = () => {
   const fetchIntegrations = React.useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch('http://localhost:3001/api/integrations');
+      const res = await fetch(getApiUrl('/api/integrations'));
       if (res.ok) {
         const data = await res.json();
         if (Array.isArray(data)) {
@@ -95,7 +96,7 @@ const IntegrationsPage: NextPage = () => {
     );
 
     try {
-      const res = await fetch(`http://localhost:3001/api/integrations/${partner.name}/${action}`, {
+      const res = await fetch(getApiUrl(`/api/integrations/${partner.name}/${action}`), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

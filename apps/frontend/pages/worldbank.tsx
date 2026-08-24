@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 import {
@@ -17,7 +18,7 @@ import {
   Info
 } from 'lucide-react';
 
-const API_BASE = 'http://localhost:3001/api/worldbank';
+const API_BASE = getApiUrl('/api/worldbank');
 
 interface Country {
   id: string;

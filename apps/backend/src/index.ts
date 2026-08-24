@@ -2,10 +2,16 @@ import express, { Request, Response } from 'express';
 import cors from 'cors';
 
 const app = express();
-const port = 3001;
+const PORT = process.env.PORT || 3001;
 
-app.use(cors());
-app.use(express.json());
+const corsOptions = {
+  origin: process.env.CLIENT_ORIGIN || '*',
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+};
+
+app.use(cors(corsOptions));
+app.use(express.json({ limit: '10mb' }));
 
 // In-Memory Database Interfaces
 interface Comment {
@@ -2299,9 +2305,19 @@ app.post('/api/ai/tutor', async (req: Request, res: Response) => {
   });
 });
 
+// Centralized 404 and Error Handler for Production Readiness
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: `Route ${req.originalUrl} not found` });
+});
+
+app.use((err: any, req: Request, res: Response, next: any) => {
+  console.error('Unhandled Server Error:', err);
+  res.status(500).json({ error: 'Internal Server Error' });
+});
+
 if (process.env.NODE_ENV !== 'test') {
-  app.listen(port, () => {
-    console.log(`Backend listening at http://localhost:${port}`);
+  app.listen(PORT, () => {
+    console.log(`Backend listening at http://localhost:${PORT}`);
   });
 }
 

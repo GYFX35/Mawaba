@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
@@ -53,7 +54,7 @@ const HomePage: NextPage = () => {
 
   const fetchIdeas = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/ideas');
+      const res = await fetch(getApiUrl('/api/ideas'));
       if (res.ok) {
         const data = await res.json();
         setIdeas(data);
@@ -76,7 +77,7 @@ const HomePage: NextPage = () => {
     );
 
     try {
-      await fetch(`http://localhost:3001/api/ideas/${id}/like`, {
+      await fetch(getApiUrl(`/api/ideas/${id}/like`), {
         method: 'POST',
       });
     } catch (err) {
@@ -107,7 +108,7 @@ const HomePage: NextPage = () => {
     setCommentInputs(prev => ({ ...prev, [ideaId]: '' }));
 
     try {
-      await fetch(`http://localhost:3001/api/ideas/${ideaId}/comments`, {
+      await fetch(getApiUrl(`/api/ideas/${ideaId}/comments`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ author, text })
@@ -135,7 +136,7 @@ const HomePage: NextPage = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:3001/api/ideas', {
+      const res = await fetch(getApiUrl('/api/ideas'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

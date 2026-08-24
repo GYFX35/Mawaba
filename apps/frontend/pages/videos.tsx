@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import Layout from '../components/Layout';
@@ -120,7 +121,7 @@ const VideosHubPage = () => {
       if (selectedCategory !== 'All') params.append('category', selectedCategory);
       if (searchQuery.trim()) params.append('search', searchQuery.trim());
 
-      const res = await fetch(`http://localhost:3001/api/videos?${params.toString()}`);
+      const res = await fetch(getApiUrl(`/api/videos?${params.toString()}`));
       if (res.ok) {
         const data = await res.json();
         setVideos(data);
@@ -135,7 +136,7 @@ const VideosHubPage = () => {
   const handleLike = async (id: string, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     try {
-      const res = await fetch(`http://localhost:3001/api/videos/${id}/like`, { method: 'POST' });
+      const res = await fetch(getApiUrl(`/api/videos/${id}/like`), { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         setVideos(videos.map(v => v.id === id ? { ...v, likes: data.likes } : v));
@@ -152,7 +153,7 @@ const VideosHubPage = () => {
   const handleShare = async (video: VideoItem, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     try {
-      const res = await fetch(`http://localhost:3001/api/videos/${video.id}/share`, { method: 'POST' });
+      const res = await fetch(getApiUrl(`/api/videos/${video.id}/share`), { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         setVideos(videos.map(v => v.id === video.id ? { ...v, shares: data.shares } : v));
@@ -177,7 +178,7 @@ const VideosHubPage = () => {
   const handleDownload = async (video: VideoItem, e?: React.MouseEvent) => {
     if (e) e.stopPropagation();
     try {
-      const res = await fetch(`http://localhost:3001/api/videos/${video.id}/download`, { method: 'POST' });
+      const res = await fetch(getApiUrl(`/api/videos/${video.id}/download`), { method: 'POST' });
       if (res.ok) {
         const data = await res.json();
         setVideos(videos.map(v => v.id === video.id ? { ...v, downloads: data.downloads } : v));
@@ -206,7 +207,7 @@ const VideosHubPage = () => {
     if (!commentAuthor.trim() || !commentText.trim()) return;
 
     try {
-      const res = await fetch(`http://localhost:3001/api/videos/${id}/comments`, {
+      const res = await fetch(getApiUrl(`/api/videos/${id}/comments`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ author: commentAuthor, text: commentText })
@@ -368,7 +369,7 @@ const VideosHubPage = () => {
 
     try {
       setSubmitting(true);
-      const res = await fetch('http://localhost:3001/api/videos/submit', {
+      const res = await fetch(getApiUrl('/api/videos/submit'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

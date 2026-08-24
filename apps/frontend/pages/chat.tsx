@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect, useRef } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
@@ -126,8 +127,8 @@ const GlobalChatPage: NextPage = () => {
   const fetchChatMessages = async () => {
     try {
       const url = selectedRoom === 'All'
-        ? 'http://localhost:3001/api/chat/messages'
-        : `http://localhost:3001/api/chat/messages?room=${encodeURIComponent(selectedRoom)}`;
+        ? getApiUrl('/api/chat/messages')
+        : getApiUrl(`/api/chat/messages?room=${encodeURIComponent(selectedRoom)}`);
       const res = await fetch(url);
       if (res.ok) {
         const data = await res.json();
@@ -141,7 +142,7 @@ const GlobalChatPage: NextPage = () => {
   // Fetch Forum Topics
   const fetchForumTopics = async () => {
     try {
-      let url = 'http://localhost:3001/api/forum/topics';
+      let url = getApiUrl('/api/forum/topics');
       const params = new URLSearchParams();
       if (selectedCategory !== 'All') params.append('category', selectedCategory);
       if (searchQuery.trim()) params.append('search', searchQuery);
@@ -337,7 +338,7 @@ const GlobalChatPage: NextPage = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:3001/api/chat/messages', {
+      const res = await fetch(getApiUrl('/api/chat/messages'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -388,7 +389,7 @@ const GlobalChatPage: NextPage = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:3001/api/forum/topics', {
+      const res = await fetch(getApiUrl('/api/forum/topics'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -432,7 +433,7 @@ const GlobalChatPage: NextPage = () => {
   // Like Forum Topic
   const handleLikeTopic = async (topicId: string) => {
     try {
-      const res = await fetch(`http://localhost:3001/api/forum/topics/${topicId}/like`, {
+      const res = await fetch(getApiUrl(`/api/forum/topics/${topicId}/like`), {
         method: 'POST'
       });
       if (res.ok) {
@@ -462,7 +463,7 @@ const GlobalChatPage: NextPage = () => {
     };
 
     try {
-      const res = await fetch(`http://localhost:3001/api/forum/topics/${topicId}/replies`, {
+      const res = await fetch(getApiUrl(`/api/forum/topics/${topicId}/replies`), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

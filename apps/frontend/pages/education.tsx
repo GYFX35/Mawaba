@@ -1,3 +1,4 @@
+import { getApiUrl, API_BASE_URL } from '../components/apiConfig';
 import React, { useState, useEffect } from 'react';
 import type { NextPage } from 'next';
 import Head from 'next/head';
@@ -69,7 +70,7 @@ const EducationPage: NextPage = () => {
 
   const fetchMessages = async () => {
     try {
-      const res = await fetch('http://localhost:3001/api/forums/messages');
+      const res = await fetch(getApiUrl('/api/forums/messages'));
       if (res.ok) {
         const data = await res.json();
         setMessages(data);
@@ -170,7 +171,7 @@ const EducationPage: NextPage = () => {
       if (selectedDiscipline === 'Health') discipline = 'Health & Well-being';
       if (selectedDiscipline === 'Development') discipline = 'World Development';
 
-      const res = await fetch('http://localhost:3001/api/ai/tutor', {
+      const res = await fetch(getApiUrl('/api/ai/tutor'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -254,7 +255,7 @@ const EducationPage: NextPage = () => {
 
     setSubmittingMessage(true);
     try {
-      const res = await fetch('http://localhost:3001/api/forums/messages', {
+      const res = await fetch(getApiUrl('/api/forums/messages'), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

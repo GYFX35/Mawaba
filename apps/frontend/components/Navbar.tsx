@@ -46,22 +46,23 @@ const Navbar = () => {
   ];
 
   return (
-    <nav className="bg-white/95 backdrop-blur-md border-b border-gray-100 sticky top-0 z-50 transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          <div className="flex items-center">
-            <Link href="/" className="flex-shrink-0 flex items-center gap-2.5 group">
-              <div className="bg-blue-600 text-white p-1.5 rounded-xl transition-transform group-hover:scale-105 duration-300 shadow-md shadow-blue-200">
-                <Cpu className="h-5 w-5" />
-              </div>
-              <span className="text-2xl font-extrabold text-gray-900 tracking-tight bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">
-                MAWABA
-              </span>
-            </Link>
-          </div>
+    <header className="sticky top-0 z-50">
+      <nav aria-label="Main Navigation" className="bg-white/95 backdrop-blur-md border-b border-gray-100 transition-all">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between h-16">
+            <div className="flex items-center">
+              <Link href="/" aria-label="Mawaba Home" className="flex-shrink-0 flex items-center gap-2.5 group">
+                <div className="bg-blue-600 text-white p-1.5 rounded-xl transition-transform group-hover:scale-105 duration-300 shadow-md shadow-blue-200">
+                  <Cpu className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <span className="text-2xl font-extrabold text-gray-900 tracking-tight bg-gradient-to-r from-gray-900 to-blue-900 bg-clip-text text-transparent">
+                  MAWABA
+                </span>
+              </Link>
+            </div>
 
-          {/* Desktop Links */}
-          <div className="hidden md:flex items-center space-x-1">
+            {/* Desktop Links */}
+            <div className="hidden md:flex items-center space-x-1">
             {navLinks.map((link) => {
               const isActive = router.pathname === link.href;
               return (
@@ -120,9 +121,11 @@ const Navbar = () => {
             <LanguageTranslator />
             <button
               onClick={() => setIsOpen(!isOpen)}
+              aria-label={isOpen ? "Close main menu" : "Open main menu"}
+              aria-expanded={isOpen}
               className="inline-flex items-center justify-center p-2 rounded-xl text-gray-500 hover:text-gray-950 hover:bg-gray-100 transition-colors focus:outline-none"
             >
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isOpen ? <X className="h-6 w-6" aria-hidden="true" /> : <Menu className="h-6 w-6" aria-hidden="true" />}
             </button>
           </div>
         </div>
@@ -189,7 +192,8 @@ const Navbar = () => {
           </div>
         </div>
       )}
-    </nav>
+      </nav>
+    </header>
   );
 };
 
