@@ -800,4 +800,97 @@ describe('Backend API Endpoints', () => {
       expect(Array.isArray(response.body.recentTransactions)).toBe(true);
     });
   });
+
+  describe('Sponsorship & GitHub Partnership APIs', () => {
+    it('GET /api/sponsorship/tiers should return sponsorship tiers list', async () => {
+      const response = await request(app).get('/api/sponsorship/tiers');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(4);
+      expect(response.body[0]).toHaveProperty('id', 'individual');
+      expect(response.body[1]).toHaveProperty('id', 'developer');
+    });
+
+    it('GET /api/sponsorship/sponsors should return metrics and list of sponsors', async () => {
+      const response = await request(app).get('/api/sponsorship/sponsors');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('metrics');
+      expect(response.body.metrics).toHaveProperty('totalAmountRaised');
+      expect(response.body.metrics.activeSponsorsCount).toBeGreaterThan(0);
+      expect(Array.isArray(response.body.sponsors)).toBe(true);
+    });
+
+    it('POST /api/sponsorship/checkout should process Stripe payment checkout', async () => {
+      const payload = {
+        sponsorName: 'Quantum Tech Labs',
+        sponsorEmail: 'support@quantumtech.org',
+        tierId: 'corporate',
+        billingCycle: 'monthly',
+        paymentMethod: 'stripe'
+      };
+
+      const response = await request(app).post('/api/sponsorship/checkout').send(payload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('Stripe sponsorship checkout session initiated');
+      expect(response.body).toHaveProperty('checkoutUrl');
+      expect(response.body).toHaveProperty('sessionId');
+      expect(response.body.transaction.paymentMethod).toBe('stripe');
+      expect(response.body.transaction.amount).toBe(250);
+    });
+
+    it('POST /api/sponsorship/checkout should process direct Credit/Debit Card payment', async () => {
+      const payload = {
+        sponsorName: 'Ada Lovelace Club',
+        sponsorEmail: 'ada@lovelace.org',
+        tierId: 'developer',
+        customAmount: 50,
+        billingCycle: 'monthly',
+        paymentMethod: 'card',
+        cardNumber: '4111 2222 3333 4444',
+        cardExpiry: '12/28',
+        cardCvc: '123'
+      };
+
+      const response = await request(app).post('/api/sponsorship/checkout').send(payload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('Card sponsorship payment processed successfully');
+      expect(response.body).toHaveProperty('receiptNumber');
+      expect(response.body.transaction.amount).toBe(50);
+      expect(response.body.transaction.paymentMethod).toBe('card');
+    });
+
+    it('POST /api/sponsorship/checkout should process Bank Transfer sponsorship order', async () => {
+      const payload = {
+        sponsorName: 'Global Education Foundation',
+        sponsorEmail: 'grants@globaledu.org',
+        tierId: 'strategic',
+        billingCycle: 'one-time',
+        paymentMethod: 'bank_transfer'
+      };
+
+      const response = await request(app).post('/api/sponsorship/checkout').send(payload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('Bank transfer sponsorship order created');
+      expect(response.body).toHaveProperty('bankDetails');
+      expect(response.body.bankDetails).toHaveProperty('iban');
+      expect(response.body.bankDetails).toHaveProperty('swiftBic');
+      expect(response.body.transaction.status).toBe('pending');
+      expect(response.body.transaction.amount).toBe(1000);
+    });
+
+    it('POST /api/sponsorship/checkout should reject invalid email or missing fields', async () => {
+      const responseMissing = await request(app).post('/api/sponsorship/checkout').send({
+        sponsorName: 'Test'
+      });
+      expect(responseMissing.status).toBe(400);
+
+      const responseInvalidEmail = await request(app).post('/api/sponsorship/checkout').send({
+        sponsorName: 'Test',
+        sponsorEmail: 'not-an-email',
+        paymentMethod: 'stripe'
+      });
+      expect(responseInvalidEmail.status).toBe(400);
+      expect(responseInvalidEmail.body.error).toBe('Invalid sponsor email address format');
+    });
+  });
 });

@@ -244,6 +244,39 @@ interface GameTransaction {
   timestamp: string;
 }
 
+interface SponsorTier {
+  id: string;
+  name: string;
+  badge: string;
+  price: number;
+  billing: string;
+  description: string;
+  benefits: string[];
+}
+
+interface SponsorshipTransaction {
+  id: string;
+  sponsorName: string;
+  sponsorEmail: string;
+  tierId: string;
+  tierName: string;
+  amount: number;
+  currency: string;
+  billingCycle: 'monthly' | 'one-time';
+  paymentMethod: 'stripe' | 'card' | 'bank_transfer';
+  status: 'completed' | 'pending';
+  referenceCode?: string;
+  stripeSessionId?: string;
+  bankDetails?: {
+    accountName: string;
+    iban: string;
+    swiftBic: string;
+    bankName: string;
+    reference: string;
+  };
+  timestamp: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -554,6 +587,109 @@ let gameTransactions: GameTransaction[] = [
     type: 'In-Game Microtransaction',
     paymentMethod: 'Mawaba Pay',
     timestamp: new Date(Date.now() - 3600000 * 12).toISOString()
+  }
+];
+
+let sponsorshipTiers: SponsorTier[] = [
+  {
+    id: 'individual',
+    name: 'Individual Supporter',
+    badge: '🥉 Supporter',
+    price: 5,
+    billing: 'per month',
+    description: 'Perfect for passionate developers & open source advocates.',
+    benefits: [
+      'Official Sponsor badge on GitHub profile',
+      'Name listed in GitHub README & Contributors Hall of Fame',
+      'Exclusive Supporter role in community channels',
+      'Direct updates on new releases & features'
+    ]
+  },
+  {
+    id: 'developer',
+    name: 'Developer Champion',
+    badge: '🥈 Champion',
+    price: 25,
+    billing: 'per month',
+    description: 'For power users and active open-source contributors.',
+    benefits: [
+      'All Individual Supporter benefits',
+      'Priority issue review & feature suggestions',
+      'Early access to beta AI models & microservice modules',
+      'Access to exclusive monthly engineering office hours'
+    ]
+  },
+  {
+    id: 'corporate',
+    name: 'Corporate Partner',
+    badge: '🥇 Corporate',
+    price: 250,
+    billing: 'per month',
+    description: 'For tech companies & organizations leveraging Mawaba.',
+    benefits: [
+      'All Developer Champion benefits',
+      'Logo placement on README.md, homepage & documentation',
+      'Bi-annual technical workshop & Q&A with core team',
+      'Custom API integration & architecture consultation'
+    ]
+  },
+  {
+    id: 'strategic',
+    name: 'Strategic Global Partner',
+    badge: '💎 Strategic',
+    price: 1000,
+    billing: 'per month',
+    description: 'For enterprises driving global tech & educational impact.',
+    benefits: [
+      'All Corporate Partner benefits',
+      'Premier top-tier logo positioning across all platforms',
+      'Joint marketing blog post, PR release & GitHub Partner story',
+      'Guest invitation to quarterly open-source advisory board'
+    ]
+  }
+];
+
+let sponsorshipTransactions: SponsorshipTransaction[] = [
+  {
+    id: 'sp-101',
+    sponsorName: 'Acme Global AI Labs',
+    sponsorEmail: 'sponsorships@acme-ai.org',
+    tierId: 'strategic',
+    tierName: 'Strategic Global Partner',
+    amount: 1000,
+    currency: 'USD',
+    billingCycle: 'monthly',
+    paymentMethod: 'stripe',
+    status: 'completed',
+    stripeSessionId: 'cs_test_a1b2c3d4e5f6g7h8',
+    timestamp: new Date(Date.now() - 3600000 * 24 * 10).toISOString()
+  },
+  {
+    id: 'sp-102',
+    sponsorName: 'Dr. Sarah Lin',
+    sponsorEmail: 'sarah.lin@openresearch.org',
+    tierId: 'developer',
+    tierName: 'Developer Champion',
+    amount: 25,
+    currency: 'USD',
+    billingCycle: 'monthly',
+    paymentMethod: 'card',
+    status: 'completed',
+    timestamp: new Date(Date.now() - 3600000 * 24 * 4).toISOString()
+  },
+  {
+    id: 'sp-103',
+    sponsorName: 'EcoTech Innovations Foundation',
+    sponsorEmail: 'grants@ecotech-foundation.eu',
+    tierId: 'corporate',
+    tierName: 'Corporate Partner',
+    amount: 250,
+    currency: 'USD',
+    billingCycle: 'monthly',
+    paymentMethod: 'bank_transfer',
+    status: 'completed',
+    referenceCode: 'SPONSOR-98214',
+    timestamp: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
   }
 ];
 
@@ -2303,6 +2439,163 @@ app.post('/api/ai/tutor', async (req: Request, res: Response) => {
     tutorName: 'Mawaba AI Master Tutor',
     timestamp: new Date().toISOString()
   });
+});
+
+// 12. Sponsorship & GitHub Partnership APIs (Stripe, Cards, Bank Transfer)
+app.get('/api/sponsorship/tiers', (req: Request, res: Response) => {
+  res.json(sponsorshipTiers);
+});
+
+app.get('/api/sponsorship/sponsors', (req: Request, res: Response) => {
+  const totalAmountRaised = sponsorshipTransactions.reduce((acc, s) => acc + s.amount, 0);
+  const activeSponsorsCount = sponsorshipTransactions.length;
+
+  res.json({
+    metrics: {
+      totalAmountRaised: +totalAmountRaised.toFixed(2),
+      activeSponsorsCount,
+      currency: 'USD'
+    },
+    tiers: sponsorshipTiers,
+    sponsors: sponsorshipTransactions.map(s => ({
+      id: s.id,
+      sponsorName: s.sponsorName,
+      tierName: s.tierName,
+      tierId: s.tierId,
+      amount: s.amount,
+      billingCycle: s.billingCycle,
+      paymentMethod: s.paymentMethod,
+      status: s.status,
+      timestamp: s.timestamp
+    }))
+  });
+});
+
+app.post('/api/sponsorship/checkout', (req: Request, res: Response) => {
+  const {
+    sponsorName,
+    sponsorEmail,
+    tierId,
+    customAmount,
+    billingCycle = 'monthly',
+    paymentMethod,
+    cardNumber,
+    cardExpiry,
+    cardCvc
+  } = req.body;
+
+  if (!sponsorName || !sponsorEmail || !paymentMethod) {
+    return res.status(400).json({ error: 'Sponsor name, email, and payment method are required' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(sponsorEmail)) {
+    return res.status(400).json({ error: 'Invalid sponsor email address format' });
+  }
+
+  const validMethods = ['stripe', 'card', 'bank_transfer'];
+  if (!validMethods.includes(paymentMethod)) {
+    return res.status(400).json({ error: 'Invalid payment method. Must be one of: stripe, card, bank_transfer' });
+  }
+
+  const matchedTier = sponsorshipTiers.find(t => t.id === tierId);
+  const amount = Number(customAmount) > 0 ? Number(customAmount) : (matchedTier ? matchedTier.price : 25);
+  const tierName = matchedTier ? matchedTier.name : 'Custom Supporter';
+
+  const transactionId = 'sp-' + generateId();
+  const refCode = 'MAW-SP-' + Math.floor(100000 + Math.random() * 900000);
+
+  if (paymentMethod === 'stripe') {
+    const sessionId = 'cs_test_' + generateId() + generateId();
+    const stripeCheckoutUrl = `https://checkout.stripe.com/pay/${sessionId}`;
+
+    const newTransaction: SponsorshipTransaction = {
+      id: transactionId,
+      sponsorName: sponsorName.trim(),
+      sponsorEmail: sponsorEmail.trim().toLowerCase(),
+      tierId: tierId || 'custom',
+      tierName,
+      amount,
+      currency: 'USD',
+      billingCycle: billingCycle === 'one-time' ? 'one-time' : 'monthly',
+      paymentMethod: 'stripe',
+      status: 'completed',
+      stripeSessionId: sessionId,
+      timestamp: new Date().toISOString()
+    };
+
+    sponsorshipTransactions.unshift(newTransaction);
+
+    return res.status(201).json({
+      message: 'Stripe sponsorship checkout session initiated successfully',
+      checkoutUrl: stripeCheckoutUrl,
+      sessionId,
+      transaction: newTransaction
+    });
+  }
+
+  if (paymentMethod === 'card') {
+    if (cardNumber && String(cardNumber).replace(/\s/g, '').length < 13) {
+      return res.status(400).json({ error: 'Invalid credit card number' });
+    }
+
+    const newTransaction: SponsorshipTransaction = {
+      id: transactionId,
+      sponsorName: sponsorName.trim(),
+      sponsorEmail: sponsorEmail.trim().toLowerCase(),
+      tierId: tierId || 'custom',
+      tierName,
+      amount,
+      currency: 'USD',
+      billingCycle: billingCycle === 'one-time' ? 'one-time' : 'monthly',
+      paymentMethod: 'card',
+      status: 'completed',
+      referenceCode: refCode,
+      timestamp: new Date().toISOString()
+    };
+
+    sponsorshipTransactions.unshift(newTransaction);
+
+    return res.status(201).json({
+      message: 'Card sponsorship payment processed successfully',
+      receiptNumber: refCode,
+      transaction: newTransaction
+    });
+  }
+
+  if (paymentMethod === 'bank_transfer') {
+    const bankInfo = {
+      accountName: 'Mawaba Open Source Ecosystem Foundation',
+      iban: 'US89 MAWA 9021 3847 1102 99',
+      swiftBic: 'MAWAUS33XXX',
+      bankName: 'Global Impact Tech Bank',
+      reference: refCode
+    };
+
+    const newTransaction: SponsorshipTransaction = {
+      id: transactionId,
+      sponsorName: sponsorName.trim(),
+      sponsorEmail: sponsorEmail.trim().toLowerCase(),
+      tierId: tierId || 'custom',
+      tierName,
+      amount,
+      currency: 'USD',
+      billingCycle: billingCycle === 'one-time' ? 'one-time' : 'monthly',
+      paymentMethod: 'bank_transfer',
+      status: 'pending',
+      referenceCode: refCode,
+      bankDetails: bankInfo,
+      timestamp: new Date().toISOString()
+    };
+
+    sponsorshipTransactions.unshift(newTransaction);
+
+    return res.status(201).json({
+      message: 'Bank transfer sponsorship order created. Please transfer using the reference code below.',
+      bankDetails: bankInfo,
+      transaction: newTransaction
+    });
+  }
 });
 
 // Centralized 404 and Error Handler for Production Readiness
