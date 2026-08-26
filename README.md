@@ -55,6 +55,15 @@ This project is organized as a monorepo containing:
 
 ---
 
+## Sponsorship & GitHub Partnerships
+
+Mawaba is proud to be open-source! We welcome individual supporters and corporate partners to help sustain our global open infrastructure, AI tutor API usage, climate innovation tools, and educational initiatives.
+
+- 💖 **[Sponsor on GitHub](https://github.com/sponsors/mawaba)**: Join our GitHub Sponsors program with tiers starting from $5/month.
+- 📜 **[Sponsorship Guide](SPONSORSHIP.md)**: View tier details, partner benefits, and enterprise collaboration options.
+
+---
+
 ## Contributing & Community
 
 We welcome contributions from developers, designers, and community members around the world!

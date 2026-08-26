@@ -36,8 +36,13 @@ const Footer = () => {
             </ul>
           </div>
           <div>
-            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">Legal</h3>
+            <h3 className="text-xs font-bold text-slate-200 uppercase tracking-widest mb-4">Community & Support</h3>
             <ul className="space-y-3 text-sm">
+              <li>
+                <Link href="/sponsor" className="text-pink-400 hover:text-pink-300 transition-colors font-medium flex items-center gap-1.5">
+                  <span>💖</span> Sponsor & Partnerships
+                </Link>
+              </li>
               <li><Link href="/license" className="hover:text-white transition-colors">MIT License</Link></li>
               <li><Link href="/contact" className="hover:text-white transition-colors">Contact Support</Link></li>
             </ul>
