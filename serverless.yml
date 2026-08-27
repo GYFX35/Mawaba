@@ -1,0 +1,38 @@
+# Tencent Cloud Serverless Framework Configuration for Mawaba
+app: mawaba
+stage: dev
+
+component: express
+name: mawaba-backend
+
+inputs:
+  src:
+    src: ./apps/backend
+    exclude:
+      - node_modules/**
+      - src/**
+  region: ap-guangzhou
+  runtime: Nodejs18.15
+  functionName: mawaba-backend-api
+  description: Mawaba Express REST API on Tencent Cloud Serverless (SCF)
+  memorySize: 256
+  timeout: 15
+  entryFile: dist/index.js
+  apigatewayConf:
+    protocols:
+      - http
+      - https
+    environment: release
+
+---
+component: website
+name: mawaba-frontend
+
+inputs:
+  src:
+    src: ./apps/frontend/out
+    index: index.html
+    error: 404.html
+  region: ap-guangzhou
+  bucketName: mawaba-frontend-bucket
+  protocol: https
