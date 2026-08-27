@@ -159,6 +159,101 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('Global Health Promotion Endpoints', () => {
+    it('GET /api/health-promotion/campaigns should return health campaigns', async () => {
+      const response = await request(app).get('/api/health-promotion/campaigns');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('category');
+      expect(response.body[0]).toHaveProperty('organizer');
+    });
+
+    it('GET /api/health-promotion/campaigns should support category and search filtering', async () => {
+      const response = await request(app).get('/api/health-promotion/campaigns?category=Epidemic%20%26%20Disease%20Control');
+      expect(response.status).toBe(200);
+      expect(response.body.every((c: any) => c.category === 'Epidemic & Disease Control')).toBe(true);
+    });
+
+    it('POST /api/health-promotion/campaigns should create a new campaign', async () => {
+      const payload = {
+        title: 'Community Dental Hygiene & Fluoride Drive',
+        category: 'Wellness & Prevention',
+        description: 'Providing free oral health screening and preventative dental care to school children.',
+        location: 'Kuala Lumpur, Malaysia',
+        organizer: 'Healthy Smiles Alliance',
+        targetImpact: '5,000 Students Screened'
+      };
+
+      const response = await request(app).post('/api/health-promotion/campaigns').send(payload);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.title).toBe('Community Dental Hygiene & Fluoride Drive');
+      expect(response.body.supporters).toBe(1);
+    });
+
+    it('POST /api/health-promotion/campaigns/:id/support should increment campaign support count', async () => {
+      const response = await request(app).post('/api/health-promotion/campaigns/hc-1/support');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.supporters).toBeGreaterThan(482);
+    });
+
+    it('GET /api/health-promotion/tips should return health tips list', async () => {
+      const response = await request(app).get('/api/health-promotion/tips');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('content');
+    });
+
+    it('POST /api/health-promotion/tips should publish a new health tip', async () => {
+      const newTip = {
+        title: 'Ergonomic Posture & Workplace Spinal Care',
+        category: 'Physical Activity',
+        content: 'Taking a 2-minute standing break every 30 minutes reduces lumbar strain and improves blood circulation during desk work.',
+        author: 'Dr. Alex Vance'
+      };
+
+      const response = await request(app).post('/api/health-promotion/tips').send(newTip);
+      expect(response.status).toBe(201);
+      expect(response.body).toHaveProperty('id');
+      expect(response.body.title).toBe('Ergonomic Posture & Workplace Spinal Care');
+      expect(response.body.likes).toBe(0);
+    });
+
+    it('POST /api/health-promotion/tips/:id/like should increment likes', async () => {
+      const response = await request(app).post('/api/health-promotion/tips/ht-1/like');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.likes).toBeGreaterThan(89);
+    });
+
+    it('POST /api/health-promotion/assessment should calculate BMI and hydration target', async () => {
+      const payload = {
+        weightKg: 70,
+        heightCm: 175,
+        age: 30,
+        dailyWaterLiters: 2.5
+      };
+
+      const response = await request(app).post('/api/health-promotion/assessment').send(payload);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('assessment');
+      expect(response.body.assessment.bmi).toBe(22.9); // 70 / (1.75 * 1.75) = 22.857 -> 22.9
+      expect(response.body.assessment.bmiCategory).toBe('Normal Weight');
+      expect(response.body.assessment.recommendedWaterLiters).toBe(2.5); // 70 * 0.035 = 2.45 -> 2.5
+      expect(response.body.assessment.hydrationStatus).toBe('Optimal');
+    });
+
+    it('POST /api/health-promotion/assessment should reject missing or invalid weight/height', async () => {
+      const response = await request(app).post('/api/health-promotion/assessment').send({ weightKg: -10 });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Valid weight in kg and height in cm are required');
+    });
+  });
+
   describe('Environment Protection Endpoints', () => {
     it('GET /api/environment/initiatives should return list of initiatives', async () => {
       const response = await request(app).get('/api/environment/initiatives');

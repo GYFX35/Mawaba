@@ -74,6 +74,29 @@ interface Integration {
   category: string;
 }
 
+interface HealthCampaign {
+  id: string;
+  title: string;
+  category: 'Epidemic & Disease Control' | 'Maternal & Child Health' | 'Mental Health & Well-being' | 'Nutrition & Food Security' | 'Universal Health Coverage' | 'Clean Water & Sanitation';
+  description: string;
+  location: string;
+  organizer: string;
+  targetImpact: string;
+  supporters: number;
+  status: 'Proposed' | 'Active' | 'Completed';
+  createdAt: string;
+}
+
+interface HealthTip {
+  id: string;
+  title: string;
+  category: 'Wellness & Prevention' | 'Mental Well-being' | 'Nutrition' | 'Physical Activity' | 'Hygiene & Cleanliness';
+  content: string;
+  author: string;
+  likes: number;
+  createdAt: string;
+}
+
 interface EnvironmentInitiative {
   id: string;
   title: string;
@@ -356,6 +379,75 @@ let climateSolutions: ClimateSolution[] = [
     keyTechnologies: ['V2G (Vehicle-to-Grid)', 'Ultra-Fast DC Charging', 'Predictive AI Routing'],
     sdgGoals: [7, 11, 13],
     caseStudy: 'Shenzhen municipal bus fleet transition fully converting 16,000+ public transit vehicles to clean electric power.'
+  }
+];
+
+let healthCampaigns: HealthCampaign[] = [
+  {
+    id: 'hc-1',
+    title: 'Global Universal Immunization & Vaccine Equity Drive',
+    category: 'Epidemic & Disease Control',
+    description: 'Expanding cold-chain distribution networks for essential childhood vaccines across remote communities in Sub-Saharan Africa and Southeast Asia.',
+    location: 'Global / Multi-Region',
+    organizer: 'World Health Alliance Initiative',
+    targetImpact: '500,000 Children Immunized • 95% Coverage Rate',
+    supporters: 482,
+    status: 'Active',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString()
+  },
+  {
+    id: 'hc-2',
+    title: 'Maternal & Neonatal Mobile Health Tele-care Units',
+    category: 'Maternal & Child Health',
+    description: 'Deploying solar-powered mobile health clinics equipped with ultrasound sensors and prenatal tele-consultation tools for rural mothers.',
+    location: 'Oaxaca & Chiapas, Mexico',
+    organizer: 'Salud Maternal Sin Fronteras',
+    targetImpact: '12,000 Safe Births Supported',
+    supporters: 310,
+    status: 'Active',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString()
+  },
+  {
+    id: 'hc-3',
+    title: 'Clean Water Purification & Cholera Prevention Program',
+    category: 'Clean Water & Sanitation',
+    description: 'Installing solar UV-C water purification kiosks and sanitation facilities to eliminate waterborne illness outbreaks in flood-affected regions.',
+    location: 'Dhaka, Bangladesh',
+    organizer: 'AquaPure Global Foundation',
+    targetImpact: '80,000 Residents Supplied Daily',
+    supporters: 265,
+    status: 'Proposed',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
+  }
+];
+
+let healthTips: HealthTip[] = [
+  {
+    id: 'ht-1',
+    title: 'Daily Hydration & Electrolyte Balance',
+    category: 'Wellness & Prevention',
+    content: 'Drinking at least 2.5 to 3 liters of clean water daily boosts cognitive performance, supports kidney filtration, and regulates body temperature during physical activity.',
+    author: 'Dr. Jane Goodall',
+    likes: 89,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString()
+  },
+  {
+    id: 'ht-2',
+    title: 'Mindful Breathing & Stress Management',
+    category: 'Mental Well-being',
+    content: 'Practicing 5-minute deep diaphragmatic breathing (4-7-8 technique) twice a day lowers cortisol levels, reduces blood pressure, and improves sleep quality.',
+    author: 'Dr. Sarah Lin',
+    likes: 114,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
+  },
+  {
+    id: 'ht-3',
+    title: 'Plant-Rich Micronutrient & Gut Microbiome Support',
+    category: 'Nutrition',
+    content: 'Incorporating diverse fiber-rich whole foods, leafy greens, and fermented probiotic products strengthens intestinal gut flora and boosts immune defense.',
+    author: 'Prof. Marie Curie',
+    likes: 72,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 1).toISOString()
   }
 ];
 
@@ -1353,6 +1445,162 @@ app.post('/api/integrations/:name/disconnect', (req: Request, res: Response) => 
   } else {
     res.status(404).json({ success: false, message: 'Integration not found' });
   }
+});
+
+// 4a. Global Health Promotion APIs
+app.get('/api/health-promotion/campaigns', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...healthCampaigns];
+
+  if (category && category !== 'All') {
+    results = results.filter(
+      c => c.category.toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      c =>
+        c.title.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q) ||
+        c.location.toLowerCase().includes(q) ||
+        c.organizer.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/health-promotion/campaigns', (req: Request, res: Response) => {
+  const { title, category, description, location, organizer, targetImpact } = req.body;
+  if (!title || !category || !description || !location || !organizer) {
+    return res.status(400).json({ error: 'Missing required fields: title, category, description, location, organizer' });
+  }
+
+  const newCampaign: HealthCampaign = {
+    id: 'hc-' + generateId(),
+    title: title.trim(),
+    category,
+    description: description.trim(),
+    location: location.trim(),
+    organizer: organizer.trim(),
+    targetImpact: targetImpact ? targetImpact.trim() : 'Under Assessment',
+    supporters: 1,
+    status: 'Proposed',
+    createdAt: new Date().toISOString()
+  };
+
+  healthCampaigns.unshift(newCampaign);
+  res.status(201).json(newCampaign);
+});
+
+app.post('/api/health-promotion/campaigns/:id/support', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const campaign = healthCampaigns.find(c => c.id === id);
+  if (!campaign) {
+    return res.status(404).json({ error: 'Health campaign not found' });
+  }
+
+  campaign.supporters += 1;
+  res.json({ success: true, supporters: campaign.supporters, campaign });
+});
+
+app.get('/api/health-promotion/tips', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...healthTips];
+
+  if (category && category !== 'All') {
+    results = results.filter(
+      t => t.category.toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      t =>
+        t.title.toLowerCase().includes(q) ||
+        t.content.toLowerCase().includes(q) ||
+        t.author.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/health-promotion/tips', (req: Request, res: Response) => {
+  const { title, category, content, author } = req.body;
+  if (!title || !category || !content || !author) {
+    return res.status(400).json({ error: 'Missing required fields: title, category, content, author' });
+  }
+
+  const newTip: HealthTip = {
+    id: 'ht-' + generateId(),
+    title: title.trim(),
+    category,
+    content: content.trim(),
+    author: author.trim(),
+    likes: 0,
+    createdAt: new Date().toISOString()
+  };
+
+  healthTips.unshift(newTip);
+  res.status(201).json(newTip);
+});
+
+app.post('/api/health-promotion/tips/:id/like', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const tip = healthTips.find(t => t.id === id);
+  if (!tip) {
+    return res.status(404).json({ error: 'Health tip not found' });
+  }
+
+  tip.likes += 1;
+  res.json({ success: true, likes: tip.likes, tip });
+});
+
+app.post('/api/health-promotion/assessment', (req: Request, res: Response) => {
+  const { weightKg, heightCm, age, activityLevel = 'moderate', dailyWaterLiters = 2 } = req.body;
+
+  if (!weightKg || !heightCm || Number(weightKg) <= 0 || Number(heightCm) <= 0) {
+    return res.status(400).json({ error: 'Valid weight in kg and height in cm are required' });
+  }
+
+  const weight = Number(weightKg);
+  const heightM = Number(heightCm) / 100;
+  const bmi = +(weight / (heightM * heightM)).toFixed(1);
+
+  let bmiCategory = 'Normal Weight';
+  let healthAdvice = 'Maintain a balanced diet, adequate hydration, and at least 150 minutes of moderate aerobic activity per week.';
+
+  if (bmi < 18.5) {
+    bmiCategory = 'Underweight';
+    healthAdvice = 'Focus on nutrient-dense foods, adequate protein intake, and strength training. Consult a healthcare provider if needed.';
+  } else if (bmi >= 25 && bmi < 29.9) {
+    bmiCategory = 'Overweight';
+    healthAdvice = 'Incorporate daily cardiovascular physical activity, reduce refined sugars, and ensure adequate sleep for metabolic balance.';
+  } else if (bmi >= 30) {
+    bmiCategory = 'Obesity Class';
+    healthAdvice = 'Prioritize holistic lifestyle improvements, high-fiber dietary changes, regular walking routines, and guidance from health professionals.';
+  }
+
+  // Water intake target (approx 35ml per kg of body weight)
+  const recommendedWaterLiters = +((weight * 0.035)).toFixed(1);
+  const hydrationStatus = Number(dailyWaterLiters) >= recommendedWaterLiters ? 'Optimal' : 'Needs Increased Hydration';
+
+  res.json({
+    assessment: {
+      bmi,
+      bmiCategory,
+      recommendedWaterLiters,
+      currentWaterLiters: Number(dailyWaterLiters),
+      hydrationStatus,
+      healthAdvice,
+      sdgTarget: 'UN SDG 3: Good Health & Well-being'
+    },
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 4b. Environment Protection APIs
