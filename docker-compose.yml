@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/frontend/Dockerfile
+    ports:
+      - "80:80"
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:3001
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - "3001:3001"
+    restart: always
+    environment:
+      - PORT=3001
+      - NODE_ENV=production
+
+  ai-service:
+    build:
+      context: .
+      dockerfile: apps/ai-service/Dockerfile
+    ports:
+      - "8000:8000"
+    restart: always

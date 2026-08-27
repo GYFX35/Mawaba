@@ -55,6 +55,15 @@ This project is organized as a monorepo containing:
 
 ---
 
+## Deployment & Cloud Infrastructure
+
+Mawaba supports automated CI/CD deployment pipelines on Tencent Cloud and GitHub Pages:
+
+- ☁️ **[Tencent Cloud Deployment Guide](TENCENT_CLOUD_DEPLOYMENT.md)**: Details setup, Serverless SCF, COS, Docker containerization, and automated **Pull Request Preview Deployments** on Tencent Cloud.
+- ⚙️ **[Tencent Cloud Pipeline Workflow](.github/workflows/tencent-cloud-deploy.yml)**: GitHub Actions workflow that automatically builds and deploys PR preview environments to Tencent Cloud on pull requests.
+
+---
+
 ## Sponsorship & GitHub Partnerships
 
 Mawaba is proud to be open-source! We welcome individual supporters and corporate partners to help sustain our global open infrastructure, AI tutor API usage, climate innovation tools, and educational initiatives.
