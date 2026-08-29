@@ -1,5 +1,8 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import { execFile } from 'child_process';
+import path from 'path';
+import fs from 'fs';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -1057,6 +1060,63 @@ let forumTopics: ForumTopicItem[] = [
 
 // Helper to generate IDs
 const generateId = () => Math.random().toString(36).substr(2, 9);
+
+// Helper function to call Python Google AI service
+function callPythonAiService(payload: {
+  question: string;
+  discipline: string;
+  level: string;
+  responseType: string;
+  provider: string;
+}): Promise<any> {
+  return new Promise((resolve) => {
+    let aiScriptPath = path.resolve(__dirname, '../../ai-service/main.py');
+    if (!fs.existsSync(aiScriptPath)) {
+      aiScriptPath = path.resolve(process.cwd(), 'apps/ai-service/main.py');
+    }
+
+    if (!fs.existsSync(aiScriptPath)) {
+      return resolve(null);
+    }
+
+    const pythonCmd = process.env.PYTHON_PATH || 'python3';
+    const jsonInput = JSON.stringify(payload);
+
+    execFile(
+      pythonCmd,
+      [aiScriptPath, '--json', jsonInput],
+      {
+        timeout: 8000,
+        env: {
+          ...process.env,
+          PYTHONPATH: path.dirname(aiScriptPath)
+        }
+      },
+      (error, stdout, stderr) => {
+        if (error) {
+          console.warn('Python AI service execution error:', error.message);
+          return resolve(null);
+        }
+        try {
+          const trimmed = stdout.trim();
+          const lines = trimmed.split('\n');
+          for (let i = lines.length - 1; i >= 0; i--) {
+            const line = lines[i].trim();
+            if (line.startsWith('{') && line.endsWith('}')) {
+              const parsed = JSON.parse(line);
+              if (parsed && !parsed.error && parsed.answer) {
+                return resolve(parsed);
+              }
+            }
+          }
+        } catch (e) {
+          console.warn('Failed to parse stdout from Python AI service:', stdout);
+        }
+        resolve(null);
+      }
+    );
+  });
+}
 
 // --- ENDPOINTS ---
 
@@ -2476,7 +2536,35 @@ app.post('/api/ai/tutor', async (req: Request, res: Response) => {
   let activeProvider = provider;
   let modelUsed = 'Mawaba Simulated AI Engine';
 
-  // Handle Google Gemini provider call if requested or available
+  // Delegate to Python Google AI service if provider is gemini or auto
+  if (provider === 'gemini' || provider === 'auto') {
+    const pythonResult = await callPythonAiService({
+      question,
+      discipline,
+      level,
+      responseType,
+      provider
+    });
+
+    if (pythonResult && pythonResult.answer) {
+      return res.json({
+        question,
+        discipline,
+        level,
+        responseType,
+        provider: pythonResult.provider || 'gemini',
+        model: pythonResult.model || 'Gemini 1.5 Flash',
+        answer: pythonResult.answer,
+        keyTakeaways: pythonResult.keyTakeaways || [],
+        followUpQuestions: pythonResult.followUpQuestions || [],
+        quiz: pythonResult.quiz || null,
+        tutorName: pythonResult.tutorName || 'Mawaba Google AI Tutor',
+        timestamp: new Date().toISOString()
+      });
+    }
+  }
+
+  // Handle Google Gemini provider call if requested or available directly via HTTP fallback
   const geminiApiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
   const openaiApiKey = process.env.OPENAI_API_KEY;
 
