@@ -38,6 +38,7 @@ interface VideoItem {
   author: string;
   thumbnailUrl?: string;
   videoUrl: string;
+  youtubeId?: string;
   likes: number;
   shares: number;
   downloads: number;
@@ -45,6 +46,24 @@ interface VideoItem {
   comments: VideoComment[];
   createdAt: string;
 }
+
+const getYouTubeId = (url: string, explicitYtId?: string): string | null => {
+  if (explicitYtId) return explicitYtId;
+  if (!url) return null;
+  const trimmed = url.trim();
+  const patterns = [
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+    /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/
+  ];
+  for (const pattern of patterns) {
+    const match = trimmed.match(pattern);
+    if (match) return match[1];
+  }
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  return null;
+};
 
 const CATEGORIES = [
   'All',
@@ -566,20 +585,30 @@ const VideosHubPage = () => {
                 key={vid.id}
                 className="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100 hover:shadow-2xl transition-all duration-300 flex flex-col group"
               >
-                {/* Video HTML5 Player Container */}
+                {/* Video Player Container: Supports Embedded YouTube Player & Standard HTML5 Video */}
                 <div className="relative bg-black aspect-video overflow-hidden">
-                  <video
-                    src={vid.videoUrl}
-                    controls
-                    preload="metadata"
-                    poster={vid.thumbnailUrl}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-3 left-3 bg-purple-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-md pointer-events-none">
+                  {getYouTubeId(vid.videoUrl, vid.youtubeId) ? (
+                    <iframe
+                      src={`https://www.youtube-nocookie.com/embed/${getYouTubeId(vid.videoUrl, vid.youtubeId)}?rel=0&enablejsapi=1`}
+                      title={vid.title}
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                      className="w-full h-full border-0"
+                    />
+                  ) : (
+                    <video
+                      src={vid.videoUrl}
+                      controls
+                      preload="metadata"
+                      poster={vid.thumbnailUrl}
+                      className="w-full h-full object-cover"
+                    />
+                  )}
+                  <div className="absolute top-3 left-3 bg-purple-600 text-white px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 shadow-md pointer-events-none z-10">
                     <Play className="w-3.5 h-3.5 fill-current" />
                     <span>{vid.category}</span>
                   </div>
-                  <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-gray-200 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 border border-white/10">
+                  <div className="absolute top-3 right-3 bg-black/70 backdrop-blur-md text-gray-200 px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 border border-white/10 z-10">
                     <Eye className="w-3.5 h-3.5 text-purple-400" />
                     <span>{vid.views} views</span>
                   </div>
@@ -864,15 +893,22 @@ const VideosHubPage = () => {
                     </div>
                   )}
 
-                  {/* Direct Video URL input */}
+                  {/* Direct Video or YouTube URL input */}
                   <div>
-                    <label className="block text-[11px] font-bold text-gray-600 mb-0.5">Video Direct URL or Base64 Data *</label>
+                    <label className="block text-[11px] font-bold text-gray-600 mb-0.5">Video Direct URL or YouTube Link *</label>
                     <input
                       type="text"
                       required
-                      placeholder="https://commondatastorage.googleapis.com/.../sample.mp4"
+                      placeholder="https://www.youtube.com/watch?v=... or direct mp4 URL"
                       value={videoUrlInput}
-                      onChange={(e) => setVideoUrlInput(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setVideoUrlInput(val);
+                        const ytId = getYouTubeId(val);
+                        if (ytId && !thumbnailUrlInput) {
+                          setThumbnailUrlInput(`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`);
+                        }
+                      }}
                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-medium"
                     />
                   </div>

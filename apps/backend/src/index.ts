@@ -174,6 +174,7 @@ interface VideoItem {
   author: string;
   thumbnailUrl?: string;
   videoUrl: string;
+  youtubeId?: string;
   likes: number;
   shares: number;
   downloads: number;
@@ -181,6 +182,23 @@ interface VideoItem {
   comments: VideoComment[];
   createdAt: string;
 }
+
+const extractYouTubeId = (url?: string): string | undefined => {
+  if (!url) return undefined;
+  const trimmed = url.trim();
+  const patterns = [
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+    /(?:https?:\/\/)?(?:www\.)?youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+    /(?:https?:\/\/)?(?:www\.)?youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/
+  ];
+  for (const pattern of patterns) {
+    const match = trimmed.match(pattern);
+    if (match) return match[1];
+  }
+  if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+  return undefined;
+};
 
 interface CultureComment {
   id: string;
@@ -787,6 +805,24 @@ let sponsorshipTransactions: SponsorshipTransaction[] = [
 
 let videos: VideoItem[] = [
   {
+    id: 'vid-youtube-1',
+    title: 'NASA James Webb Space Telescope Highlights & Deep Field',
+    category: 'Education & Sci-Fi',
+    description: 'Explore breathtaking cosmic infrared imagery and exoplanet discoveries captured by the James Webb Space Telescope.',
+    author: 'NASA Space Science',
+    thumbnailUrl: 'https://img.youtube.com/vi/M7lc1UVf-VE/hqdefault.jpg',
+    videoUrl: 'https://www.youtube.com/watch?v=M7lc1UVf-VE',
+    youtubeId: 'M7lc1UVf-VE',
+    likes: 412,
+    shares: 185,
+    downloads: 74,
+    views: 6240,
+    comments: [
+      { id: 'vc-yt1', author: 'Astro Enthusiast', text: 'Incredible details from early galaxies!', createdAt: new Date(Date.now() - 3600000 * 2).toISOString() }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 1).toISOString()
+  },
+  {
     id: 'vid-1',
     title: 'Cyberpunk Drone Race Highlights & Stunts',
     category: 'Gaming & Esports',
@@ -802,6 +838,22 @@ let videos: VideoItem[] = [
       { id: 'vc-1', author: 'Elena R.', text: 'The turns at 0:45 were insane!', createdAt: new Date(Date.now() - 3600000 * 4).toISOString() }
     ],
     createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
+  },
+  {
+    id: 'vid-youtube-2',
+    title: 'Global Beats & Traditional Instrument Fusion Showcase',
+    category: 'Music & Dance',
+    description: 'A vibrant cross-cultural musical session combining African kora, Japanese koto, and modern electronic ambient beats.',
+    author: 'Global Sound Lab',
+    thumbnailUrl: 'https://img.youtube.com/vi/L_LUpnjgPso/hqdefault.jpg',
+    videoUrl: 'https://youtu.be/L_LUpnjgPso',
+    youtubeId: 'L_LUpnjgPso',
+    likes: 289,
+    shares: 98,
+    downloads: 41,
+    views: 3890,
+    comments: [],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
   },
   {
     id: 'vid-2',
@@ -2148,9 +2200,16 @@ app.get('/api/videos/:id', (req: Request, res: Response) => {
 });
 
 app.post('/api/videos/submit', (req: Request, res: Response) => {
-  const { title, category, description, author, videoUrl, thumbnailUrl } = req.body;
+  const { title, category, description, author, videoUrl, thumbnailUrl, youtubeId } = req.body;
   if (!title || !category || !description || !author || !videoUrl) {
     return res.status(400).json({ error: 'Missing required video fields: title, category, description, author, videoUrl' });
+  }
+
+  const detectedYouTubeId = youtubeId ? youtubeId.trim() : extractYouTubeId(videoUrl);
+  let resolvedThumbnailUrl = thumbnailUrl ? thumbnailUrl.trim() : undefined;
+
+  if (detectedYouTubeId && !resolvedThumbnailUrl) {
+    resolvedThumbnailUrl = `https://img.youtube.com/vi/${detectedYouTubeId}/hqdefault.jpg`;
   }
 
   const newVideo: VideoItem = {
@@ -2160,7 +2219,8 @@ app.post('/api/videos/submit', (req: Request, res: Response) => {
     description: description.trim(),
     author: author.trim(),
     videoUrl: videoUrl.trim(),
-    thumbnailUrl: thumbnailUrl ? thumbnailUrl.trim() : undefined,
+    youtubeId: detectedYouTubeId || undefined,
+    thumbnailUrl: resolvedThumbnailUrl,
     likes: 0,
     shares: 0,
     downloads: 0,

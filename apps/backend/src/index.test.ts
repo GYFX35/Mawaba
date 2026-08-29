@@ -743,6 +743,21 @@ describe('Backend API Endpoints', () => {
       expect(response.body.downloads).toBe(0);
     });
 
+    it('POST /api/videos/submit should auto-detect YouTube ID and thumbnail from YouTube URL', async () => {
+      const youtubePayload = {
+        title: 'Never Gonna Give You Up',
+        category: 'Music & Dance',
+        description: 'Classic hit song',
+        author: 'Rick Astley',
+        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+      };
+
+      const response = await request(app).post('/api/videos/submit').send(youtubePayload);
+      expect(response.status).toBe(201);
+      expect(response.body.youtubeId).toBe('dQw4w9WgXcQ');
+      expect(response.body.thumbnailUrl).toBe('https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg');
+    });
+
     it('POST /api/videos/submit should reject missing required fields', async () => {
       const response = await request(app).post('/api/videos/submit').send({ title: 'Incomplete Video' });
       expect(response.status).toBe(400);
