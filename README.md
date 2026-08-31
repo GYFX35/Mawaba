@@ -57,10 +57,18 @@ This project is organized as a monorepo containing:
 
 ## Deployment & Cloud Infrastructure
 
-Mawaba supports automated CI/CD deployment pipelines on Tencent Cloud and GitHub Pages:
+Mawaba supports automated CI/CD deployment pipelines on GitHub Pages and Tencent Cloud:
 
+- 🌐 **[GitHub Pages Deployment Workflow](.github/workflows/deploy.yml)**: Automatically builds and publishes the Next.js front-end static site export (`apps/frontend/out`) directly on the GitHub repository site whenever changes are pushed to `main` or `master`.
 - ☁️ **[Tencent Cloud Deployment Guide](TENCENT_CLOUD_DEPLOYMENT.md)**: Details setup, Serverless SCF, COS, Docker containerization, and automated **Pull Request Preview Deployments** on Tencent Cloud.
 - ⚙️ **[Tencent Cloud Pipeline Workflow](.github/workflows/tencent-cloud-deploy.yml)**: GitHub Actions workflow that automatically builds and deploys PR preview environments to Tencent Cloud on pull requests.
+
+### Deploying Front-End Pages to GitHub Pages
+
+To host and serve the front-end pages on the GitHub repository site:
+1. In your GitHub repository settings, go to **Settings** > **Pages**.
+2. Under **Build and deployment** -> **Source**, select **GitHub Actions**.
+3. Pushing code to the `main` or `master` branch will automatically trigger the `.github/workflows/deploy.yml` workflow, building the Next.js front-end and deploying it to GitHub Pages.
 
 ---
 
