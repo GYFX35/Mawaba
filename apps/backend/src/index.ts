@@ -121,6 +121,34 @@ interface EcoPledge {
   createdAt: string;
 }
 
+interface AgricultureProject {
+  id: string;
+  title: string;
+  category: 'Drought-Resilient Crops' | 'Precision Irrigation' | 'Soil Health & Biochar' | 'Vertical & Urban Farming' | 'Food Loss & Distribution' | 'Agroforestry';
+  description: string;
+  location: string;
+  organizer: string;
+  targetImpact: string;
+  peopleFedEst: number;
+  supporters: number;
+  status: 'Proposed' | 'Active' | 'Completed';
+  createdAt: string;
+}
+
+interface StarvationSolution {
+  id: string;
+  title: string;
+  category: 'Immediate Emergency Relief' | 'Sustainable Soil Management' | 'Drought Resilience' | 'Cold-Chain & Food Waste' | 'Biofortified Crops' | 'Hydroponics & Solar Pumping';
+  description: string;
+  impactScore: number; // 1-100
+  potentialPeopleFedPerYr: number;
+  implementationCost: 'Low' | 'Medium' | 'High' | 'Capital Intensive';
+  scalability: 'Local' | 'Regional' | 'Global';
+  keyTechnologies: string[];
+  sdgGoals: number[];
+  caseStudy: string;
+}
+
 interface User {
   id: string;
   name: string;
@@ -990,6 +1018,90 @@ let ecoPledges: EcoPledge[] = [
   { id: 'p-3', name: 'Lucas Rossi', country: 'Brazil', pledgeType: 'Planting 10 Native Trees Annually', co2ReductionEst: 1200, createdAt: new Date(Date.now() - 3600000 * 10).toISOString() }
 ];
 
+let agricultureProjects: AgricultureProject[] = [
+  {
+    id: 'ag-1',
+    title: 'Sub-Saharan Drought-Resilient Sorghum & Millet Initiative',
+    category: 'Drought-Resilient Crops',
+    description: 'Distributing non-GMO biofortified drought-resistant seeds and training smallholder farmers in rainwater harvesting across arid zones.',
+    location: 'Sahel Region (Niger & Mali)',
+    organizer: 'Global Harvest Alliance',
+    targetImpact: '150,000 Hectares Cultivated • Yield Boosted 40%',
+    peopleFedEst: 250000,
+    supporters: 384,
+    status: 'Active',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString()
+  },
+  {
+    id: 'ag-2',
+    title: 'Solar Micro-Drip Irrigation for Community Women Collectives',
+    category: 'Precision Irrigation',
+    description: 'Installing affordable solar-powered drip irrigation pumps that conserve 60% more water compared to traditional flood methods.',
+    location: 'Odisha, India',
+    organizer: 'Jal & Krishi Foundation',
+    targetImpact: '500 Farms Equipped • Year-Round Crop Cycle',
+    peopleFedEst: 85000,
+    supporters: 219,
+    status: 'Active',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 6).toISOString()
+  },
+  {
+    id: 'ag-3',
+    title: 'Solar Cold-Storage Kiosks for Fresh Food Loss Reduction',
+    category: 'Food Loss & Distribution',
+    description: 'Deploying off-grid walk-in solar refrigerators at rural market hubs to prevent post-harvest spoilage of fruits and vegetables.',
+    location: 'Mombasa & Eldoret, Kenya',
+    organizer: 'ColdChain Africa Co-op',
+    targetImpact: '80% Reduction in Market Spoilage',
+    peopleFedEst: 120000,
+    supporters: 175,
+    status: 'Proposed',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
+  }
+];
+
+let starvationSolutions: StarvationSolution[] = [
+  {
+    id: 'sol-ag-1',
+    title: 'Biofortified High-Yield Staples (Vitamin A Cassava & Zinc Rice)',
+    category: 'Biofortified Crops',
+    description: 'Developing natural, high-nutrient staple crops that provide essential micronutrients to eliminate hidden hunger and malnutrition in vulnerable populations.',
+    impactScore: 94,
+    potentialPeopleFedPerYr: 5000000,
+    implementationCost: 'Low',
+    scalability: 'Global',
+    keyTechnologies: ['Marker-Assisted Breeding', 'Soil Micronutrient Coating', 'Community Seed Banks'],
+    sdgGoals: [2, 3, 1],
+    caseStudy: 'HarvestPlus program scaling biofortified cassava across Nigeria and Democratic Republic of Congo.'
+  },
+  {
+    id: 'sol-ag-2',
+    title: 'Solar-Assisted Hydroponic Vertical Towers for Arid Climates',
+    category: 'Hydroponics & Solar Pumping',
+    description: 'Closed-loop nutrient film hydroponic vertical farms utilizing recycled water and solar energy to grow nutrient-dense greens in desert environments.',
+    impactScore: 90,
+    potentialPeopleFedPerYr: 1200000,
+    implementationCost: 'Medium',
+    scalability: 'Regional',
+    keyTechnologies: ['Closed-Loop Water Recirculation', 'LED Solar Hybrid Lighting', 'Automated EC/pH Dosing'],
+    sdgGoals: [2, 6, 12, 13],
+    caseStudy: 'Urban desert vertical farming projects operating in refugee havens and drylands in Jordan and Northern Africa.'
+  },
+  {
+    id: 'sol-ag-3',
+    title: 'Biochar Soil Matrix & Regenerative No-Till Agroforestry',
+    category: 'Sustainable Soil Management',
+    description: 'Restoring degraded soils by integrating pyrolyzed biochar with legume cover crops to lock in soil moisture and double crop yields during drought cycles.',
+    impactScore: 96,
+    potentialPeopleFedPerYr: 8000000,
+    implementationCost: 'Low',
+    scalability: 'Global',
+    keyTechnologies: ['Biomass Kiln Pyrolysis', 'Leguminous Nitrogen Fixation', 'Sub-Surface Soil Moisture Sensors'],
+    sdgGoals: [2, 13, 15],
+    caseStudy: 'Latin American smallholder cooperative restoring 40,000 hectares of degraded farmland.'
+  }
+];
+
 let globalChatMessages: ChatMessageItem[] = [
   {
     id: 'c1',
@@ -1109,6 +1221,125 @@ let forumTopics: ForumTopicItem[] = [
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString()
   }
 ];
+
+// --- SUSTAINABLE AGRICULTURE & STARVATION SOLUTIONS APIS ---
+
+app.get('/api/agriculture/projects', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...agricultureProjects];
+
+  if (category && category !== 'All') {
+    results = results.filter(p => p.category.toLowerCase() === String(category).toLowerCase());
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(p =>
+      p.title.toLowerCase().includes(q) ||
+      p.description.toLowerCase().includes(q) ||
+      p.location.toLowerCase().includes(q) ||
+      p.organizer.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/agriculture/projects', (req: Request, res: Response) => {
+  const { title, category, description, location, organizer, targetImpact, peopleFedEst } = req.body;
+  if (!title || !category || !description || !location || !organizer) {
+    return res.status(400).json({ error: 'Missing required fields: title, category, description, location, organizer' });
+  }
+
+  const newProject: AgricultureProject = {
+    id: 'ag-' + generateId(),
+    title: title.trim(),
+    category,
+    description: description.trim(),
+    location: location.trim(),
+    organizer: organizer.trim(),
+    targetImpact: targetImpact ? targetImpact.trim() : 'Under Assessment',
+    peopleFedEst: Number(peopleFedEst) || 5000,
+    supporters: 1,
+    status: 'Proposed',
+    createdAt: new Date().toISOString()
+  };
+
+  agricultureProjects.unshift(newProject);
+  res.status(201).json(newProject);
+});
+
+app.post('/api/agriculture/projects/:id/support', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const project = agricultureProjects.find(p => p.id === id);
+  if (!project) {
+    return res.status(404).json({ error: 'Agriculture project not found' });
+  }
+
+  project.supporters += 1;
+  res.json({ success: true, supporters: project.supporters, project });
+});
+
+app.get('/api/agriculture/solutions', (req: Request, res: Response) => {
+  const { category, search } = req.query;
+  let results = [...starvationSolutions];
+
+  if (category && category !== 'All') {
+    results = results.filter(s => s.category.toLowerCase() === String(category).toLowerCase());
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(s =>
+      s.title.toLowerCase().includes(q) ||
+      s.description.toLowerCase().includes(q) ||
+      s.keyTechnologies.some(t => t.toLowerCase().includes(q))
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/agriculture/calculator', (req: Request, res: Response) => {
+  const { farmSizeHectares = 1, cropType = 'staple', irrigationEfficiencyPct = 50, biocharAppliedTons = 0 } = req.body;
+
+  const hectares = Number(farmSizeHectares) || 1;
+  const biochar = Number(biocharAppliedTons) || 0;
+  const efficiency = Number(irrigationEfficiencyPct) || 50;
+
+  // Average grain equivalent yield ~3.5 tons per hectare base
+  let baseYieldPerHectareTons = 3.5;
+  if (cropType === 'drought_resilient') baseYieldPerHectareTons = 4.8;
+  if (cropType === 'biofortified') baseYieldPerHectareTons = 4.2;
+  if (cropType === 'hydroponic') baseYieldPerHectareTons = 12.0;
+
+  // Boost yields with irrigation efficiency and biochar
+  const irrigationBoost = (efficiency / 100) * 0.25; // up to 25% extra yield
+  const biocharBoost = Math.min(biochar * 0.08, 0.40); // up to 40% yield boost from biochar
+
+  const estimatedTotalYieldTons = +((baseYieldPerHectareTons * (1 + irrigationBoost + biocharBoost)) * hectares).toFixed(2);
+
+  // 1 ton of staple food feeds ~ 4 people for a full year
+  const estimatedPeopleFedPerYear = Math.round(estimatedTotalYieldTons * 4);
+
+  // Water saved per year (m3) compared to flood irrigation
+  const waterSavedM3 = Math.round(hectares * 2500 * (efficiency / 100));
+
+  // CO2 sequestered via biochar & soil carbon (approx 2.5 tons CO2 per ton biochar + soil organic matter)
+  const co2SequesteredTons = +((biochar * 2.8) + (hectares * 0.5)).toFixed(2);
+
+  res.json({
+    inputs: { farmSizeHectares: hectares, cropType, irrigationEfficiencyPct: efficiency, biocharAppliedTons: biochar },
+    results: {
+      estimatedTotalYieldTons,
+      estimatedPeopleFedPerYear,
+      waterSavedM3,
+      co2SequesteredTons,
+      sdgTarget: 'UN SDG 2: Zero Hunger & SDG 13: Climate Action'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Helper to generate IDs
 const generateId = () => Math.random().toString(36).substr(2, 9);

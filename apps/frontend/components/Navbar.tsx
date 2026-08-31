@@ -34,6 +34,7 @@ const Navbar = () => {
     { name: 'Gaming Hub', href: '/games' },
     { name: 'Culture', href: '/culture' },
     { name: 'Global Health', href: '/health' },
+    { name: 'Agriculture', href: '/agriculture' },
     { name: 'Climate Solutions', href: '/climate' },
     { name: 'Education', href: '/education' },
     { name: 'Chat & Forum', href: '/chat' },
