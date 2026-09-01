@@ -1003,4 +1003,103 @@ describe('Backend API Endpoints', () => {
       expect(responseInvalidEmail.body.error).toBe('Invalid sponsor email address format');
     });
   });
+
+  describe('Investors & VCs Endpoints', () => {
+    it('GET /api/investors should return list of VC firms and investors', async () => {
+      const response = await request(app).get('/api/investors');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('firmName');
+      expect(response.body[0]).toHaveProperty('type');
+      expect(response.body[0]).toHaveProperty('focusSectors');
+    });
+
+    it('GET /api/investors should support type, sector, and search filtering', async () => {
+      const response = await request(app).get('/api/investors?type=VC%20Firm&search=Horizon');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].firmName).toBe('Global Horizon Ventures');
+    });
+
+    it('POST /api/investors should register a new investor or VC firm', async () => {
+      const newVC = {
+        firmName: 'Blue Ocean Capital',
+        investorName: 'David Chen',
+        email: 'david@blueoceancap.com',
+        type: 'VC Firm',
+        focusSectors: ['Clean Tech & Climate', 'Global Health'],
+        ticketSizeRange: '$500K - $3M',
+        portfolioCount: 15,
+        totalCapitalDeployed: '$45M',
+        location: 'Singapore',
+        website: 'https://blueoceancap.com',
+        bio: 'Venture fund backing ocean tech, blue economy, and health equity startups.'
+      };
+
+      const response = await request(app).post('/api/investors').send(newVC);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toBe('Investor profile registered successfully');
+      expect(response.body.investor).toHaveProperty('id');
+      expect(response.body.investor.firmName).toBe('Blue Ocean Capital');
+    });
+
+    it('GET /api/investors/funding-requests should return project pitch requests', async () => {
+      const response = await request(app).get('/api/investors/funding-requests');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('projectName');
+      expect(response.body[0]).toHaveProperty('targetAmount');
+      expect(response.body[0]).toHaveProperty('fundingStage');
+    });
+
+    it('POST /api/investors/funding-requests should submit a new pitch request', async () => {
+      const newPitch = {
+        projectName: 'Quantum Health BioSensors',
+        founderName: 'Dr. Alan Turing',
+        founderEmail: 'alan@quantumhealth.bio',
+        category: 'Global Health',
+        fundingStage: 'Seed',
+        targetAmount: 500000,
+        pitchSummary: 'Handheld quantum diagnostic devices for non-invasive disease detection.',
+        location: 'Cambridge, UK'
+      };
+
+      const response = await request(app).post('/api/investors/funding-requests').send(newPitch);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('funding request submitted successfully');
+      expect(response.body.fundingRequest).toHaveProperty('id');
+      expect(response.body.fundingRequest.projectName).toBe('Quantum Health BioSensors');
+      expect(response.body.fundingRequest.raisedAmount).toBe(0);
+    });
+
+    it('POST /api/investors/funding-requests/:id/match should submit investment offer', async () => {
+      const matchPayload = {
+        investorId: 'vc-1',
+        investorName: 'Global Horizon Ventures',
+        investorEmail: 'sarah.lin@ghventures.com',
+        proposedAmount: 150000,
+        message: 'We want to participate in your Seed funding round!'
+      };
+
+      const response = await request(app).post('/api/investors/funding-requests/frq-101/match').send(matchPayload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('Investment match proposal submitted successfully');
+      expect(response.body.match.proposedAmount).toBe(150000);
+      expect(response.body.fundingRequest.raisedAmount).toBeGreaterThan(320000);
+    });
+
+    it('GET /api/investors/analytics should return investment ecosystem metrics', async () => {
+      const response = await request(app).get('/api/investors/analytics');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('summary');
+      expect(response.body.summary).toHaveProperty('totalVCs');
+      expect(response.body.summary).toHaveProperty('totalRequests');
+      expect(response.body.summary).toHaveProperty('totalMatches');
+      expect(response.body.summary).toHaveProperty('fundingProgressPct');
+      expect(Array.isArray(response.body.topInvestors)).toBe(true);
+    });
+  });
 });

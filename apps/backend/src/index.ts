@@ -349,6 +349,52 @@ interface SponsorshipTransaction {
   timestamp: string;
 }
 
+interface Investor {
+  id: string;
+  firmName: string;
+  investorName: string;
+  email: string;
+  type: 'VC Firm' | 'Angel Network' | 'Impact Fund' | 'Sovereign Wealth' | 'Corporate VC';
+  focusSectors: string[];
+  ticketSizeRange: string;
+  portfolioCount: number;
+  totalCapitalDeployed: string;
+  location: string;
+  website?: string;
+  logoUrl?: string;
+  bio: string;
+  createdAt: string;
+}
+
+interface FundingRequest {
+  id: string;
+  projectName: string;
+  founderName: string;
+  founderEmail: string;
+  category: 'Clean Tech & Climate' | 'AI & Sci-Fi' | 'Global Health' | 'Agritech' | 'EdTech' | 'FinTech & Commerce';
+  fundingStage: 'Pre-Seed' | 'Seed' | 'Series A' | 'Series B+' | 'Grant / Non-Profit';
+  targetAmount: number;
+  raisedAmount: number;
+  pitchSummary: string;
+  deckUrl?: string;
+  location: string;
+  status: 'Open' | 'Under Review' | 'Funded';
+  createdAt: string;
+}
+
+interface InvestmentMatch {
+  id: string;
+  requestId: string;
+  projectName: string;
+  investorId: string;
+  investorName: string;
+  investorEmail: string;
+  proposedAmount: number;
+  message: string;
+  status: 'Proposed' | 'Under Due Diligence' | 'Accepted';
+  timestamp: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -830,6 +876,117 @@ let sponsorshipTransactions: SponsorshipTransaction[] = [
     paymentMethod: 'bank_transfer',
     status: 'completed',
     referenceCode: 'SPONSOR-98214',
+    timestamp: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
+  }
+];
+
+let investors: Investor[] = [
+  {
+    id: 'vc-1',
+    firmName: 'Global Horizon Ventures',
+    investorName: 'Sarah Lin',
+    email: 'sarah.lin@ghventures.com',
+    type: 'VC Firm',
+    focusSectors: ['Clean Tech & Climate', 'AI & Sci-Fi', 'FinTech & Commerce'],
+    ticketSizeRange: '$250K - $2M',
+    portfolioCount: 38,
+    totalCapitalDeployed: '$85M',
+    location: 'Silicon Valley, USA',
+    website: 'https://ghventures.com',
+    bio: 'Early-stage Venture Capital fund partnering with bold founders tackling climate change, AI infrastructure, and frontier computing.',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 30).toISOString()
+  },
+  {
+    id: 'vc-2',
+    firmName: 'AfriTech Impact Capital',
+    investorName: 'Kwame Osei',
+    email: 'kwame@afritechcap.org',
+    type: 'Impact Fund',
+    focusSectors: ['Agritech', 'Global Health', 'EdTech'],
+    ticketSizeRange: '$100K - $1M',
+    portfolioCount: 24,
+    totalCapitalDeployed: '$32M',
+    location: 'Nairobi, Kenya',
+    website: 'https://afritechcap.org',
+    bio: 'Impact-first fund driving sustainable agricultural transformation, telemedicine access, and tech-enabled education across emerging markets.',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 20).toISOString()
+  },
+  {
+    id: 'vc-3',
+    firmName: 'Apex Angel Syndicate',
+    investorName: 'Elena Rostova',
+    email: 'elena@apexangels.net',
+    type: 'Angel Network',
+    focusSectors: ['AI & Sci-Fi', 'EdTech', 'FinTech & Commerce'],
+    ticketSizeRange: '$25K - $250K',
+    portfolioCount: 52,
+    totalCapitalDeployed: '$18M',
+    location: 'London, UK',
+    website: 'https://apexangels.net',
+    bio: 'Global syndicate of angel investors and tech founders supporting early pre-seed and seed stage startups with capital and mentorship.',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString()
+  }
+];
+
+let fundingRequests: FundingRequest[] = [
+  {
+    id: 'frq-101',
+    projectName: 'AeroGrid Solar AI',
+    founderName: 'Dr. Marcus Vance',
+    founderEmail: 'marcus@aerogrid.io',
+    category: 'Clean Tech & Climate',
+    fundingStage: 'Seed',
+    targetAmount: 750000,
+    raisedAmount: 320000,
+    pitchSummary: 'Autonomous AI microgrid controllers optimizing energy storage and peer-to-peer clean power distribution for remote towns.',
+    deckUrl: 'https://aerogrid.io/deck.pdf',
+    location: 'Austin, TX',
+    status: 'Open',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 12).toISOString()
+  },
+  {
+    id: 'frq-102',
+    projectName: 'NutriYield Biochar Agritech',
+    founderName: 'Amina Diallo',
+    founderEmail: 'amina@nutriyield.org',
+    category: 'Agritech',
+    fundingStage: 'Pre-Seed',
+    targetAmount: 300000,
+    raisedAmount: 180000,
+    pitchSummary: 'Pyrolysis biochar kilns combined with sub-surface soil moisture sensors doubling crop yields for smallholder drought zones.',
+    deckUrl: 'https://nutriyield.org/pitch.pdf',
+    location: 'Dakar, Senegal',
+    status: 'Open',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 8).toISOString()
+  },
+  {
+    id: 'frq-103',
+    projectName: 'TeleHealth Pulse AI',
+    founderName: 'Dr. Sophia Patel',
+    founderEmail: 'sophia@telehealthpulse.med',
+    category: 'Global Health',
+    fundingStage: 'Series A',
+    targetAmount: 1500000,
+    raisedAmount: 900000,
+    pitchSummary: 'Low-latency WebRTC and offline AI diagnostic tools for maternal and neonatal care units in rural clinics.',
+    deckUrl: 'https://telehealthpulse.med/deck.pdf',
+    location: 'Bengaluru, India',
+    status: 'Open',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString()
+  }
+];
+
+let investmentMatches: InvestmentMatch[] = [
+  {
+    id: 'match-1',
+    requestId: 'frq-101',
+    projectName: 'AeroGrid Solar AI',
+    investorId: 'vc-1',
+    investorName: 'Global Horizon Ventures',
+    investorEmail: 'sarah.lin@ghventures.com',
+    proposedAmount: 200000,
+    message: 'We are very impressed by your AI microgrid load balancing algorithms and would like to lead your Seed round.',
+    status: 'Under Due Diligence',
     timestamp: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
   }
 ];
@@ -3223,6 +3380,212 @@ app.post('/api/sponsorship/checkout', (req: Request, res: Response) => {
       transaction: newTransaction
     });
   }
+});
+
+// 13. Investors & VCs Feature for Global Projects Support & Funding Requests
+app.get('/api/investors', (req: Request, res: Response) => {
+  const { type, sector, search } = req.query;
+  let results = [...investors];
+
+  if (type && type !== 'All') {
+    results = results.filter(
+      inv => inv.type.toLowerCase() === String(type).toLowerCase()
+    );
+  }
+
+  if (sector && sector !== 'All') {
+    results = results.filter(
+      inv => inv.focusSectors.some(s => s.toLowerCase() === String(sector).toLowerCase())
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      inv =>
+        inv.firmName.toLowerCase().includes(q) ||
+        inv.investorName.toLowerCase().includes(q) ||
+        inv.bio.toLowerCase().includes(q) ||
+        inv.location.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/investors', (req: Request, res: Response) => {
+  const { firmName, investorName, email, type, focusSectors, ticketSizeRange, portfolioCount, totalCapitalDeployed, location, website, bio } = req.body;
+
+  if (!firmName || !investorName || !email || !type || !bio) {
+    return res.status(400).json({ error: 'Missing required investor profile fields: firmName, investorName, email, type, bio' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address format' });
+  }
+
+  const newInvestor: Investor = {
+    id: 'vc-' + generateId(),
+    firmName: firmName.trim(),
+    investorName: investorName.trim(),
+    email: email.trim().toLowerCase(),
+    type,
+    focusSectors: Array.isArray(focusSectors) ? focusSectors : ['Clean Tech & Climate'],
+    ticketSizeRange: ticketSizeRange || '$50K - $500K',
+    portfolioCount: Number(portfolioCount) || 0,
+    totalCapitalDeployed: totalCapitalDeployed || '$1M+',
+    location: location ? location.trim() : 'Global',
+    website: website ? website.trim() : undefined,
+    bio: bio.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  investors.unshift(newInvestor);
+  res.status(201).json({
+    message: 'Investor profile registered successfully',
+    investor: newInvestor
+  });
+});
+
+app.get('/api/investors/funding-requests', (req: Request, res: Response) => {
+  const { category, stage, search } = req.query;
+  let results = [...fundingRequests];
+
+  if (category && category !== 'All') {
+    results = results.filter(
+      fr => fr.category.toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (stage && stage !== 'All') {
+    results = results.filter(
+      fr => fr.fundingStage.toLowerCase() === String(stage).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      fr =>
+        fr.projectName.toLowerCase().includes(q) ||
+        fr.founderName.toLowerCase().includes(q) ||
+        fr.pitchSummary.toLowerCase().includes(q) ||
+        fr.location.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/investors/funding-requests', (req: Request, res: Response) => {
+  const { projectName, founderName, founderEmail, category, fundingStage, targetAmount, pitchSummary, deckUrl, location } = req.body;
+
+  if (!projectName || !founderName || !founderEmail || !category || !fundingStage || !targetAmount || !pitchSummary) {
+    return res.status(400).json({ error: 'Missing required funding request fields: projectName, founderName, founderEmail, category, fundingStage, targetAmount, pitchSummary' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(founderEmail)) {
+    return res.status(400).json({ error: 'Invalid founder email address format' });
+  }
+
+  const numericTarget = Number(targetAmount);
+  if (numericTarget <= 0) {
+    return res.status(400).json({ error: 'Target funding amount must be greater than $0' });
+  }
+
+  const newRequest: FundingRequest = {
+    id: 'frq-' + generateId(),
+    projectName: projectName.trim(),
+    founderName: founderName.trim(),
+    founderEmail: founderEmail.trim().toLowerCase(),
+    category,
+    fundingStage,
+    targetAmount: numericTarget,
+    raisedAmount: 0,
+    pitchSummary: pitchSummary.trim(),
+    deckUrl: deckUrl ? deckUrl.trim() : undefined,
+    location: location ? location.trim() : 'Global',
+    status: 'Open',
+    createdAt: new Date().toISOString()
+  };
+
+  fundingRequests.unshift(newRequest);
+  res.status(201).json({
+    message: 'Global project funding request submitted successfully',
+    fundingRequest: newRequest
+  });
+});
+
+app.post('/api/investors/funding-requests/:id/match', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { investorId, investorName, investorEmail, proposedAmount, message } = req.body;
+
+  const requestObj = fundingRequests.find(fr => fr.id === id);
+  if (!requestObj) {
+    return res.status(404).json({ error: 'Funding request not found' });
+  }
+
+  if (!investorName || !investorEmail || !proposedAmount || !message) {
+    return res.status(400).json({ error: 'Missing match proposal fields: investorName, investorEmail, proposedAmount, message' });
+  }
+
+  const numAmount = Number(proposedAmount);
+  if (numAmount <= 0) {
+    return res.status(400).json({ error: 'Proposed investment amount must be greater than $0' });
+  }
+
+  // Update funding request raised amount
+  requestObj.raisedAmount = +(requestObj.raisedAmount + numAmount).toFixed(2);
+  if (requestObj.raisedAmount >= requestObj.targetAmount) {
+    requestObj.status = 'Funded';
+  } else {
+    requestObj.status = 'Under Review';
+  }
+
+  const newMatch: InvestmentMatch = {
+    id: 'match-' + generateId(),
+    requestId: requestObj.id,
+    projectName: requestObj.projectName,
+    investorId: investorId || 'custom-vc',
+    investorName: investorName.trim(),
+    investorEmail: investorEmail.trim().toLowerCase(),
+    proposedAmount: numAmount,
+    message: message.trim(),
+    status: 'Under Due Diligence',
+    timestamp: new Date().toISOString()
+  };
+
+  investmentMatches.unshift(newMatch);
+
+  res.status(201).json({
+    message: 'Investment match proposal submitted successfully!',
+    match: newMatch,
+    fundingRequest: requestObj
+  });
+});
+
+app.get('/api/investors/analytics', (req: Request, res: Response) => {
+  const totalVCs = investors.length;
+  const totalRequests = fundingRequests.length;
+  const totalTargetFunding = fundingRequests.reduce((sum, fr) => sum + fr.targetAmount, 0);
+  const totalRaisedFunding = fundingRequests.reduce((sum, fr) => sum + fr.raisedAmount, 0);
+  const totalMatches = investmentMatches.length;
+
+  res.json({
+    summary: {
+      totalVCs,
+      totalRequests,
+      totalMatches,
+      totalTargetFunding: +totalTargetFunding.toFixed(2),
+      totalRaisedFunding: +totalRaisedFunding.toFixed(2),
+      fundingProgressPct: totalTargetFunding > 0 ? +((totalRaisedFunding / totalTargetFunding) * 100).toFixed(1) : 0
+    },
+    topInvestors: investors.slice(0, 5),
+    recentFundingRequests: fundingRequests.slice(0, 5),
+    recentMatches: investmentMatches.slice(0, 5)
+  });
 });
 
 // Centralized 404 and Error Handler for Production Readiness
