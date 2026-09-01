@@ -41,6 +41,7 @@ const Navbar = () => {
     { name: 'Environment', href: '/environment' },
     { name: 'DTC Tools', href: '/dtc' },
     { name: 'Services', href: '/services' },
+    { name: 'Investors & VCs', href: '/investors' },
     { name: 'Integrations', href: '/integrations' },
     { name: 'World Bank', href: '/worldbank' },
     { name: 'Developer API', href: '/api-docs' },
