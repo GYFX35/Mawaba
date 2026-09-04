@@ -1,36 +1,41 @@
-# Release Notes: Mawaba v1.1.0 🚀
+# Release Notes: Mawaba v1.2.0 🚀
 
-We are thrilled to announce **Mawaba Version 1.1.0**, featuring a fully unified Next.js frontend and Express TypeScript backend architecture!
+We are thrilled to announce **Mawaba Version 1.2.0**, bringing significant enhancements to global impact initiatives, investor matching, health promotion, sustainable agriculture, sponsorships, and unified platform services!
 
-Mawaba connects global health, education, climate solutions, environmental protection, cultural heritage archives, e-commerce, and gaming tools into a seamless, accessible digital platform.
+Mawaba connects global health, education, climate solutions, environmental protection, cultural heritage archives, e-commerce, investor networks, sustainable agriculture, and gaming tools into a seamless, accessible digital ecosystem.
 
 ---
 
-## What's New in v1.1.0
+## What's New in v1.2.0
 
-### 1. 🔗 Fully Unified Frontend & Backend Ecosystem
-- Integrated all Next.js client modules with Express TypeScript REST API endpoints on port 3001.
-- Centralized base URL resolution via `apps/frontend/components/apiConfig.ts` supporting `NEXT_PUBLIC_API_URL` with seamless fallback for local and production deployment.
-- Enhanced CORS configuration (`process.env.CLIENT_ORIGIN`) and 10MB JSON body payload support for media handling.
+### 1. 💼 Investors & VCs Hub (`/investors`)
+- Integrated Venture Capital & Investor Directory with live search and filter capabilities.
+- Pitch submission workflow enabling startups and sustainable projects to submit funding requests directly.
+- AI-driven investment match proposals and investor analytics dashboard.
+- Backend REST endpoints at `/api/investors`, `/api/investors/funding-requests`, and `/api/investors/analytics`.
 
-### 2. 🎮 Gaming Arcade & Developer Monetization Portal (`/games`)
-- Playable HTML5 browser games, filtering by genre and monetization model.
-- Developer game registration & submission workflow with live 85% revenue split calculation.
-- Microtransactions, game purchases, tipping, and developer analytics.
+### 2. 🌾 Sustainable Agriculture & Starvation Alleviation (`/agriculture`)
+- Global agriculture project discovery, initiative upvoting, and project funding support.
+- Crop yield calculator and AI Agronomist tutor integration.
+- Starvation alleviation solutions archive and project proposal tools.
+- Backend REST API endpoints at `/api/agriculture/projects` and `/api/agriculture/solutions`.
 
-### 3. 🛍️ Direct-to-Consumer (DTC) E-Commerce & Store (`/dtc`)
-- Sustainable product catalog browsing, search, and category filtering.
-- Interactive cart management, promo code processing, checkout receipt modal, and eco-subscriptions.
+### 3. 🩺 Global Health Promotion (`/health`)
+- Health equity metrics and UN SDG 3 alignment.
+- Biometric BMI and daily hydration assessment tool.
+- Preventative health tips library with interactive support and community campaign submissions.
+- Backend REST API endpoints at `/api/health-promotion/campaigns` and `/api/health-promotion/tips`.
 
-### 4. 🌍 Global Culture Archive & Heritage Hub (`/culture`)
-- Region and category filtering across global traditions, festivals, and culinary heritage.
-- Interactive comment and like systems, camera snapshot capture, and video recording support.
+### 4. 💖 Sponsorship & Hall of Fame (`/sponsor`)
+- Interactive multi-tier sponsorship platform with custom funding options.
+- Support for Stripe, credit/debit, and bank transfer checkout flows.
+- Real-time Sponsorship Hall of Fame acknowledging global supporters.
+- Backend REST API endpoints at `/api/sponsorship/tiers`, `/api/sponsorship/sponsors`, and `/api/sponsorship/checkout`.
 
-### 5. 🎬 Videos Hub Entertainment Center (`/videos`)
-- Multi-category video discovery, HTML5 player playback, like/share/download capabilities, inline commenting, and user video submissions.
-
-### 6. 🌿 Climate Solutions & Eco-Pledges (`/climate`, `/environment`)
-- Interactive CO2 impact calculator, renewable initiative upvoting, digital pledge badges, and World Bank Open Data integration.
+### 5. 🌐 Unified API Platform & Developer Experience
+- Enhanced REST API backend in Express & TypeScript (`apps/backend`) with endpoints for all new domains.
+- Updated API Docs playground (`/api-docs`) with curling, JavaScript, and Python snippets.
+- Streamlined Python AI service (`apps/ai-service`) with Google AI and OpenAI integration support.
 
 ---
 
@@ -75,7 +80,7 @@ To publish this release on GitHub:
 
 ```bash
 # 1. Create annotated release tag
-git tag -a v1.1.0 -m "Mawaba Version 1.1.0 Unified Release"
+git tag -a v1.2.0 -m "Mawaba Version 1.2.0 Release"
 
 # 2. Push tags to GitHub
 git push origin main --tags
