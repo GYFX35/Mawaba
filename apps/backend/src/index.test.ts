@@ -1004,6 +1004,97 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('Agribusiness Marketplace Endpoints', () => {
+    it('GET /api/agribusiness/listings should return agribusiness listings', async () => {
+      const response = await request(app).get('/api/agribusiness/listings');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('pricePerUnit');
+      expect(response.body[0]).toHaveProperty('verifiedSupplier');
+    });
+
+    it('GET /api/agribusiness/listings should support category, verifiedOnly and search filtering', async () => {
+      const response = await request(app).get('/api/agribusiness/listings?category=Crop%20Supply%20%26%20Wholesale&verifiedOnly=true');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.every((item: any) => item.category === 'Crop Supply & Wholesale')).toBe(true);
+      expect(response.body.every((item: any) => item.verifiedSupplier === true)).toBe(true);
+    });
+
+    it('POST /api/agribusiness/listings should create a new agribusiness listing', async () => {
+      const newListing = {
+        title: 'Solar Cold-Chain Walk-in Chiller Kiosks',
+        businessName: 'EcoFrost ColdChain Solutions',
+        contactEmail: 'trade@ecofrost.org',
+        category: 'Cold-Storage & Logistics',
+        description: 'Off-grid walk-in solar cold storage units for fresh produce preservation.',
+        pricePerUnit: 3200,
+        unit: 'Unit',
+        availableQuantity: 15,
+        location: 'Eldoret, Kenya'
+      };
+
+      const response = await request(app).post('/api/agribusiness/listings').send(newListing);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('published successfully');
+      expect(response.body.listing).toHaveProperty('id');
+      expect(response.body.listing.title).toBe('Solar Cold-Chain Walk-in Chiller Kiosks');
+      expect(response.body.listing.pricePerUnit).toBe(3200);
+      expect(response.body.listing.verifiedSupplier).toBe(true);
+    });
+
+    it('POST /api/agribusiness/listings should reject missing required fields or invalid price', async () => {
+      const responseMissing = await request(app).post('/api/agribusiness/listings').send({
+        title: 'Incomplete Listing'
+      });
+      expect(responseMissing.status).toBe(400);
+
+      const responseZeroPrice = await request(app).post('/api/agribusiness/listings').send({
+        title: 'Zero Price Item',
+        businessName: 'Biz',
+        contactEmail: 'biz@test.com',
+        category: 'Crop Supply & Wholesale',
+        description: 'Test description',
+        pricePerUnit: 0,
+        unit: 'Ton'
+      });
+      expect(responseZeroPrice.status).toBe(400);
+      expect(responseZeroPrice.body.error).toBe('Price per unit must be greater than $0');
+    });
+
+    it('POST /api/agribusiness/offers should create a new B2B trade offer', async () => {
+      const offerPayload = {
+        listingId: 'ag-biz-1',
+        buyerName: 'Global Harvest Co-op',
+        buyerEmail: 'purchasing@globalharvest.org',
+        offeredPricePerUnit: 440,
+        quantityRequested: 10,
+        notes: 'Bulk purchase discount request for upcoming planting season.'
+      };
+
+      const response = await request(app).post('/api/agribusiness/offers').send(offerPayload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('submitted successfully');
+      expect(response.body.offer).toHaveProperty('id');
+      expect(response.body.offer.totalDealValue).toBe(4400); // 440 * 10
+      expect(response.body.listingOffersCount).toBeGreaterThan(0);
+    });
+
+    it('GET /api/agribusiness/analytics should return agribusiness trade metrics', async () => {
+      const response = await request(app).get('/api/agribusiness/analytics');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('summary');
+      expect(response.body.summary).toHaveProperty('totalListings');
+      expect(response.body.summary).toHaveProperty('totalOffers');
+      expect(response.body.summary).toHaveProperty('totalTradeVolume');
+      expect(response.body.summary).toHaveProperty('totalVerifiedSuppliers');
+      expect(Array.isArray(response.body.topListings)).toBe(true);
+      expect(Array.isArray(response.body.recentOffers)).toBe(true);
+    });
+  });
+
   describe('Investors & VCs Endpoints', () => {
     it('GET /api/investors should return list of VC firms and investors', async () => {
       const response = await request(app).get('/api/investors');

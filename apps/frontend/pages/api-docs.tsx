@@ -135,6 +135,45 @@ const endpoints: Endpoint[] = [
     method: 'GET',
     path: '/api/worldbank/projects',
     description: 'Search official World Bank international development projects and funding initiatives.'
+  },
+  {
+    method: 'GET',
+    path: '/api/agribusiness/listings',
+    description: 'Retrieve verified agribusiness listings (crops, farm equipment, biochar, cold storage).'
+  },
+  {
+    method: 'POST',
+    path: '/api/agribusiness/listings',
+    description: 'Publish a new agribusiness product or service listing on the B2B marketplace.',
+    sampleBody: {
+      title: "Biofortified Zinc Rice & Millet Bulk Seeds",
+      businessName: "Sahara Agtech Seeds Co.",
+      contactEmail: "trade@sahara-agtech.org",
+      category: "Crop Supply & Wholesale",
+      description: "Bulk certified drought-resilient seed packages.",
+      pricePerUnit: 450,
+      unit: "Metric Ton",
+      availableQuantity: 100,
+      location: "Niamey, Niger"
+    }
+  },
+  {
+    method: 'POST',
+    path: '/api/agribusiness/offers',
+    description: 'Submit a B2B trade or supply offer to an agribusiness supplier.',
+    sampleBody: {
+      listingId: "ag-biz-2",
+      buyerName: "Green Valley Farmers Co-op",
+      buyerEmail: "coop@greenvalley.org",
+      offeredPricePerUnit: 1200,
+      quantityRequested: 5,
+      notes: "Requesting expedited shipment for upcoming planting season."
+    }
+  },
+  {
+    method: 'GET',
+    path: '/api/agribusiness/analytics',
+    description: 'Fetch B2B trade volume, active listings count, and agribusiness deal summaries.'
   }
 ];
 

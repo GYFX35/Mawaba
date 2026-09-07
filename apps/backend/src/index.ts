@@ -395,6 +395,36 @@ interface InvestmentMatch {
   timestamp: string;
 }
 
+interface AgribusinessListing {
+  id: string;
+  title: string;
+  businessName: string;
+  contactEmail: string;
+  category: 'Crop Supply & Wholesale' | 'Farm Equipment & Tech' | 'Fertilizers & Soil Amendments' | 'Cold-Storage & Logistics' | 'Agritech Software' | 'Livestock & Feed';
+  description: string;
+  pricePerUnit: number;
+  unit: string; // e.g. 'Ton', 'Metric Ton', 'Unit', 'Hectare/Mo'
+  availableQuantity: number;
+  location: string;
+  verifiedSupplier: boolean;
+  offersCount: number;
+  createdAt: string;
+}
+
+interface AgribusinessOffer {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  buyerName: string;
+  buyerEmail: string;
+  offeredPricePerUnit: number;
+  quantityRequested: number;
+  totalDealValue: number;
+  notes?: string;
+  status: 'Pending' | 'Accepted' | 'Negotiating' | 'Completed';
+  timestamp: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -877,6 +907,70 @@ let sponsorshipTransactions: SponsorshipTransaction[] = [
     status: 'completed',
     referenceCode: 'SPONSOR-98214',
     timestamp: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
+  }
+];
+
+let agribusinessListings: AgribusinessListing[] = [
+  {
+    id: 'ag-biz-1',
+    title: 'High-Yield Biofortified Zinc Rice & Drought Millet Seed Batches',
+    businessName: 'Sahara Agtech Seeds Co.',
+    contactEmail: 'trade@sahara-agtech.org',
+    category: 'Crop Supply & Wholesale',
+    description: 'Bulk non-GMO certified drought-resilient seed packages optimized for arid sub-Saharan agricultural zones.',
+    pricePerUnit: 450,
+    unit: 'Metric Ton',
+    availableQuantity: 120,
+    location: 'Niamey, Niger',
+    verifiedSupplier: true,
+    offersCount: 8,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 14).toISOString()
+  },
+  {
+    id: 'ag-biz-2',
+    title: 'Solar-Powered Precision Drip Irrigation Pump Systems (3HP)',
+    businessName: 'HydroAgri Solar Solutions',
+    contactEmail: 'sales@hydroagri.io',
+    category: 'Farm Equipment & Tech',
+    description: 'Off-grid brushless solar water pumps capable of lifting 35,000 liters/day with automated soil moisture IoT controller.',
+    pricePerUnit: 1250,
+    unit: 'Unit',
+    availableQuantity: 45,
+    location: 'Nairobi, Kenya',
+    verifiedSupplier: true,
+    offersCount: 14,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 9).toISOString()
+  },
+  {
+    id: 'ag-biz-3',
+    title: 'Pyrolyzed Biochar Soil Matrix & Organic Compost Blend',
+    businessName: 'TerraVerde Regenerative Agronomy',
+    contactEmail: 'compost@terraverde.org',
+    category: 'Fertilizers & Soil Amendments',
+    description: 'Enriched biochar matrix with leguminous nitrogen compost that improves soil water retention by 45%.',
+    pricePerUnit: 280,
+    unit: 'Ton',
+    availableQuantity: 300,
+    location: 'Oaxaca, Mexico',
+    verifiedSupplier: true,
+    offersCount: 5,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString()
+  }
+];
+
+let agribusinessOffers: AgribusinessOffer[] = [
+  {
+    id: 'ag-off-101',
+    listingId: 'ag-biz-2',
+    listingTitle: 'Solar-Powered Precision Drip Irrigation Pump Systems (3HP)',
+    buyerName: 'Green Valley Farmers Co-op',
+    buyerEmail: 'coop@greenvalley.org',
+    offeredPricePerUnit: 1200,
+    quantityRequested: 5,
+    totalDealValue: 6000,
+    notes: 'Requesting expedited shipment for upcoming dry season planting.',
+    status: 'Accepted',
+    timestamp: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
   }
 ];
 
@@ -1455,6 +1549,137 @@ app.get('/api/agriculture/solutions', (req: Request, res: Response) => {
   }
 
   res.json(results);
+});
+
+app.get('/api/agribusiness/listings', (req: Request, res: Response) => {
+  const { category, search, verifiedOnly } = req.query;
+  let results = [...agribusinessListings];
+
+  if (category && category !== 'All') {
+    results = results.filter(item => item.category.toLowerCase() === String(category).toLowerCase());
+  }
+
+  if (verifiedOnly === 'true') {
+    results = results.filter(item => item.verifiedSupplier);
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(item =>
+      item.title.toLowerCase().includes(q) ||
+      item.description.toLowerCase().includes(q) ||
+      item.businessName.toLowerCase().includes(q) ||
+      item.location.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/agribusiness/listings', (req: Request, res: Response) => {
+  const { title, businessName, contactEmail, category, description, pricePerUnit, unit, availableQuantity, location } = req.body;
+
+  if (!title || !businessName || !contactEmail || !category || !description || pricePerUnit === undefined || !unit) {
+    return res.status(400).json({ error: 'Missing required agribusiness listing fields: title, businessName, contactEmail, category, description, pricePerUnit, unit' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(contactEmail)) {
+    return res.status(400).json({ error: 'Invalid contact email address format' });
+  }
+
+  const numPrice = Number(pricePerUnit);
+  if (numPrice <= 0) {
+    return res.status(400).json({ error: 'Price per unit must be greater than $0' });
+  }
+
+  const newListing: AgribusinessListing = {
+    id: 'ag-biz-' + generateId(),
+    title: title.trim(),
+    businessName: businessName.trim(),
+    contactEmail: contactEmail.trim().toLowerCase(),
+    category,
+    description: description.trim(),
+    pricePerUnit: numPrice,
+    unit: unit.trim(),
+    availableQuantity: Number(availableQuantity) || 10,
+    location: location ? location.trim() : 'Global',
+    verifiedSupplier: true,
+    offersCount: 0,
+    createdAt: new Date().toISOString()
+  };
+
+  agribusinessListings.unshift(newListing);
+  res.status(201).json({
+    message: 'Agribusiness listing published successfully',
+    listing: newListing
+  });
+});
+
+app.post('/api/agribusiness/offers', (req: Request, res: Response) => {
+  const { listingId, buyerName, buyerEmail, offeredPricePerUnit, quantityRequested, notes } = req.body;
+
+  const listing = agribusinessListings.find(l => l.id === listingId);
+  if (!listing) {
+    return res.status(404).json({ error: 'Agribusiness listing not found' });
+  }
+
+  if (!buyerName || !buyerEmail || !offeredPricePerUnit || !quantityRequested) {
+    return res.status(400).json({ error: 'Missing offer fields: buyerName, buyerEmail, offeredPricePerUnit, quantityRequested' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(buyerEmail)) {
+    return res.status(400).json({ error: 'Invalid buyer email address format' });
+  }
+
+  const priceNum = Number(offeredPricePerUnit);
+  const qtyNum = Number(quantityRequested);
+  if (priceNum <= 0 || qtyNum <= 0) {
+    return res.status(400).json({ error: 'Offered price and quantity requested must be greater than 0' });
+  }
+
+  listing.offersCount += 1;
+
+  const newOffer: AgribusinessOffer = {
+    id: 'ag-off-' + generateId(),
+    listingId: listing.id,
+    listingTitle: listing.title,
+    buyerName: buyerName.trim(),
+    buyerEmail: buyerEmail.trim().toLowerCase(),
+    offeredPricePerUnit: priceNum,
+    quantityRequested: qtyNum,
+    totalDealValue: +(priceNum * qtyNum).toFixed(2),
+    notes: notes ? notes.trim() : undefined,
+    status: 'Pending',
+    timestamp: new Date().toISOString()
+  };
+
+  agribusinessOffers.unshift(newOffer);
+
+  res.status(201).json({
+    message: 'B2B trade offer submitted successfully to supplier',
+    offer: newOffer,
+    listingOffersCount: listing.offersCount
+  });
+});
+
+app.get('/api/agribusiness/analytics', (req: Request, res: Response) => {
+  const totalListings = agribusinessListings.length;
+  const totalOffers = agribusinessOffers.length;
+  const totalTradeVolume = agribusinessOffers.reduce((sum, o) => sum + o.totalDealValue, 0);
+  const totalVerifiedSuppliers = agribusinessListings.filter(l => l.verifiedSupplier).length;
+
+  res.json({
+    summary: {
+      totalListings,
+      totalOffers,
+      totalTradeVolume: +totalTradeVolume.toFixed(2),
+      totalVerifiedSuppliers
+    },
+    topListings: agribusinessListings.slice(0, 5),
+    recentOffers: agribusinessOffers.slice(0, 5)
+  });
 });
 
 app.post('/api/agriculture/calculator', (req: Request, res: Response) => {

@@ -14,11 +14,13 @@ Mawaba connects global health, education, climate solutions, environmental prote
 - AI-driven investment match proposals and investor analytics dashboard.
 - Backend REST endpoints at `/api/investors`, `/api/investors/funding-requests`, and `/api/investors/analytics`.
 
-### 2. 🌾 Sustainable Agriculture & Starvation Alleviation (`/agriculture`)
+### 2. 🌾 Sustainable Agriculture, Agribusiness & Starvation Alleviation (`/agriculture`)
+- Agribusiness B2B Marketplace supporting crop wholesale, solar drip irrigation pumps, biochar soil amendments, and cold-chain logistics.
+- B2B deal negotiation and offer submission workflow with verified supplier badges.
 - Global agriculture project discovery, initiative upvoting, and project funding support.
 - Crop yield calculator and AI Agronomist tutor integration.
 - Starvation alleviation solutions archive and project proposal tools.
-- Backend REST API endpoints at `/api/agriculture/projects` and `/api/agriculture/solutions`.
+- Backend REST API endpoints at `/api/agriculture/projects`, `/api/agribusiness/listings`, `/api/agribusiness/offers`, and `/api/agribusiness/analytics`.
 
 ### 3. 🩺 Global Health Promotion (`/health`)
 - Health equity metrics and UN SDG 3 alignment.
