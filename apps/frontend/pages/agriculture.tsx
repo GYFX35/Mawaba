@@ -21,7 +21,14 @@ import {
   Sparkles,
   Users,
   TrendingUp,
-  Leaf
+  Leaf,
+  Store,
+  DollarSign,
+  Briefcase,
+  CheckCircle,
+  Tag,
+  Package,
+  ShoppingBag
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import { getApiUrl } from '../components/apiConfig';
@@ -62,8 +69,24 @@ interface YieldCalculationResult {
   sdgTarget: string;
 }
 
+interface AgribusinessListing {
+  id: string;
+  title: string;
+  businessName: string;
+  contactEmail: string;
+  category: string;
+  description: string;
+  pricePerUnit: number;
+  unit: string;
+  availableQuantity: number;
+  location: string;
+  verifiedSupplier: boolean;
+  offersCount: number;
+  createdAt: string;
+}
+
 const AgriculturePage = () => {
-  const [activeTab, setActiveTab] = useState<'projects' | 'solutions' | 'calculator' | 'ai-agronomist'>('projects');
+  const [activeTab, setActiveTab] = useState<'projects' | 'marketplace' | 'solutions' | 'calculator' | 'ai-agronomist'>('projects');
 
   // Projects state
   const [projects, setProjects] = useState<AgricultureProject[]>([]);
@@ -92,6 +115,31 @@ const AgriculturePage = () => {
   const [calcResult, setCalcResult] = useState<YieldCalculationResult | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
 
+  // Agribusiness Marketplace state
+  const [agribusinessListings, setAgribusinessListings] = useState<AgribusinessListing[]>([]);
+  const [bizCategoryFilter, setBizCategoryFilter] = useState('All');
+  const [bizSearchQuery, setBizSearchQuery] = useState('');
+  const [isSubmittingBizListing, setIsSubmittingBizListing] = useState(false);
+  const [newBizListing, setNewBizListing] = useState({
+    title: '',
+    businessName: '',
+    contactEmail: '',
+    category: 'Crop Supply & Wholesale',
+    description: '',
+    pricePerUnit: 100,
+    unit: 'Ton',
+    availableQuantity: 50,
+    location: ''
+  });
+  const [selectedOfferListing, setSelectedOfferListing] = useState<AgribusinessListing | null>(null);
+  const [newOffer, setNewBizOffer] = useState({
+    buyerName: '',
+    buyerEmail: '',
+    offeredPricePerUnit: 0,
+    quantityRequested: 1,
+    notes: ''
+  });
+
   // AI Agronomist state
   const [aiQuestion, setAiQuestion] = useState('');
   const [aiLevel, setAiLevel] = useState('Intermediate');
@@ -100,9 +148,86 @@ const AgriculturePage = () => {
 
   useEffect(() => {
     fetchProjects();
+    fetchAgribusinessListings();
     fetchSolutions();
     handleCalculateYield();
   }, []);
+
+  const fetchAgribusinessListings = async () => {
+    try {
+      const res = await fetch(getApiUrl('/api/agribusiness/listings'));
+      if (res.ok) {
+        const data = await res.json();
+        setAgribusinessListings(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch agribusiness listings:', err);
+    }
+  };
+
+  const handleCreateBizListing = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBizListing.title || !newBizListing.businessName || !newBizListing.contactEmail || !newBizListing.description) {
+      alert('Please fill in all required agribusiness listing fields.');
+      return;
+    }
+
+    try {
+      const res = await fetch(getApiUrl('/api/agribusiness/listings'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newBizListing)
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAgribusinessListings([data.listing, ...agribusinessListings]);
+        setIsSubmittingBizListing(false);
+        setNewBizListing({
+          title: '',
+          businessName: '',
+          contactEmail: '',
+          category: 'Crop Supply & Wholesale',
+          description: '',
+          pricePerUnit: 100,
+          unit: 'Ton',
+          availableQuantity: 50,
+          location: ''
+        });
+      }
+    } catch (err) {
+      console.error('Error submitting agribusiness listing:', err);
+    }
+  };
+
+  const handleSendBizOffer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedOfferListing || !newOffer.buyerName || !newOffer.buyerEmail || newOffer.offeredPricePerUnit <= 0) {
+      alert('Please fill in all valid offer fields.');
+      return;
+    }
+
+    try {
+      const res = await fetch(getApiUrl('/api/agribusiness/offers'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          listingId: selectedOfferListing.id,
+          ...newOffer
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setAgribusinessListings(prev =>
+          prev.map(l => (l.id === selectedOfferListing.id ? { ...l, offersCount: data.listingOffersCount } : l))
+        );
+        alert(`Your B2B deal offer of $${data.offer.totalDealValue} has been submitted to ${selectedOfferListing.businessName}!`);
+        setSelectedOfferListing(null);
+        setNewBizOffer({ buyerName: '', buyerEmail: '', offeredPricePerUnit: 0, quantityRequested: 1, notes: '' });
+      }
+    } catch (err) {
+      console.error('Error submitting B2B offer:', err);
+    }
+  };
 
   const fetchProjects = async () => {
     try {
@@ -244,6 +369,16 @@ const AgriculturePage = () => {
     s.category.toLowerCase().includes(solutionSearchQuery.toLowerCase())
   );
 
+  const filteredBizListings = agribusinessListings.filter(l => {
+    const matchesCategory = bizCategoryFilter === 'All' || l.category === bizCategoryFilter;
+    const matchesSearch =
+      l.title.toLowerCase().includes(bizSearchQuery.toLowerCase()) ||
+      l.description.toLowerCase().includes(bizSearchQuery.toLowerCase()) ||
+      l.businessName.toLowerCase().includes(bizSearchQuery.toLowerCase()) ||
+      l.location.toLowerCase().includes(bizSearchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
+
   return (
     <Layout>
       <Head>
@@ -299,6 +434,16 @@ const AgriculturePage = () => {
             }`}
           >
             <Sprout className="h-4 w-4" /> Global Projects ({projects.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('marketplace')}
+            className={`flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-bold transition-all ${
+              activeTab === 'marketplace'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-200'
+                : 'bg-gray-100 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700'
+            }`}
+          >
+            <Store className="h-4 w-4" /> Agribusiness Marketplace ({agribusinessListings.length})
           </button>
           <button
             onClick={() => setActiveTab('solutions')}
@@ -417,7 +562,113 @@ const AgriculturePage = () => {
           </div>
         )}
 
-        {/* TAB 2: STARVATION SOLUTIONS */}
+        {/* TAB 2: AGRIBUSINESS MARKETPLACE */}
+        {activeTab === 'marketplace' && (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+              <div className="relative flex-1 w-full">
+                <Search className="absolute left-3.5 top-3 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search agribusiness supply, equipment, biochar, or software..."
+                  value={bizSearchQuery}
+                  onChange={e => setBizSearchQuery(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <select
+                  value={bizCategoryFilter}
+                  onChange={e => setBizCategoryFilter(e.target.value)}
+                  className="px-4 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="All">All Agro Categories</option>
+                  <option value="Crop Supply & Wholesale">Crop Supply & Wholesale</option>
+                  <option value="Farm Equipment & Tech">Farm Equipment & Tech</option>
+                  <option value="Fertilizers & Soil Amendments">Fertilizers & Soil Amendments</option>
+                  <option value="Cold-Storage & Logistics">Cold-Storage & Logistics</option>
+                  <option value="Agritech Software">Agritech Software</option>
+                  <option value="Livestock & Feed">Livestock & Feed</option>
+                </select>
+
+                <button
+                  onClick={() => setIsSubmittingBizListing(true)}
+                  className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-all whitespace-nowrap"
+                >
+                  <PlusCircle className="h-4 w-4" /> Publish Listing
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredBizListings.map(listing => (
+                <div
+                  key={listing.id}
+                  className="bg-white rounded-2xl border border-gray-200 p-6 flex flex-col justify-between hover:shadow-lg transition-all space-y-4"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-800 bg-amber-50 px-3 py-1 rounded-lg">
+                        {listing.category}
+                      </span>
+                      {listing.verifiedSupplier && (
+                        <span className="text-[11px] font-extrabold text-emerald-700 bg-emerald-100/80 px-2.5 py-1 rounded-md flex items-center gap-1">
+                          <CheckCircle className="h-3 w-3 text-emerald-600" /> Verified Supplier
+                        </span>
+                      )}
+                    </div>
+
+                    <h3 className="text-lg font-bold text-gray-900 leading-snug">{listing.title}</h3>
+                    <p className="text-sm text-gray-600 line-clamp-3">{listing.description}</p>
+
+                    <div className="bg-emerald-50/60 border border-emerald-100 rounded-xl p-3 text-xs space-y-1.5">
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold text-gray-700">Unit Price:</span>
+                        <span className="text-base font-black text-emerald-700">
+                          ${listing.pricePerUnit} <span className="text-xs font-normal text-gray-500">/ {listing.unit}</span>
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span className="font-medium">Stock Capacity:</span>
+                        <span className="font-bold text-gray-900">{listing.availableQuantity} {listing.unit}s</span>
+                      </div>
+                      <div className="flex justify-between text-gray-600">
+                        <span className="font-medium">Location:</span>
+                        <span className="font-semibold text-gray-800">{listing.location}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-3 border-t border-gray-100 flex items-center justify-between">
+                    <div className="text-xs text-gray-500">
+                      <span className="font-bold text-gray-800 block">{listing.businessName}</span>
+                      <span>Offers received: {listing.offersCount}</span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setSelectedOfferListing(listing);
+                        setNewBizOffer({
+                          buyerName: '',
+                          buyerEmail: '',
+                          offeredPricePerUnit: listing.pricePerUnit,
+                          quantityRequested: 1,
+                          notes: ''
+                        });
+                      }}
+                      className="flex items-center gap-1.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 px-3.5 py-2 rounded-xl transition-all shadow-sm"
+                    >
+                      <ShoppingBag className="h-3.5 w-3.5" /> Submit B2B Offer
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: STARVATION SOLUTIONS */}
         {activeTab === 'solutions' && (
           <div className="space-y-6">
             <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center gap-4">
@@ -706,6 +957,252 @@ const AgriculturePage = () => {
           </div>
         )}
       </div>
+
+      {/* PUBLISH AGRIBUSINESS LISTING MODAL */}
+      {isSubmittingBizListing && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in fade-in duration-200">
+            <h3 className="text-xl font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
+              <Store className="h-5 w-5 text-emerald-600" /> Publish Agribusiness Marketplace Listing
+            </h3>
+
+            <form onSubmit={handleCreateBizListing} className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Listing Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. High-Yield Solar Micro-Drip Irrigation Systems"
+                  value={newBizListing.title}
+                  onChange={e => setNewBizListing({ ...newBizListing, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Agro Business Name</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Sahara Agtech Solutions"
+                    value={newBizListing.businessName}
+                    onChange={e => setNewBizListing({ ...newBizListing, businessName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Contact Email</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="trade@company.org"
+                    value={newBizListing.contactEmail}
+                    onChange={e => setNewBizListing({ ...newBizListing, contactEmail: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Agro Category</label>
+                  <select
+                    value={newBizListing.category}
+                    onChange={e => setNewBizListing({ ...newBizListing, category: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  >
+                    <option value="Crop Supply & Wholesale">Crop Supply & Wholesale</option>
+                    <option value="Farm Equipment & Tech">Farm Equipment & Tech</option>
+                    <option value="Fertilizers & Soil Amendments">Fertilizers & Soil Amendments</option>
+                    <option value="Cold-Storage & Logistics">Cold-Storage & Logistics</option>
+                    <option value="Agritech Software">Agritech Software</option>
+                    <option value="Livestock & Feed">Livestock & Feed</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Location</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Nairobi, Kenya"
+                    value={newBizListing.location}
+                    onChange={e => setNewBizListing({ ...newBizListing, location: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Unit Price ($)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={newBizListing.pricePerUnit}
+                    onChange={e => setNewBizListing({ ...newBizListing, pricePerUnit: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Unit Type</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Ton / Unit"
+                    value={newBizListing.unit}
+                    onChange={e => setNewBizListing({ ...newBizListing, unit: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Available Qty</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={newBizListing.availableQuantity}
+                    onChange={e => setNewBizListing({ ...newBizListing, availableQuantity: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Product / Service Description</label>
+                <textarea
+                  rows={3}
+                  required
+                  placeholder="Detail wholesale terms, crop specs, or equipment capabilities..."
+                  value={newBizListing.description}
+                  onChange={e => setNewBizListing({ ...newBizListing, description: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setIsSubmittingBizListing(false)}
+                  className="px-4 py-2 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm transition-all"
+                >
+                  Publish Listing
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* SUBMIT B2B OFFER MODAL */}
+      {selectedOfferListing && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 space-y-4 shadow-2xl animate-in fade-in duration-200">
+            <h3 className="text-lg font-bold text-gray-900 border-b border-gray-100 pb-3">
+              Submit B2B Trade Offer for: <span className="text-emerald-700">{selectedOfferListing.title}</span>
+            </h3>
+
+            <form onSubmit={handleSendBizOffer} className="space-y-3">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Buyer Name / Company</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Green Harvest Cooperative"
+                    value={newOffer.buyerName}
+                    onChange={e => setNewBizOffer({ ...newOffer, buyerName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Buyer Email</label>
+                  <input
+                    type="email"
+                    required
+                    placeholder="buyer@farm.org"
+                    value={newOffer.buyerEmail}
+                    onChange={e => setNewBizOffer({ ...newOffer, buyerEmail: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">
+                    Offered Price per {selectedOfferListing.unit} ($)
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={newOffer.offeredPricePerUnit}
+                    onChange={e => setNewBizOffer({ ...newOffer, offeredPricePerUnit: parseFloat(e.target.value) || 0 })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-gray-700 mb-1">Quantity Requested</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={newOffer.quantityRequested}
+                    onChange={e => setNewBizOffer({ ...newOffer, quantityRequested: parseInt(e.target.value) || 1 })}
+                    className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <div className="bg-emerald-50 p-3 rounded-xl flex justify-between text-xs font-bold text-emerald-900">
+                <span>Total Estimated Deal Value:</span>
+                <span className="text-sm text-emerald-700">
+                  ${(newOffer.offeredPricePerUnit * newOffer.quantityRequested).toLocaleString()}
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-700 mb-1">Notes / Supply Requirements</label>
+                <textarea
+                  rows={2}
+                  placeholder="Include custom delivery timeframe or payment terms..."
+                  value={newOffer.notes}
+                  onChange={e => setNewBizOffer({ ...newOffer, notes: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-gray-200 text-sm focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedOfferListing(null)}
+                  className="px-4 py-2 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-100"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-5 py-2 rounded-xl text-sm transition-all"
+                >
+                  Submit Offer
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* PROPOSE PROJECT MODAL */}
       {isSubmittingProject && (
