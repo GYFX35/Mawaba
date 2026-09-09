@@ -124,6 +124,7 @@ const VideosHubPage = () => {
         if (u.name) setVideoAuthor(u.name);
       } catch (e) {}
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, searchQuery]);
 
   const showToast = (msg: string) => {

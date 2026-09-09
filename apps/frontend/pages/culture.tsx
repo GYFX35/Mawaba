@@ -98,6 +98,7 @@ const GlobalCulturePage = () => {
         if (u.name) setPostAuthor(u.name);
       } catch (e) {}
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRegion, selectedCategory, searchQuery]);
 
   const fetchCultureItems = async () => {

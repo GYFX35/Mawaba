@@ -160,10 +160,12 @@ const GlobalChatPage: NextPage = () => {
 
   useEffect(() => {
     fetchChatMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRoom]);
 
   useEffect(() => {
     fetchForumTopics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, searchQuery]);
 
   // Handle HTML5 Camera access
@@ -321,6 +323,7 @@ const GlobalChatPage: NextPage = () => {
     return () => {
       stopCamera();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Post Chat Message
