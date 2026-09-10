@@ -151,6 +151,7 @@ const AgriculturePage = () => {
     fetchAgribusinessListings();
     fetchSolutions();
     handleCalculateYield();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchAgribusinessListings = async () => {

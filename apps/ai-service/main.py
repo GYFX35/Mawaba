@@ -3,9 +3,11 @@ import sys
 import json
 import argparse
 import warnings
-from dotenv import load_dotenv
-
-load_dotenv()
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
 
 # Filter specific deprecation warnings if desired
 warnings.filterwarnings("ignore", category=FutureWarning)

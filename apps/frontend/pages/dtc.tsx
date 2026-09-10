@@ -108,6 +108,7 @@ const DtcHubPage: NextPage = () => {
     fetchProducts();
     fetchOrders();
     fetchAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCategory, searchQuery, statusFilter]);
 
   const fetchProducts = async () => {

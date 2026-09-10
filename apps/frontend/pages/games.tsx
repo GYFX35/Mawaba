@@ -141,6 +141,7 @@ export default function GamesPage() {
   useEffect(() => {
     fetchGames();
     fetchAnalytics();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedGenre, selectedMonetization, searchQuery]);
 
   const handleStartPlay = async (game: GameItem) => {

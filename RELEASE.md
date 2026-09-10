@@ -1,43 +1,29 @@
-# Release Notes: Mawaba v1.2.0 🚀
+# Release Notes: Mawaba v1.3.0 🚀
 
-We are thrilled to announce **Mawaba Version 1.2.0**, bringing significant enhancements to global impact initiatives, investor matching, health promotion, sustainable agriculture, sponsorships, and unified platform services!
+We are thrilled to announce **Mawaba Version 1.3.0**, bringing comprehensive debugging fixes, UI/UX navigation enhancements, Python AI service fallbacks, and streamlined platform usability!
 
-Mawaba connects global health, education, climate solutions, environmental protection, cultural heritage archives, e-commerce, investor networks, sustainable agriculture, and gaming tools into a seamless, accessible digital ecosystem.
+Mawaba connects global health, AI tutoring, climate solutions, environmental protection, cultural heritage archives, DTC e-commerce, venture capital networks, sustainable agribusiness, videos hub, and browser gaming tools into a unified digital ecosystem.
 
 ---
 
-## What's New in v1.2.0
+## What's New & Improved in v1.3.0
 
-### 1. 💼 Investors & VCs Hub (`/investors`)
-- Integrated Venture Capital & Investor Directory with live search and filter capabilities.
-- Pitch submission workflow enabling startups and sustainable projects to submit funding requests directly.
-- AI-driven investment match proposals and investor analytics dashboard.
-- Backend REST endpoints at `/api/investors`, `/api/investors/funding-requests`, and `/api/investors/analytics`.
+### 1. 🎨 Categorized Header Navigation & UI/UX Refresh
+- Reorganized desktop and mobile navigation into structured dropdown menus (**Impact Hubs** & **Ecosystem**) to optimize screen real estate.
+- Added visual active link highlights, dynamic version indicator (`v1.3.0`), and animated mobile navigation drawer.
+- Upgraded Footer with an interactive newsletter subscription feedback state and expanded navigation links grid.
 
-### 2. 🌾 Sustainable Agriculture, Agribusiness & Starvation Alleviation (`/agriculture`)
-- Agribusiness B2B Marketplace supporting crop wholesale, solar drip irrigation pumps, biochar soil amendments, and cold-chain logistics.
-- B2B deal negotiation and offer submission workflow with verified supplier badges.
-- Global agriculture project discovery, initiative upvoting, and project funding support.
-- Crop yield calculator and AI Agronomist tutor integration.
-- Starvation alleviation solutions archive and project proposal tools.
-- Backend REST API endpoints at `/api/agriculture/projects`, `/api/agribusiness/listings`, `/api/agribusiness/offers`, and `/api/agribusiness/analytics`.
+### 2. ⚡ Python AI Service Resilience & Imports
+- Added graceful try-except import safeguards for `python-dotenv` in `apps/ai-service/main.py`.
+- Ensured full compatibility across minimal and offline environments while preserving Google Gemini 1.5 Flash and OpenAI GPT-4o model query paths.
 
-### 3. 🩺 Global Health Promotion (`/health`)
-- Health equity metrics and UN SDG 3 alignment.
-- Biometric BMI and daily hydration assessment tool.
-- Preventative health tips library with interactive support and community campaign submissions.
-- Backend REST API endpoints at `/api/health-promotion/campaigns` and `/api/health-promotion/tips`.
+### 3. 🧹 React Hook & Code Health Fixes
+- Resolved all ESLint `react-hooks/exhaustive-deps` missing dependency warnings across `agriculture.tsx`, `chat.tsx`, `culture.tsx`, `dtc.tsx`, `games.tsx`, and `videos.tsx`.
+- Ensured zero lint errors and clean production static builds (`npm run build`).
 
-### 4. 💖 Sponsorship & Hall of Fame (`/sponsor`)
-- Interactive multi-tier sponsorship platform with custom funding options.
-- Support for Stripe, credit/debit, and bank transfer checkout flows.
-- Real-time Sponsorship Hall of Fame acknowledging global supporters.
-- Backend REST API endpoints at `/api/sponsorship/tiers`, `/api/sponsorship/sponsors`, and `/api/sponsorship/checkout`.
-
-### 5. 🌐 Unified API Platform & Developer Experience
-- Enhanced REST API backend in Express & TypeScript (`apps/backend`) with endpoints for all new domains.
-- Updated API Docs playground (`/api-docs`) with curling, JavaScript, and Python snippets.
-- Streamlined Python AI service (`apps/ai-service`) with Google AI and OpenAI integration support.
+### 4. 🚀 Homepage & About Page Upgrades
+- Enhanced Homepage (`/`) with a v1.3.0 release banner, real-time platform statistics ticker, interactive module switcher tabs, and innovation feed publishing portal.
+- Refreshed About Page (`/about`) highlighting platform architecture, core mission, and developer API access.
 
 ---
 
@@ -63,9 +49,13 @@ npm run dev --workspace=frontend
 ```
 Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-### Run Backend Unit Tests
+### Run Unit Tests & Health Checks
 ```bash
+# Backend Jest Tests
 npm test --workspace=backend
+
+# Python AI Service Unit Tests
+PYTHONPATH=apps/ai-service python3 -m unittest apps/ai-service/test_main.py
 ```
 
 ### Build Production Export
@@ -82,7 +72,7 @@ To publish this release on GitHub:
 
 ```bash
 # 1. Create annotated release tag
-git tag -a v1.2.0 -m "Mawaba Version 1.2.0 Release"
+git tag -a v1.3.0 -m "Mawaba Version 1.3.0 Release"
 
 # 2. Push tags to GitHub
 git push origin main --tags
