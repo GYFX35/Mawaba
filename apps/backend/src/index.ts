@@ -425,6 +425,19 @@ interface AgribusinessOffer {
   timestamp: string;
 }
 
+interface SportsActivity {
+  id: string;
+  title: string;
+  category: 'Football & Soccer' | 'Basketball & Athletics' | 'Fitness & Aerobics' | 'Cycling & Endurance' | 'Water Sports & Swimming' | 'Yoga & Mindfulness';
+  description: string;
+  location: string;
+  organizer: string;
+  participantsCount: number;
+  caloriesBurnEst: number;
+  status: 'Upcoming' | 'Ongoing' | 'Completed';
+  createdAt: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -907,6 +920,45 @@ let sponsorshipTransactions: SponsorshipTransaction[] = [
     status: 'completed',
     referenceCode: 'SPONSOR-98214',
     timestamp: new Date(Date.now() - 3600000 * 24 * 2).toISOString()
+  }
+];
+
+let sportsActivities: SportsActivity[] = [
+  {
+    id: 'sp-act-1',
+    title: 'Global Community 5K Charity Run & Virtual Marathon',
+    category: 'Cycling & Endurance',
+    description: 'A global synchronized 5K run promoting cardio health, endurance building, and community fitness engagement.',
+    location: 'Global / Virtual & Local Parks',
+    organizer: 'Mawaba Fitness Club',
+    participantsCount: 342,
+    caloriesBurnEst: 380,
+    status: 'Ongoing',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString()
+  },
+  {
+    id: 'sp-act-2',
+    title: 'Youth Community Football & Grassroots Tournament',
+    category: 'Football & Soccer',
+    description: 'Inter-community football league focusing on youth athletic development, teamwork, and active outdoor recreation.',
+    location: 'Nairobi Community Stadium, Kenya',
+    organizer: 'Grassroots Sports Alliance',
+    participantsCount: 180,
+    caloriesBurnEst: 650,
+    status: 'Upcoming',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 3).toISOString()
+  },
+  {
+    id: 'sp-act-3',
+    title: 'Sunset Mindful Yoga & Core Stability Session',
+    category: 'Yoga & Mindfulness',
+    description: 'Open-air diaphragmatic breathing, full-body flex, core alignment, and stress reduction workout.',
+    location: 'Rio de Janeiro Beachfront, Brazil',
+    organizer: 'Prana Wellness Collective',
+    participantsCount: 95,
+    caloriesBurnEst: 220,
+    status: 'Upcoming',
+    createdAt: new Date(Date.now() - 3600000 * 24 * 1).toISOString()
   }
 ];
 
@@ -1718,6 +1770,113 @@ app.post('/api/agriculture/calculator', (req: Request, res: Response) => {
       waterSavedM3,
       co2SequesteredTons,
       sdgTarget: 'UN SDG 2: Zero Hunger & SDG 13: Climate Action'
+    },
+    timestamp: new Date().toISOString()
+  });
+});
+
+// --- SPORTS & FITNESS PROMOTION APIS ---
+
+app.get('/api/sports/activities', (req: Request, res: Response) => {
+  const { category, search, status } = req.query;
+  let results = [...sportsActivities];
+
+  if (category && category !== 'All') {
+    results = results.filter(
+      a => a.category.toLowerCase() === String(category).toLowerCase()
+    );
+  }
+
+  if (status && status !== 'All') {
+    results = results.filter(
+      a => a.status.toLowerCase() === String(status).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      a =>
+        a.title.toLowerCase().includes(q) ||
+        a.description.toLowerCase().includes(q) ||
+        a.location.toLowerCase().includes(q) ||
+        a.organizer.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/sports/activities', (req: Request, res: Response) => {
+  const { title, category, description, location, organizer, caloriesBurnEst } = req.body;
+
+  if (!title || !category || !description || !location || !organizer) {
+    return res.status(400).json({ error: 'Missing required sports activity fields: title, category, description, location, organizer' });
+  }
+
+  const newActivity: SportsActivity = {
+    id: 'sp-act-' + generateId(),
+    title: title.trim(),
+    category,
+    description: description.trim(),
+    location: location.trim(),
+    organizer: organizer.trim(),
+    participantsCount: 1,
+    caloriesBurnEst: Number(caloriesBurnEst) || 300,
+    status: 'Upcoming',
+    createdAt: new Date().toISOString()
+  };
+
+  sportsActivities.unshift(newActivity);
+  res.status(201).json({
+    message: 'Sports activity published successfully',
+    activity: newActivity
+  });
+});
+
+app.post('/api/sports/activities/:id/join', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const activity = sportsActivities.find(a => a.id === id);
+
+  if (!activity) {
+    return res.status(404).json({ error: 'Sports activity not found' });
+  }
+
+  activity.participantsCount += 1;
+  res.json({ success: true, participantsCount: activity.participantsCount, activity });
+});
+
+app.post('/api/sports/calculator', (req: Request, res: Response) => {
+  const { activityType = 'running', durationMinutes = 30, weightKg = 70 } = req.body;
+
+  const minutes = Math.max(1, Number(durationMinutes) || 30);
+  const weight = Math.max(20, Number(weightKg) || 70);
+
+  // MET values (Metabolic Equivalent of Task)
+  // Calories = MET * weightKg * durationInHours
+  let met = 7.0; // Running / Endurance default
+  const lowerType = String(activityType).toLowerCase();
+
+  if (lowerType.includes('football') || lowerType.includes('soccer')) met = 8.0;
+  else if (lowerType.includes('basketball')) met = 7.5;
+  else if (lowerType.includes('cycling')) met = 6.8;
+  else if (lowerType.includes('swimming')) met = 8.3;
+  else if (lowerType.includes('yoga')) met = 3.2;
+  else if (lowerType.includes('aerobics') || lowerType.includes('hiit')) met = 8.5;
+  else if (lowerType.includes('walking')) met = 3.8;
+
+  const durationHours = minutes / 60;
+  const caloriesBurned = Math.round(met * weight * durationHours);
+  const fatGramsBurned = +(caloriesBurned / 7.7).toFixed(1); // ~7.7 kcal per gram of fat
+
+  res.json({
+    inputs: { activityType, durationMinutes: minutes, weightKg: weight },
+    results: {
+      caloriesBurned,
+      fatGramsBurned,
+      metValue: met,
+      intensityLevel: met >= 8 ? 'High Intensity' : met >= 6 ? 'Moderate-High Intensity' : 'Moderate / Light',
+      healthBenefit: 'Regular activity reduces cardiovascular risk, enhances metabolic stamina, and promotes mental wellness.'
     },
     timestamp: new Date().toISOString()
   });

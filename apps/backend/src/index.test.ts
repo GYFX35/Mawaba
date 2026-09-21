@@ -159,6 +159,81 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('Sports & Fitness Promotion Endpoints', () => {
+    it('GET /api/sports/activities should return sports activities', async () => {
+      const response = await request(app).get('/api/sports/activities');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+    });
+
+    it('GET /api/sports/activities should support category and search filtering', async () => {
+      const response = await request(app).get('/api/sports/activities?category=Football%20%26%20Soccer');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      response.body.forEach((a: any) => {
+        expect(a.category).toBe('Football & Soccer');
+      });
+    });
+
+    it('POST /api/sports/activities should create a new sports activity', async () => {
+      const payload = {
+        title: 'Community Badminton Championship',
+        category: 'Fitness & Aerobics',
+        description: 'A friendly community singles and doubles tournament.',
+        location: 'City Indoor Arena',
+        organizer: 'Mawaba Racquet Club',
+        caloriesBurnEst: 420
+      };
+
+      const response = await request(app)
+        .post('/api/sports/activities')
+        .send(payload);
+
+      expect(response.status).toBe(201);
+      expect(response.body.activity).toBeDefined();
+      expect(response.body.activity.title).toBe(payload.title);
+    });
+
+    it('POST /api/sports/activities should reject missing required fields', async () => {
+      const response = await request(app)
+        .post('/api/sports/activities')
+        .send({ title: 'Incomplete Activity' });
+
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Missing required sports activity fields');
+    });
+
+    it('POST /api/sports/activities/:id/join should increment participants count', async () => {
+      const listRes = await request(app).get('/api/sports/activities');
+      const activityId = listRes.body[0].id;
+      const initialCount = listRes.body[0].participantsCount;
+
+      const response = await request(app).post(`/api/sports/activities/${activityId}/join`);
+
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.participantsCount).toBe(initialCount + 1);
+    });
+
+    it('POST /api/sports/calculator should compute calorie burn and fat burn', async () => {
+      const payload = {
+        activityType: 'football',
+        durationMinutes: 60,
+        weightKg: 75
+      };
+
+      const response = await request(app)
+        .post('/api/sports/calculator')
+        .send(payload);
+
+      expect(response.status).toBe(200);
+      expect(response.body.results.caloriesBurned).toBeGreaterThan(0);
+      expect(response.body.results.fatGramsBurned).toBeGreaterThan(0);
+      expect(response.body.results.intensityLevel).toBeDefined();
+    });
+  });
+
   describe('Global Health Promotion Endpoints', () => {
     it('GET /api/health-promotion/campaigns should return health campaigns', async () => {
       const response = await request(app).get('/api/health-promotion/campaigns');
