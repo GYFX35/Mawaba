@@ -20,7 +20,8 @@ import {
   ShieldCheck,
   Building2,
   DollarSign,
-  Code
+  Code,
+  Trophy
 } from 'lucide-react';
 import LanguageTranslator from './LanguageTranslator';
 
@@ -70,6 +71,7 @@ const Navbar = () => {
   ];
 
   const impactLinks = [
+    { name: 'Sports & Fitness', href: '/sports', icon: Trophy, desc: 'Grassroots tournaments & workout tracking' },
     { name: 'Global Health', href: '/health', icon: Heart, desc: 'Biometric assessments & UN SDG 3 health tips' },
     { name: 'Culture & Traditions', href: '/culture', icon: Globe, desc: 'Ancestral heritage archive & publications' },
     { name: 'Climate Solutions', href: '/climate', icon: Sparkles, desc: 'CO2 calculator & clean tech initiatives' },
