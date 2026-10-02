@@ -51,13 +51,14 @@ class TestAIService(unittest.TestCase):
         self.assertIn("Gemini", data["model"])
 
     @patch.dict(os.environ, {"GEMINI_API_KEY": "fake_test_key"})
-    @patch("google.genai.Client")
-    def test_google_genai_sdk_integration(self, mock_client_cls):
+    @patch("main.GOOGLE_GENAI_SDK_AVAILABLE", True)
+    @patch("main.google_genai_sdk", create=True)
+    def test_google_genai_sdk_integration(self, mock_genai_sdk):
         mock_client = MagicMock()
         mock_response = MagicMock()
         mock_response.text = "Google GenAI SDK response for photosynthesis."
         mock_client.models.generate_content.return_value = mock_response
-        mock_client_cls.return_value = mock_client
+        mock_genai_sdk.Client.return_value = mock_client
 
         res = query_gemini_tutor_structured("Explain photosynthesis", "STEM & Sciences", "Beginner")
         self.assertEqual(res["provider"], "gemini")
