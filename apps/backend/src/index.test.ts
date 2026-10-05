@@ -1170,6 +1170,164 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('E-Sports AI & Web3 Blockchain Endpoints', () => {
+    it('GET /api/esports/tournaments should return list of e-sports tournaments', async () => {
+      const response = await request(app).get('/api/esports/tournaments');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('prizePoolCrypto');
+      expect(response.body[0]).toHaveProperty('smartContractAddress');
+    });
+
+    it('GET /api/esports/tournaments should support genre, status, and search filtering', async () => {
+      const response = await request(app).get('/api/esports/tournaments?genre=FPS%20%26%20Tactical%20Shooter&status=Live');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBe(1);
+      expect(response.body[0].title).toContain('Cyber League');
+    });
+
+    it('POST /api/esports/tournaments should create a new Web3 e-sports tournament', async () => {
+      const newTournament = {
+        title: 'Valorant Global Apex League',
+        gameTitle: 'Valorant Pro',
+        genre: 'FPS & Tactical Shooter',
+        organizer: 'Apex Gaming Network',
+        organizerEmail: 'esports@apex.org',
+        prizePoolUsd: 15000,
+        prizePoolCrypto: '6 ETH',
+        blockchainNetwork: 'Polygon PoS Mainnet',
+        rules: '5v5 Double Elimination',
+        maxTeams: 16
+      };
+
+      const response = await request(app).post('/api/esports/tournaments').send(newTournament);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('Tournament created successfully');
+      expect(response.body.tournament).toHaveProperty('id');
+      expect(response.body.tournament.title).toBe('Valorant Global Apex League');
+      expect(response.body.tournament.smartContractAddress).toMatch(/^0x/);
+      expect(response.body.tournament.status).toBe('Upcoming');
+    });
+
+    it('POST /api/esports/tournaments should reject missing required fields or invalid email', async () => {
+      const resMissing = await request(app).post('/api/esports/tournaments').send({ title: 'Incomplete' });
+      expect(resMissing.status).toBe(400);
+
+      const resBadEmail = await request(app).post('/api/esports/tournaments').send({
+        title: 'Title',
+        gameTitle: 'Game',
+        genre: 'FPS & Tactical Shooter',
+        organizer: 'Org',
+        organizerEmail: 'not-an-email'
+      });
+      expect(resBadEmail.status).toBe(400);
+      expect(resBadEmail.body.error).toBe('Invalid organizer email address format');
+    });
+
+    it('POST /api/esports/tournaments/:id/join should register team to tournament', async () => {
+      const joinPayload = {
+        teamName: 'Shadow Strikers',
+        captainHandle: 'ShadowCap',
+        walletAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F'
+      };
+
+      const response = await request(app).post('/api/esports/tournaments/esp-trn-1/join').send(joinPayload);
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.teamsCount).toBeGreaterThan(16);
+    });
+
+    it('POST /api/esports/tournaments/:id/join should return 404 for non-existent tournament', async () => {
+      const response = await request(app).post('/api/esports/tournaments/invalid-id/join').send({ teamName: 'Test' });
+      expect(response.status).toBe(404);
+      expect(response.body.error).toBe('E-sports tournament not found');
+    });
+
+    it('POST /api/esports/ai-coach should generate real-time AI tactics and win probability', async () => {
+      const coachPayload = {
+        gameTitle: 'Cyber Warfare & Tactical Tactics',
+        userTeamComposition: 'Double Initiator & Sniper Hold',
+        opponentStrategy: 'Fast B-Site Rush with Flash Smokes',
+        focusArea: 'Draft & Counter-Picks',
+        userSkillLevel: 'Pro'
+      };
+
+      const response = await request(app).post('/api/esports/ai-coach').send(coachPayload);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('tacticalAdvice');
+      expect(response.body).toHaveProperty('winProbabilityPct');
+      expect(Array.isArray(response.body.counterPicks)).toBe(true);
+      expect(response.body.winProbabilityPct).toBeGreaterThan(0);
+    });
+
+    it('POST /api/esports/ai-coach should reject request missing gameTitle or compositions', async () => {
+      const response = await request(app).post('/api/esports/ai-coach').send({ focusArea: 'Draft' });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toContain('Game title and team composition or opponent strategy are required');
+    });
+
+    it('POST /api/esports/blockchain/mint-passport should mint player Web3 NFT passport', async () => {
+      const passportPayload = {
+        playerHandle: 'CyberAce_01',
+        email: 'ace@mawaba.org',
+        walletAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+        gameTitle: 'Cyber Warfare & Tactical Tactics',
+        achievements: ['Arena MVP', '10 Match Streak'],
+        rank: 'Grandmaster'
+      };
+
+      const response = await request(app).post('/api/esports/blockchain/mint-passport').send(passportPayload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('minted successfully on-chain');
+      expect(response.body.passport).toHaveProperty('id');
+      expect(response.body.passport.playerHandle).toBe('CyberAce_01');
+      expect(response.body.passport.transactionHash).toMatch(/^0x/);
+      expect(response.body.passport.nftTokenId).toMatch(/^#/);
+    });
+
+    it('POST /api/esports/blockchain/mint-passport should validate wallet address format', async () => {
+      const response = await request(app).post('/api/esports/blockchain/mint-passport').send({
+        playerHandle: 'TestHandle',
+        email: 'test@mawaba.org',
+        walletAddress: 'invalid-wallet',
+        gameTitle: 'Cyber Warfare'
+      });
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Invalid Web3 wallet address');
+    });
+
+    it('POST /api/esports/blockchain/payout should execute smart contract prize pool transfer', async () => {
+      const payoutPayload = {
+        tournamentId: 'esp-trn-1',
+        winnerHandle: 'Cygnus Prime Vipers',
+        winnerWallet: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+        amountUsd: 25000,
+        amountCrypto: '10 ETH'
+      };
+
+      const response = await request(app).post('/api/esports/blockchain/payout').send(payoutPayload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('payout executed and confirmed on-chain');
+      expect(response.body.payout).toHaveProperty('transactionHash');
+      expect(response.body.payout.winnerHandle).toBe('Cygnus Prime Vipers');
+      expect(response.body.tournament.status).toBe('Completed');
+    });
+
+    it('GET /api/esports/analytics should return e-sports and Web3 metrics', async () => {
+      const response = await request(app).get('/api/esports/analytics');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('summary');
+      expect(response.body.summary).toHaveProperty('totalTournaments');
+      expect(response.body.summary).toHaveProperty('totalPrizePoolUsd');
+      expect(response.body.summary).toHaveProperty('totalPassportsMinted');
+      expect(response.body.summary).toHaveProperty('totalPayoutsExecuted');
+      expect(Array.isArray(response.body.summary.blockchainNetworksSupported)).toBe(true);
+    });
+  });
+
   describe('Investors & VCs Endpoints', () => {
     it('GET /api/investors should return list of VC firms and investors', async () => {
       const response = await request(app).get('/api/investors');

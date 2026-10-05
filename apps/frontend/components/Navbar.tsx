@@ -21,7 +21,8 @@ import {
   Building2,
   DollarSign,
   Code,
-  Trophy
+  Trophy,
+  Zap
 } from 'lucide-react';
 import LanguageTranslator from './LanguageTranslator';
 
@@ -71,6 +72,7 @@ const Navbar = () => {
   ];
 
   const impactLinks = [
+    { name: 'E-Sports AI & Web3', href: '/esports', icon: Zap, desc: 'AI coaching & smart contract prize escrow' },
     { name: 'Sports & Fitness', href: '/sports', icon: Trophy, desc: 'Grassroots tournaments & workout tracking' },
     { name: 'Global Health', href: '/health', icon: Heart, desc: 'Biometric assessments & UN SDG 3 health tips' },
     { name: 'Culture & Traditions', href: '/culture', icon: Globe, desc: 'Ancestral heritage archive & publications' },
