@@ -89,6 +89,7 @@ const Footer = () => {
           <div>
             <h3 className="text-[11px] font-black text-slate-200 uppercase tracking-widest mb-4">Platform & Media</h3>
             <ul className="space-y-2.5 text-xs">
+              <li><Link href="/esports" className="text-amber-400 font-bold hover:text-amber-300 transition-colors">E-Sports AI & Web3</Link></li>
               <li><Link href="/videos" className="hover:text-white transition-colors">Videos Entertainment Hub</Link></li>
               <li><Link href="/games" className="hover:text-white transition-colors">Gaming Arcade & Split</Link></li>
               <li><Link href="/education" className="hover:text-white transition-colors">AI Education & Tutor</Link></li>

@@ -438,6 +438,59 @@ interface SportsActivity {
   createdAt: string;
 }
 
+interface EsportTournament {
+  id: string;
+  title: string;
+  gameTitle: string;
+  genre: 'FPS & Tactical Shooter' | 'MOBA & Strategy' | 'Arcade & Fighting' | 'Sim Racing & Sports' | 'Eco & Web3 Strategy';
+  organizer: string;
+  organizerEmail: string;
+  prizePoolUsd: number;
+  prizePoolCrypto: string;
+  smartContractAddress: string;
+  blockchainNetwork: string;
+  rules: string;
+  teamsCount: number;
+  maxTeams: number;
+  status: 'Upcoming' | 'Live' | 'Completed';
+  aiMatchPrediction?: {
+    favoriteTeam: string;
+    winProbabilityPct: number;
+    recommendedTactics: string;
+  };
+  createdAt: string;
+}
+
+interface EsportPlayerPassport {
+  id: string;
+  playerHandle: string;
+  email: string;
+  walletAddress: string;
+  gameTitle: string;
+  nftTokenId: string;
+  contractAddress: string;
+  transactionHash: string;
+  blockchainNetwork: string;
+  achievements: string[];
+  rank: string;
+  reputationScore: number;
+  createdAt: string;
+}
+
+interface EsportBlockchainPayout {
+  id: string;
+  tournamentId: string;
+  tournamentTitle: string;
+  winnerHandle: string;
+  winnerWallet: string;
+  payoutAmountUsd: number;
+  payoutAmountCrypto: string;
+  transactionHash: string;
+  blockchainNetwork: string;
+  status: 'Confirmed' | 'Pending Escrow';
+  timestamp: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -586,6 +639,124 @@ let healthTips: HealthTip[] = [
     author: 'Prof. Marie Curie',
     likes: 72,
     createdAt: new Date(Date.now() - 3600000 * 24 * 1).toISOString()
+  }
+];
+
+let esportTournaments: EsportTournament[] = [
+  {
+    id: 'esp-trn-1',
+    title: 'Mawaba Cyber League: Global Championship 2025',
+    gameTitle: 'Cyber Warfare & Tactical Tactics',
+    genre: 'FPS & Tactical Shooter',
+    organizer: 'AeroGames Global Esports',
+    organizerEmail: 'esports@aerogames.io',
+    prizePoolUsd: 25000,
+    prizePoolCrypto: '10 ETH / 100,000 MAWA',
+    smartContractAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    blockchainNetwork: 'Polygon PoS Mainnet',
+    rules: '5v5 Double Elimination. Anti-cheat telemetry enabled. Web3 smart contract prize escrow.',
+    teamsCount: 16,
+    maxTeams: 32,
+    status: 'Live',
+    aiMatchPrediction: {
+      favoriteTeam: 'Cygnus Prime Vipers',
+      winProbabilityPct: 68.4,
+      recommendedTactics: 'High-tempo early aggression with fast site rotations and AI counter-flank sensors.'
+    },
+    createdAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString()
+  },
+  {
+    id: 'esp-trn-2',
+    title: 'EcoGrid Climate Strategy Arena Cup',
+    gameTitle: 'EcoGrid: Renewable Energy Tycoon',
+    genre: 'Eco & Web3 Strategy',
+    organizer: 'Clean Tech Gaming Alliance',
+    organizerEmail: 'arena@cleantechgames.org',
+    prizePoolUsd: 12000,
+    prizePoolCrypto: '5,000 MAWA Tokens',
+    smartContractAddress: '0x3F91A284b12c98D012E4A98129045Bb019488e33',
+    blockchainNetwork: 'Ethereum Sepolia Testnet',
+    rules: 'Real-time grid optimization battle. Winner maximizes clean energy coverage under 100 simulated days.',
+    teamsCount: 24,
+    maxTeams: 64,
+    status: 'Upcoming',
+    aiMatchPrediction: {
+      favoriteTeam: 'Solar Velocity Co-op',
+      winProbabilityPct: 59.2,
+      recommendedTactics: 'Focus on early geothermal base load paired with battery storage buffer.'
+    },
+    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString()
+  },
+  {
+    id: 'esp-trn-3',
+    title: 'Quantum Code Duel Sprint',
+    gameTitle: 'Quantum Code Odyssey',
+    genre: 'MOBA & Strategy',
+    organizer: 'Cygnus Interactive',
+    organizerEmail: 'esports@cygnus.dev',
+    prizePoolUsd: 8500,
+    prizePoolCrypto: '3.5 ETH',
+    smartContractAddress: '0x88F112aC091A49281726a421a99d214690C392C1',
+    blockchainNetwork: 'Arbitrum One',
+    rules: 'Speed-solving quantum logic circuit mazes. Instant automated smart contract verification.',
+    teamsCount: 32,
+    maxTeams: 32,
+    status: 'Completed',
+    aiMatchPrediction: {
+      favoriteTeam: 'Quantum Qubits Club',
+      winProbabilityPct: 82.0,
+      recommendedTactics: 'Execute Hadamard gate shortcuts before CNOT entanglements.'
+    },
+    createdAt: new Date(Date.now() - 3600000 * 24 * 15).toISOString()
+  }
+];
+
+let esportPassports: EsportPlayerPassport[] = [
+  {
+    id: 'pass-101',
+    playerHandle: 'ViperX_Gamer',
+    email: 'marie@curie.org',
+    walletAddress: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    gameTitle: 'Cyber Warfare & Tactical Tactics',
+    nftTokenId: '#8921',
+    contractAddress: '0x4f1284a12c98D012E4A98129045Bb019488e33',
+    transactionHash: '0x9a8b7c6d5e4f3a2b1c0d9e8f7a6b5c4d3e2f1a0b',
+    blockchainNetwork: 'Polygon PoS Mainnet',
+    achievements: ['Grandmaster Duelist 2025', 'Cyber League MVP', '100+ On-Chain Wins'],
+    rank: 'Pro Grandmaster Tier',
+    reputationScore: 98,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 20).toISOString()
+  },
+  {
+    id: 'pass-102',
+    playerHandle: 'EcoWarrior_99',
+    email: 'isaac@gravity.org',
+    walletAddress: '0x3F91A284b12c98D012E4A98129045Bb019488e33',
+    gameTitle: 'EcoGrid: Renewable Energy Tycoon',
+    nftTokenId: '#4102',
+    contractAddress: '0x88F112aC091A49281726a421a99d214690C392C1',
+    transactionHash: '0x1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b',
+    blockchainNetwork: 'Ethereum Sepolia Testnet',
+    achievements: ['Zero-Carbon Strategist', 'Arena Cup Finalist'],
+    rank: 'Elite Strategist',
+    reputationScore: 94,
+    createdAt: new Date(Date.now() - 3600000 * 24 * 12).toISOString()
+  }
+];
+
+let esportPayouts: EsportBlockchainPayout[] = [
+  {
+    id: 'payout-101',
+    tournamentId: 'esp-trn-3',
+    tournamentTitle: 'Quantum Code Duel Sprint',
+    winnerHandle: 'Quantum Qubits Club',
+    winnerWallet: '0x71C7656EC7ab88b098defB751B7401B5f6d8976F',
+    payoutAmountUsd: 8500,
+    payoutAmountCrypto: '3.5 ETH',
+    transactionHash: '0x5c4d3e2f1a0b9a8b7c6d5e4f3a2b1c0d9e8f7a6b',
+    blockchainNetwork: 'Arbitrum One',
+    status: 'Confirmed',
+    timestamp: new Date(Date.now() - 3600000 * 24 * 14).toISOString()
   }
 ];
 
@@ -1772,6 +1943,271 @@ app.post('/api/agriculture/calculator', (req: Request, res: Response) => {
       sdgTarget: 'UN SDG 2: Zero Hunger & SDG 13: Climate Action'
     },
     timestamp: new Date().toISOString()
+  });
+});
+
+// --- E-SPORTS, AI MATCH COACHING & BLOCKCHAIN APIS ---
+
+app.get('/api/esports/tournaments', (req: Request, res: Response) => {
+  const { genre, status, search } = req.query;
+  let results = [...esportTournaments];
+
+  if (genre && genre !== 'All') {
+    results = results.filter(
+      t => t.genre.toLowerCase() === String(genre).toLowerCase()
+    );
+  }
+
+  if (status && status !== 'All') {
+    results = results.filter(
+      t => t.status.toLowerCase() === String(status).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      t =>
+        t.title.toLowerCase().includes(q) ||
+        t.gameTitle.toLowerCase().includes(q) ||
+        t.organizer.toLowerCase().includes(q) ||
+        t.rules.toLowerCase().includes(q)
+    );
+  }
+
+  res.json(results);
+});
+
+app.post('/api/esports/tournaments', (req: Request, res: Response) => {
+  const { title, gameTitle, genre, organizer, organizerEmail, prizePoolUsd, prizePoolCrypto, blockchainNetwork, rules, maxTeams } = req.body;
+
+  if (!title || !gameTitle || !genre || !organizer || !organizerEmail) {
+    return res.status(400).json({ error: 'Missing required tournament fields: title, gameTitle, genre, organizer, organizerEmail' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(organizerEmail)) {
+    return res.status(400).json({ error: 'Invalid organizer email address format' });
+  }
+
+  const numericPrizeUsd = Number(prizePoolUsd) || 5000;
+  const mockContractAddress = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+  const newTournament: EsportTournament = {
+    id: 'esp-trn-' + generateId(),
+    title: title.trim(),
+    gameTitle: gameTitle.trim(),
+    genre,
+    organizer: organizer.trim(),
+    organizerEmail: organizerEmail.trim().toLowerCase(),
+    prizePoolUsd: numericPrizeUsd,
+    prizePoolCrypto: prizePoolCrypto ? prizePoolCrypto.trim() : `${(numericPrizeUsd / 2500).toFixed(1)} ETH`,
+    smartContractAddress: mockContractAddress,
+    blockchainNetwork: blockchainNetwork || 'Polygon PoS Mainnet',
+    rules: rules ? rules.trim() : 'Standard competitive rule set with Web3 prize escrow.',
+    teamsCount: 1,
+    maxTeams: Number(maxTeams) || 32,
+    status: 'Upcoming',
+    aiMatchPrediction: {
+      favoriteTeam: 'Under Analysis',
+      winProbabilityPct: 50.0,
+      recommendedTactics: 'AI telemetry calibrating team compositions and player reaction frame rates.'
+    },
+    createdAt: new Date().toISOString()
+  };
+
+  esportTournaments.unshift(newTournament);
+  res.status(201).json({
+    message: 'E-Sports Web3 Tournament created successfully with smart contract escrow',
+    tournament: newTournament
+  });
+});
+
+app.post('/api/esports/tournaments/:id/join', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { teamName, captainHandle, walletAddress } = req.body;
+
+  const tournament = esportTournaments.find(t => t.id === id);
+  if (!tournament) {
+    return res.status(404).json({ error: 'E-sports tournament not found' });
+  }
+
+  if (tournament.teamsCount >= tournament.maxTeams) {
+    return res.status(400).json({ error: 'Tournament roster is already full' });
+  }
+
+  tournament.teamsCount += 1;
+  if (tournament.teamsCount === tournament.maxTeams && tournament.status === 'Upcoming') {
+    tournament.status = 'Live';
+  }
+
+  res.json({
+    success: true,
+    message: `Team "${teamName || captainHandle || 'Challenger'}" joined tournament successfully!`,
+    teamsCount: tournament.teamsCount,
+    tournament
+  });
+});
+
+app.post('/api/esports/ai-coach', async (req: Request, res: Response) => {
+  const { gameTitle, userTeamComposition, opponentStrategy, focusArea = 'Draft & Counter-Picks', userSkillLevel = 'Pro' } = req.body;
+
+  if (!gameTitle || (!userTeamComposition && !opponentStrategy)) {
+    return res.status(400).json({ error: 'Game title and team composition or opponent strategy are required for AI coaching' });
+  }
+
+  // Attempt to call Python AI service
+  const pythonResult = await callPythonAiService({
+    question: `Provide tactical esports coaching for ${gameTitle}. User team: "${userTeamComposition || 'Balanced'}". Opponent: "${opponentStrategy || 'Standard'}". Focus: ${focusArea}.`,
+    discipline: 'STEM & Sciences',
+    level: userSkillLevel,
+    responseType: 'Explanation',
+    provider: 'auto'
+  });
+
+  let tacticalAdvice = pythonResult?.answer || '';
+  let counterPicks = [
+    'Counter-Pick 1: High mobility flankers to disrupt backline sniper positions.',
+    'Counter-Pick 2: Area-of-effect crowd control to neutralize aggressive rushes.',
+    'Counter-Pick 3: Economy delay items / early objective control.'
+  ];
+  let winProbabilityPct = 65.5;
+
+  if (!tacticalAdvice) {
+    tacticalAdvice = `In ${gameTitle}, when facing "${opponentStrategy || 'Aggressive Rushes'}" with "${userTeamComposition || 'Standard Lineup'}", prioritize controlling key map chokepoints and maintaining resource economy. Synchronize ultimate abilities during neutral objective contests.`;
+    if (focusArea.includes('Draft')) {
+      winProbabilityPct = 72.0;
+      counterPicks = [
+        'Draft Shift: Swap secondary DPS for a hard initiator to catch opponents off-guard.',
+        'Vision Advantage: Deploy early recon telemetry to track rotation timing.'
+      ];
+    } else if (focusArea.includes('Reaction')) {
+      winProbabilityPct = 61.8;
+      counterPicks = [
+        'Pre-fire common angle holds at frame intervals.',
+        'Stagger utility usage to bait out enemy cooldowns before executing site push.'
+      ];
+    }
+  }
+
+  res.json({
+    gameTitle,
+    focusArea,
+    userSkillLevel,
+    tacticalAdvice,
+    winProbabilityPct,
+    counterPicks,
+    keyTakeaways: [
+      'Maintain team economy discipline across all rounds.',
+      'Coordinate utility usage to force enemy cooldown waste.',
+      'Analyze enemy movement telemetry to predict site rotations.'
+    ],
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.post('/api/esports/blockchain/mint-passport', (req: Request, res: Response) => {
+  const { playerHandle, email, walletAddress, gameTitle, achievements, rank } = req.body;
+
+  if (!playerHandle || !email || !walletAddress || !gameTitle) {
+    return res.status(400).json({ error: 'Missing required passport fields: playerHandle, email, walletAddress, gameTitle' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email address format' });
+  }
+
+  if (!walletAddress.startsWith('0x') || walletAddress.length < 10) {
+    return res.status(400).json({ error: 'Invalid Web3 wallet address' });
+  }
+
+  const newTokenId = '#' + Math.floor(1000 + Math.random() * 9000);
+  const mockContract = '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+  const mockTxHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+  const newPassport: EsportPlayerPassport = {
+    id: 'pass-' + generateId(),
+    playerHandle: playerHandle.trim(),
+    email: email.trim().toLowerCase(),
+    walletAddress: walletAddress.trim(),
+    gameTitle: gameTitle.trim(),
+    nftTokenId: newTokenId,
+    contractAddress: mockContract,
+    transactionHash: mockTxHash,
+    blockchainNetwork: 'Polygon PoS Mainnet',
+    achievements: Array.isArray(achievements) && achievements.length > 0 ? achievements : ['Verified Web3 Athlete', 'Arena Contender'],
+    rank: rank || 'Pro Challenger',
+    reputationScore: 95,
+    createdAt: new Date().toISOString()
+  };
+
+  esportPassports.unshift(newPassport);
+
+  res.status(201).json({
+    message: 'Web3 Player Passport & NFT Tournament Badge minted successfully on-chain!',
+    passport: newPassport
+  });
+});
+
+app.post('/api/esports/blockchain/payout', (req: Request, res: Response) => {
+  const { tournamentId, winnerHandle, winnerWallet, amountUsd, amountCrypto } = req.body;
+
+  const tournament = esportTournaments.find(t => t.id === tournamentId);
+  if (!tournament) {
+    return res.status(404).json({ error: 'E-sports tournament not found' });
+  }
+
+  if (!winnerHandle || !winnerWallet) {
+    return res.status(400).json({ error: 'Winner handle and Web3 wallet address are required' });
+  }
+
+  const mockTxHash = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
+
+  tournament.status = 'Completed';
+
+  const newPayout: EsportBlockchainPayout = {
+    id: 'payout-' + generateId(),
+    tournamentId: tournament.id,
+    tournamentTitle: tournament.title,
+    winnerHandle: winnerHandle.trim(),
+    winnerWallet: winnerWallet.trim(),
+    payoutAmountUsd: Number(amountUsd) || tournament.prizePoolUsd,
+    payoutAmountCrypto: amountCrypto ? String(amountCrypto) : tournament.prizePoolCrypto,
+    transactionHash: mockTxHash,
+    blockchainNetwork: tournament.blockchainNetwork,
+    status: 'Confirmed',
+    timestamp: new Date().toISOString()
+  };
+
+  esportPayouts.unshift(newPayout);
+
+  res.status(201).json({
+    message: 'Smart contract prize pool payout executed and confirmed on-chain!',
+    payout: newPayout,
+    tournament
+  });
+});
+
+app.get('/api/esports/analytics', (req: Request, res: Response) => {
+  const totalTournaments = esportTournaments.length;
+  const totalPrizePoolUsd = esportTournaments.reduce((sum, t) => sum + t.prizePoolUsd, 0);
+  const totalPassportsMinted = esportPassports.length;
+  const totalPayoutsExecuted = esportPayouts.length;
+  const totalPayoutsUsd = esportPayouts.reduce((sum, p) => sum + p.payoutAmountUsd, 0);
+
+  res.json({
+    summary: {
+      totalTournaments,
+      totalPrizePoolUsd: +totalPrizePoolUsd.toFixed(2),
+      totalPassportsMinted,
+      totalPayoutsExecuted,
+      totalPayoutsUsd: +totalPayoutsUsd.toFixed(2),
+      blockchainNetworksSupported: ['Polygon PoS', 'Ethereum', 'Arbitrum One', 'Solana']
+    },
+    activeTournaments: esportTournaments.filter(t => t.status !== 'Completed'),
+    recentPassports: esportPassports.slice(0, 5),
+    recentPayouts: esportPayouts.slice(0, 5)
   });
 });
 
