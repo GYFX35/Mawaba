@@ -1328,6 +1328,132 @@ describe('Backend API Endpoints', () => {
     });
   });
 
+  describe('Music Promotion & AI Creator Assistant Endpoints', () => {
+    it('GET /api/music/tracks should return music tracks list', async () => {
+      const response = await request(app).get('/api/music/tracks');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.length).toBeGreaterThan(0);
+      expect(response.body[0]).toHaveProperty('title');
+      expect(response.body[0]).toHaveProperty('artist');
+      expect(response.body[0]).toHaveProperty('audioUrl');
+    });
+
+    it('GET /api/music/tracks should support genre and search filtering', async () => {
+      const response = await request(app).get('/api/music/tracks?genre=Afrobeats%20%26%20Amapiano');
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.every((t: any) => t.genre === 'Afrobeats & Amapiano')).toBe(true);
+    });
+
+    it('POST /api/music/tracks should upload and promote a new track', async () => {
+      const newTrackPayload = {
+        title: 'Solar Eclipse Beats',
+        artist: 'Aero Sound Lab',
+        artistEmail: 'aero@soundlab.io',
+        genre: 'Electronic & Synthwave',
+        description: 'Ambient synth pads inspired by high-altitude atmospheric observations.',
+        coverArtUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad',
+        audioUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
+        price: 1.99,
+        tags: 'synthwave, ambient, solar'
+      };
+
+      const response = await request(app).post('/api/music/tracks').send(newTrackPayload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('uploaded and promoted successfully');
+      expect(response.body.track).toHaveProperty('id');
+      expect(response.body.track.title).toBe('Solar Eclipse Beats');
+      expect(response.body.track.devRevenueShare).toBe(85);
+    });
+
+    it('POST /api/music/tracks should reject missing required fields or invalid email', async () => {
+      const resMissing = await request(app).post('/api/music/tracks').send({ title: 'Incomplete' });
+      expect(resMissing.status).toBe(400);
+
+      const resBadEmail = await request(app).post('/api/music/tracks').send({
+        title: 'Title',
+        artist: 'Artist',
+        artistEmail: 'not-an-email',
+        genre: 'Indie & Acoustic',
+        description: 'Desc',
+        audioUrl: 'https://example.com/audio.mp3'
+      });
+      expect(resBadEmail.status).toBe(400);
+      expect(resBadEmail.body.error).toBe('Invalid artist email address format');
+    });
+
+    it('POST /api/music/tracks/:id/stream should increment track stream count', async () => {
+      const initialRes = await request(app).get('/api/music/tracks/track-1');
+      const initialStreams = initialRes.body.streamCount;
+
+      const response = await request(app).post('/api/music/tracks/track-1/stream');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.streamCount).toBe(initialStreams + 1);
+    });
+
+    it('POST /api/music/tracks/:id/like should increment track like count', async () => {
+      const response = await request(app).post('/api/music/tracks/track-1/like');
+      expect(response.status).toBe(200);
+      expect(response.body.success).toBe(true);
+      expect(response.body.likeCount).toBeGreaterThan(480);
+    });
+
+    it('POST /api/music/tracks/:id/tip should record supporter tip with 85% artist payout', async () => {
+      const tipPayload = {
+        supporterEmail: 'fan@mawaba.org',
+        amount: 20.00,
+        paymentMethod: 'Credit Card'
+      };
+
+      const response = await request(app).post('/api/music/tracks/track-1/tip').send(tipPayload);
+      expect(response.status).toBe(201);
+      expect(response.body.message).toContain('Successfully tipped $20.00');
+      expect(response.body.transaction.artistPayoutAmount).toBe(17.00); // 85% of 20
+      expect(response.body.transaction.platformFeeAmount).toBe(3.00);
+      expect(response.body.totalTipsUsd).toBeGreaterThan(125.00);
+    });
+
+    it('POST /api/music/tracks/:id/comments should add listener feedback', async () => {
+      const commentPayload = {
+        author: 'AstroListener',
+        text: 'Incredible track composition and sound design!'
+      };
+
+      const response = await request(app).post('/api/music/tracks/track-1/comments').send(commentPayload);
+      expect(response.status).toBe(201);
+      expect(response.body.success).toBe(true);
+      expect(response.body.comment.author).toBe('AstroListener');
+    });
+
+    it('POST /api/music/ai-assistant should generate release guidance and marketing hooks', async () => {
+      const aiPayload = {
+        trackTitle: 'Savanna Sunset Groove',
+        artistName: 'Amina Diallo',
+        genre: 'Afrobeats & Amapiano',
+        mode: 'Release Strategy',
+        prompt: 'How to pitch this track to top curators?'
+      };
+
+      const response = await request(app).post('/api/music/ai-assistant').send(aiPayload);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('aiAdvice');
+      expect(Array.isArray(response.body.actionItems)).toBe(true);
+      expect(Array.isArray(response.body.socialHooks)).toBe(true);
+    });
+
+    it('GET /api/music/analytics should return track performance and payout summary', async () => {
+      const response = await request(app).get('/api/music/analytics');
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('summary');
+      expect(response.body.summary).toHaveProperty('totalStreams');
+      expect(response.body.summary).toHaveProperty('totalTipsUsd');
+      expect(response.body.summary.artistShareRate).toBe('85%');
+      expect(Array.isArray(response.body.topTracks)).toBe(true);
+    });
+  });
+
   describe('Investors & VCs Endpoints', () => {
     it('GET /api/investors should return list of VC firms and investors', async () => {
       const response = await request(app).get('/api/investors');

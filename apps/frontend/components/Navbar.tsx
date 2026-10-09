@@ -64,6 +64,7 @@ const Navbar = () => {
 
   const primaryNav = [
     { name: 'Home', href: '/', icon: Cpu },
+    { name: 'Music', href: '/music', icon: Sparkles },
     { name: 'Videos', href: '/videos', icon: Video },
     { name: 'Gaming', href: '/games', icon: Gamepad2 },
     { name: 'Education', href: '/education', icon: BookOpen },

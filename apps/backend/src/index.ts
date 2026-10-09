@@ -491,6 +491,45 @@ interface EsportBlockchainPayout {
   timestamp: string;
 }
 
+interface MusicComment {
+  id: string;
+  author: string;
+  text: string;
+  createdAt: string;
+}
+
+interface MusicTrack {
+  id: string;
+  title: string;
+  artist: string;
+  artistEmail: string;
+  genre: 'Afrobeats & Amapiano' | 'Electronic & Synthwave' | 'Hip-Hop & R&B' | 'Indie & Acoustic' | 'Global & Folk' | 'Ambient & Cinematic';
+  description: string;
+  coverArtUrl: string;
+  audioUrl: string;
+  price: number;
+  streamCount: number;
+  likeCount: number;
+  totalTipsUsd: number;
+  devRevenueShare: number;
+  tags: string[];
+  comments: MusicComment[];
+  createdAt: string;
+}
+
+interface MusicTransaction {
+  id: string;
+  trackId: string;
+  trackTitle: string;
+  supporterEmail: string;
+  amount: number;
+  artistPayoutAmount: number;
+  platformFeeAmount: number;
+  type: 'Tip' | 'Track Purchase' | 'Stream Royalty';
+  paymentMethod: string;
+  timestamp: string;
+}
+
 // Pre-populated Climate Data
 let climateSolutions: ClimateSolution[] = [
   {
@@ -757,6 +796,82 @@ let esportPayouts: EsportBlockchainPayout[] = [
     blockchainNetwork: 'Arbitrum One',
     status: 'Confirmed',
     timestamp: new Date(Date.now() - 3600000 * 24 * 14).toISOString()
+  }
+];
+
+let musicTracks: MusicTrack[] = [
+  {
+    id: 'track-1',
+    title: 'Savanna Sunset Groove',
+    artist: 'Amina Diallo & The Rhythm Collective',
+    artistEmail: 'amina@rhythm.org',
+    genre: 'Afrobeats & Amapiano',
+    description: 'An uplifting fusion of rhythmic log drums, melodic kora strings, and modern afrobeats syncopation.',
+    coverArtUrl: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+    price: 1.99,
+    streamCount: 3420,
+    likeCount: 480,
+    totalTipsUsd: 125.00,
+    devRevenueShare: 85,
+    tags: ['afrobeats', 'summer', 'uplifting', 'kora'],
+    comments: [
+      { id: 'mc-1', author: 'Marcus V.', text: 'The kora riff at 0:45 gives chills every time!', createdAt: new Date(Date.now() - 3600000 * 12).toISOString() }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString()
+  },
+  {
+    id: 'track-2',
+    title: 'Neon Odyssey (Quantum Drift)',
+    artist: 'Cygnus Synth',
+    artistEmail: 'cygnus@synth.dev',
+    genre: 'Electronic & Synthwave',
+    description: 'Futuristic retrowave synth pads with high-octane analog arpeggiators designed for cybernetic journeys.',
+    coverArtUrl: 'https://images.unsplash.com/photo-1508700115892-45ecd05ae2ad?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+    price: 2.49,
+    streamCount: 5120,
+    likeCount: 890,
+    totalTipsUsd: 210.50,
+    devRevenueShare: 85,
+    tags: ['synthwave', 'cyberpunk', 'driving', 'retrowave'],
+    comments: [
+      { id: 'mc-2', author: 'Elena R.', text: 'Perfect soundtrack for night coding sessions.', createdAt: new Date(Date.now() - 3600000 * 6).toISOString() }
+    ],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 7).toISOString()
+  },
+  {
+    id: 'track-3',
+    title: 'Acoustic Sanctuary in Eco Valley',
+    artist: 'Sarah Lin & The Earth Ensemble',
+    artistEmail: 'sarah@earthens.org',
+    genre: 'Indie & Acoustic',
+    description: 'Calming fingerpicked organic guitar harmonies accompanied by gentle rain and environmental ambient textures.',
+    coverArtUrl: 'https://images.unsplash.com/photo-1465847899084-d164df4dedc6?auto=format&fit=crop&w=800&q=80',
+    audioUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+    price: 1.49,
+    streamCount: 1890,
+    likeCount: 310,
+    totalTipsUsd: 78.00,
+    devRevenueShare: 85,
+    tags: ['acoustic', 'relaxation', 'nature', 'indie'],
+    comments: [],
+    createdAt: new Date(Date.now() - 3600000 * 24 * 4).toISOString()
+  }
+];
+
+let musicTransactions: MusicTransaction[] = [
+  {
+    id: 'mtx-101',
+    trackId: 'track-1',
+    trackTitle: 'Savanna Sunset Groove',
+    supporterEmail: 'marie@curie.org',
+    amount: 10.00,
+    artistPayoutAmount: 8.50,
+    platformFeeAmount: 1.50,
+    type: 'Tip',
+    paymentMethod: 'Credit Card',
+    timestamp: new Date(Date.now() - 3600000 * 24).toISOString()
   }
 ];
 
@@ -4405,6 +4520,280 @@ app.get('/api/investors/analytics', (req: Request, res: Response) => {
     topInvestors: investors.slice(0, 5),
     recentFundingRequests: fundingRequests.slice(0, 5),
     recentMatches: investmentMatches.slice(0, 5)
+  });
+});
+
+// --- MUSIC PROMOTION & AI CREATOR ASSISTANT APIS ---
+
+app.get('/api/music/tracks', (req: Request, res: Response) => {
+  const { genre, search, artistEmail } = req.query;
+  let results = [...musicTracks];
+
+  if (genre && genre !== 'All') {
+    results = results.filter(
+      t => t.genre.toLowerCase() === String(genre).toLowerCase()
+    );
+  }
+
+  if (artistEmail) {
+    results = results.filter(
+      t => t.artistEmail.toLowerCase() === String(artistEmail).toLowerCase()
+    );
+  }
+
+  if (search) {
+    const q = String(search).toLowerCase();
+    results = results.filter(
+      t =>
+        t.title.toLowerCase().includes(q) ||
+        t.artist.toLowerCase().includes(q) ||
+        t.description.toLowerCase().includes(q) ||
+        t.tags.some(tag => tag.toLowerCase().includes(q))
+    );
+  }
+
+  res.json(results);
+});
+
+app.get('/api/music/tracks/:id', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const track = musicTracks.find(t => t.id === id);
+  if (!track) {
+    return res.status(404).json({ error: 'Music track not found' });
+  }
+  res.json(track);
+});
+
+app.post('/api/music/tracks', (req: Request, res: Response) => {
+  const { title, artist, artistEmail, genre, description, coverArtUrl, audioUrl, price, tags } = req.body;
+
+  if (!title || !artist || !artistEmail || !genre || !description || !audioUrl) {
+    return res.status(400).json({ error: 'Missing required music track fields: title, artist, artistEmail, genre, description, audioUrl' });
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(artistEmail)) {
+    return res.status(400).json({ error: 'Invalid artist email address format' });
+  }
+
+  const numericPrice = Number(price) >= 0 ? Number(price) : 0;
+  const parsedTags = Array.isArray(tags)
+    ? tags
+    : typeof tags === 'string'
+    ? tags.split(',').map(t => t.trim()).filter(Boolean)
+    : ['indie', 'music'];
+
+  const newTrack: MusicTrack = {
+    id: 'track-' + generateId(),
+    title: title.trim(),
+    artist: artist.trim(),
+    artistEmail: artistEmail.trim().toLowerCase(),
+    genre,
+    description: description.trim(),
+    coverArtUrl: coverArtUrl || 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?auto=format&fit=crop&w=800&q=80',
+    audioUrl: audioUrl.trim(),
+    price: numericPrice,
+    streamCount: 0,
+    likeCount: 0,
+    totalTipsUsd: 0,
+    devRevenueShare: 85,
+    tags: parsedTags,
+    comments: [],
+    createdAt: new Date().toISOString()
+  };
+
+  musicTracks.unshift(newTrack);
+
+  res.status(201).json({
+    message: 'Music track uploaded and promoted successfully! You earn 85% revenue share on tips & purchases.',
+    track: newTrack
+  });
+});
+
+app.post('/api/music/tracks/:id/stream', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const track = musicTracks.find(t => t.id === id);
+  if (!track) {
+    return res.status(404).json({ error: 'Music track not found' });
+  }
+
+  track.streamCount += 1;
+  res.json({ success: true, streamCount: track.streamCount, track });
+});
+
+app.post('/api/music/tracks/:id/like', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const track = musicTracks.find(t => t.id === id);
+  if (!track) {
+    return res.status(404).json({ error: 'Music track not found' });
+  }
+
+  track.likeCount += 1;
+  res.json({ success: true, likeCount: track.likeCount, track });
+});
+
+app.post('/api/music/tracks/:id/tip', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { supporterEmail, amount, paymentMethod = 'Credit Card' } = req.body;
+
+  const track = musicTracks.find(t => t.id === id);
+  if (!track) {
+    return res.status(404).json({ error: 'Music track not found' });
+  }
+
+  const tipAmount = Number(amount);
+  if (!tipAmount || tipAmount <= 0) {
+    return res.status(400).json({ error: 'Tip amount must be greater than $0' });
+  }
+
+  const artistPayout = +(tipAmount * 0.85).toFixed(2);
+  const platformFee = +(tipAmount - artistPayout).toFixed(2);
+
+  track.totalTipsUsd = +(track.totalTipsUsd + tipAmount).toFixed(2);
+
+  const newTx: MusicTransaction = {
+    id: 'mtx-' + generateId(),
+    trackId: track.id,
+    trackTitle: track.title,
+    supporterEmail: supporterEmail ? String(supporterEmail).trim() : 'supporter@mawaba.org',
+    amount: tipAmount,
+    artistPayoutAmount: artistPayout,
+    platformFeeAmount: platformFee,
+    type: 'Tip',
+    paymentMethod: String(paymentMethod),
+    timestamp: new Date().toISOString()
+  };
+
+  musicTransactions.unshift(newTx);
+
+  res.status(201).json({
+    message: `Successfully tipped $${tipAmount.toFixed(2)} to ${track.artist}!`,
+    transaction: newTx,
+    totalTipsUsd: track.totalTipsUsd
+  });
+});
+
+app.post('/api/music/tracks/:id/comments', (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { author, text } = req.body;
+
+  if (!author || !text) {
+    return res.status(400).json({ error: 'Author and comment text are required' });
+  }
+
+  const track = musicTracks.find(t => t.id === id);
+  if (!track) {
+    return res.status(404).json({ error: 'Music track not found' });
+  }
+
+  const newComment: MusicComment = {
+    id: 'mc-' + generateId(),
+    author: author.trim(),
+    text: text.trim(),
+    createdAt: new Date().toISOString()
+  };
+
+  track.comments.push(newComment);
+  res.status(201).json({ success: true, comment: newComment, track });
+});
+
+app.post('/api/music/ai-assistant', async (req: Request, res: Response) => {
+  const { prompt, trackTitle, artistName, genre, mode = 'Release Strategy' } = req.body;
+
+  if (!prompt && !trackTitle) {
+    return res.status(400).json({ error: 'Prompt or trackTitle is required for AI Creator Assistant' });
+  }
+
+  // Query Python AI Service for music assistant
+  const pythonResult = await callPythonAiService({
+    question: `You are a professional Music Industry AI Creator Assistant for independent artists. Task Mode: "${mode}". Track: "${trackTitle || 'New Release'}" by "${artistName || 'Independent Artist'}" in genre "${genre || 'Global Music'}". Prompt: "${prompt || 'Provide guidance'}"`,
+    discipline: 'Literature & Culture',
+    level: 'Advanced',
+    responseType: 'Explanation',
+    provider: 'auto'
+  });
+
+  let advice = pythonResult?.answer || '';
+  let actionItems: string[] = [];
+  let socialHooks: string[] = [];
+
+  if (!advice) {
+    if (mode === 'Release Strategy') {
+      advice = `Comprehensive Release Roadmap for "${trackTitle || 'Your Track'}": 1) Schedule pre-saves 3 weeks prior. 2) Pitch to independent Spotify & Apple Music playlist curators. 3) Launch 15-second TikTok/Reels teaser audio clips focused on the main hook.`;
+      actionItems = [
+        'Distribute via Mawaba DTC & Global Streaming networks 3 weeks before drop date.',
+        'Create 3 short vertical video teasers highlighting the chorus beat drop.',
+        'Host an exclusive live streaming Q&A on release day with supporter tipping enabled.'
+      ];
+      socialHooks = [
+        `"Behind the scenes of making '${trackTitle || 'my new track'}' - drop a 🎵 if you want the snippet!"`,
+        `"Which vibe hits harder? Track dropping midnight on Mawaba Music!"`
+      ];
+    } else if (mode === 'Lyrics & Chords') {
+      advice = `Creative Lyric & Chord Composition Guide for "${genre || 'Global Fusion'}":\nChorus Pattern: [I - V - vi - IV] chord progression.\nLyric Motif: "Echoes in the valley, light in the dark / Every step we take leaves a spark."`;
+      actionItems = [
+        'Experiment with syncopated basslines during the verse-to-chorus transition.',
+        'Layer atmospheric acoustic background harmonies to deepen vocal textures.'
+      ];
+      socialHooks = [
+        `"Stuck on this chorus melody... what do you think of this line?"`
+      ];
+    } else {
+      advice = `Press Release Draft for "${trackTitle || 'Single'}" by ${artistName || 'Artist'}:\nFOR IMMEDIATE RELEASE - Independent artist ${artistName || 'Artist'} unveils their groundbreaking ${genre || 'music'} single '${trackTitle || 'Single'}', blending organic instrumentation with forward-thinking electronic rhythms.`;
+      actionItems = [
+        'Send press release kit to indie music blogs and podcast producers.',
+        'Submit track for Mawaba Creator Spotlight consideration.'
+      ];
+      socialHooks = [
+        `"Official Press Release: '${trackTitle || 'Single'}' is out now on all major platforms! Link in bio."`
+      ];
+    }
+  }
+
+  res.json({
+    mode,
+    trackTitle: trackTitle || 'Untitled Release',
+    artistName: artistName || 'Independent Creator',
+    genre: genre || 'Global',
+    aiAdvice: advice,
+    actionItems,
+    socialHooks,
+    timestamp: new Date().toISOString()
+  });
+});
+
+app.get('/api/music/analytics', (req: Request, res: Response) => {
+  const { artistEmail } = req.query;
+
+  let filteredTracks = [...musicTracks];
+  let filteredTx = [...musicTransactions];
+
+  if (artistEmail) {
+    const emailLower = String(artistEmail).toLowerCase();
+    filteredTracks = filteredTracks.filter(t => t.artistEmail === emailLower);
+    const artistTrackIds = new Set(filteredTracks.map(t => t.id));
+    filteredTx = filteredTx.filter(tx => artistTrackIds.has(tx.trackId));
+  }
+
+  const totalStreams = filteredTracks.reduce((sum, t) => sum + t.streamCount, 0);
+  const totalLikes = filteredTracks.reduce((sum, t) => sum + t.likeCount, 0);
+  const totalTipsUsd = filteredTracks.reduce((sum, t) => sum + t.totalTipsUsd, 0);
+  const artistPayoutTotal = +(totalTipsUsd * 0.85).toFixed(2);
+  const platformFeeTotal = +(totalTipsUsd * 0.15).toFixed(2);
+
+  res.json({
+    artistEmail: artistEmail || 'All Independent Artists',
+    summary: {
+      totalTracks: filteredTracks.length,
+      totalStreams,
+      totalLikes,
+      totalTipsUsd: +totalTipsUsd.toFixed(2),
+      artistPayoutTotal,
+      platformFeeTotal,
+      artistShareRate: '85%'
+    },
+    topTracks: [...filteredTracks].sort((a, b) => b.streamCount - a.streamCount).slice(0, 5),
+    recentTransactions: filteredTx.slice(0, 10)
   });
 });
 
