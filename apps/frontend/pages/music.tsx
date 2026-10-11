@@ -130,7 +130,7 @@ export default function MusicPage() {
     'Ambient & Cinematic'
   ];
 
-  const fetchTracks = async () => {
+  const fetchTracks = React.useCallback(async () => {
     try {
       setLoading(true);
       const res = await fetch(getApiUrl('/api/music/tracks'));
@@ -147,9 +147,9 @@ export default function MusicPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentTrack]);
 
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = React.useCallback(async () => {
     try {
       const res = await fetch(getApiUrl('/api/music/analytics'));
       if (res.ok) {
@@ -159,12 +159,12 @@ export default function MusicPage() {
     } catch (err) {
       console.error('Failed to fetch music analytics:', err);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTracks();
     fetchAnalytics();
-  }, []);
+  }, [fetchTracks, fetchAnalytics]);
 
   useEffect(() => {
     let result = [...tracks];

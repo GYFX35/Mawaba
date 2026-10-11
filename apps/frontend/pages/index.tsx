@@ -185,7 +185,7 @@ const HomePage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Mawaba v1.3.0 | Global Interaction, AI Tutoring & Impact Ecosystem</title>
+        <title>Mawaba v1.4.0 | Global Interaction, AI Tutoring & Impact Ecosystem</title>
         <meta name="description" content="Mawaba connects AI education, sustainable agribusiness, investor matching, health promotion, climate solutions, and global media into a unified workspace." />
       </Head>
 
@@ -195,7 +195,7 @@ const HomePage: NextPage = () => {
           <div className="text-center max-w-4xl mx-auto space-y-6">
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-black bg-blue-100/80 text-blue-800 border border-blue-200/80 shadow-xs">
               <Sparkles className="h-3.5 w-3.5 text-blue-600 animate-pulse" />
-              <span>Mawaba Release v1.3.0 is Live</span>
+              <span>Mawaba Release v1.4.0 is Live</span>
             </div>
             <h1 className="text-4xl sm:text-6xl md:text-7xl font-black text-slate-900 tracking-tight leading-none">
               Empowering <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-800 bg-clip-text text-transparent">Global Impact</span> through Intelligent Technology
@@ -208,7 +208,7 @@ const HomePage: NextPage = () => {
                 Explore Innovation Feed <ArrowRight className="h-5 w-5" />
               </a>
               <Link href="/about" className="bg-white text-slate-700 border border-slate-200 px-8 py-4 rounded-2xl text-base font-bold hover:bg-slate-50 transition-all flex items-center justify-center gap-2 shadow-xs">
-                View v1.3.0 Release Notes
+                View v1.4.0 Release Notes
               </Link>
             </div>
           </div>

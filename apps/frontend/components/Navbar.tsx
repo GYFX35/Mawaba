@@ -115,7 +115,7 @@ const Navbar = () => {
                 </div>
               </Link>
               <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-50 text-blue-700 border border-blue-200">
-                v1.3.0
+                v1.4.0
               </span>
             </div>
 

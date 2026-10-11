@@ -1,29 +1,25 @@
-# Release Notes: Mawaba v1.3.0 🚀
+# Release Notes: Mawaba v1.4.0 🚀
 
-We are thrilled to announce **Mawaba Version 1.3.0**, bringing comprehensive debugging fixes, UI/UX navigation enhancements, Python AI service fallbacks, and streamlined platform usability!
+We are thrilled to announce **Mawaba Version 1.4.0**, bringing platform-wide version upgrades, enhanced AI service fallback mechanisms, dependency alignment across monorepo workspaces, and performance optimizations!
 
 Mawaba connects global health, AI tutoring, climate solutions, environmental protection, cultural heritage archives, DTC e-commerce, venture capital networks, sustainable agribusiness, videos hub, and browser gaming tools into a unified digital ecosystem.
 
 ---
 
-## What's New & Improved in v1.3.0
+## What's New & Improved in v1.4.0
 
-### 1. 🎨 Categorized Header Navigation & UI/UX Refresh
-- Reorganized desktop and mobile navigation into structured dropdown menus (**Impact Hubs** & **Ecosystem**) to optimize screen real estate.
-- Added visual active link highlights, dynamic version indicator (`v1.3.0`), and animated mobile navigation drawer.
-- Upgraded Footer with an interactive newsletter subscription feedback state and expanded navigation links grid.
+### 1. 🚀 Next-Generation Workspace & Version Bumping
+- Upgraded monorepo package versions across root (`package.json`), frontend (`apps/frontend/package.json`), and backend (`apps/backend/package.json`) to **v1.4.0**.
+- Synchronized workspace lockfiles (`package-lock.json`) and verified complete dependency tree integrity.
 
-### 2. ⚡ Python AI Service Resilience & Imports
-- Added graceful try-except import safeguards for `python-dotenv` in `apps/ai-service/main.py`.
-- Ensured full compatibility across minimal and offline environments while preserving Google Gemini 1.5 Flash and OpenAI GPT-4o model query paths.
+### 2. 🎨 Platform Brand & Interface Synchronization
+- Updated header (`Navbar.tsx`) and footer (`Footer.tsx`) badges to showcase active version **v1.4.0**.
+- Refreshed Homepage (`/`) and About Page (`/about`) with v1.4.0 release highlights and ecosystem milestones.
+- Updated root `README.md` and repository documentation.
 
-### 3. 🧹 React Hook & Code Health Fixes
-- Resolved all ESLint `react-hooks/exhaustive-deps` missing dependency warnings across `agriculture.tsx`, `chat.tsx`, `culture.tsx`, `dtc.tsx`, `games.tsx`, and `videos.tsx`.
-- Ensured zero lint errors and clean production static builds (`npm run build`).
-
-### 4. 🚀 Homepage & About Page Upgrades
-- Enhanced Homepage (`/`) with a v1.3.0 release banner, real-time platform statistics ticker, interactive module switcher tabs, and innovation feed publishing portal.
-- Refreshed About Page (`/about`) highlighting platform architecture, core mission, and developer API access.
+### 3. ⚡ AI Service & REST API Robustness
+- Verified multi-provider AI tutor routing (`/api/ai/tutor`) with fallback simulations for offline/non-API key environments.
+- Maintained unit test coverage across Express endpoints and Python AI service execution (`apps/ai-service`).
 
 ---
 
@@ -72,7 +68,7 @@ To publish this release on GitHub:
 
 ```bash
 # 1. Create annotated release tag
-git tag -a v1.3.0 -m "Mawaba Version 1.3.0 Release"
+git tag -a v1.4.0 -m "Mawaba Version 1.4.0 Release"
 
 # 2. Push tags to GitHub
 git push origin main --tags

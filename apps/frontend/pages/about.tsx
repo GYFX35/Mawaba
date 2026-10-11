@@ -7,7 +7,7 @@ const AboutPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>About Us & Release v1.3.0 | Mawaba</title>
+        <title>About Us & Release v1.4.0 | Mawaba</title>
         <meta name="description" content="Learn about Mawaba's mission to globalize innovation through AI education, sustainable agribusiness, investor networks, and climate solutions." />
       </Head>
 
@@ -16,7 +16,7 @@ const AboutPage: NextPage = () => {
           <div className="max-w-3xl">
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full text-xs font-black bg-blue-100 text-blue-800 border border-blue-200 mb-4">
               <Sparkles className="h-3.5 w-3.5 text-blue-600" />
-              <span>Version 1.3.0 Ecosystem</span>
+              <span>Version 1.4.0 Ecosystem</span>
             </div>
             <h1 className="text-4xl sm:text-5xl font-black text-gray-900 tracking-tight leading-tight mb-6">
               Our Mission to Globalize Innovation & Human Flourishing
@@ -61,19 +61,19 @@ const AboutPage: NextPage = () => {
         </div>
       </section>
 
-      {/* Release v1.3.0 Architecture Section */}
+      {/* Release v1.4.0 Architecture Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="bg-slate-900 text-white rounded-[36px] p-8 md:p-14 shadow-2xl border border-slate-800 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div className="lg:col-span-7 space-y-5">
               <span className="text-xs font-black uppercase tracking-widest text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full border border-blue-500/20">
-                Release v1.3.0 Milestone
+                Release v1.4.0 Milestone
               </span>
               <h2 className="text-3xl sm:text-4xl font-black leading-snug">
                 Unified Ecosystem & Clean Navigation Architecture
               </h2>
               <p className="text-slate-400 text-sm leading-relaxed">
-                Version 1.3.0 introduces categorized navigation, enhanced AI service fallback safeguards, improved desktop & mobile UX, and full workspace alignment.
+                Version 1.4.0 introduces performance optimizations, enhanced AI service fallbacks, upgraded workspace dependencies, and full platform alignment.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div className="flex items-center gap-2 text-xs font-extrabold text-slate-200">
