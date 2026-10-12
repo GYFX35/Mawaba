@@ -452,6 +452,23 @@ describe('Backend API Endpoints', () => {
       expect(response.body.model).toContain('GPT');
       expect(response.body.answer).toBeDefined();
     });
+
+    it('GET /api/ai/tutor/stream should return 400 if required parameters are missing', async () => {
+      const response = await request(app).get('/api/ai/tutor/stream?question=What%20is%20gravity%3F');
+      expect(response.status).toBe(400);
+      expect(response.body.error).toBe('Missing question or discipline');
+    });
+
+    it('GET /api/ai/tutor/stream should stream SSE events with text/event-stream content type', async () => {
+      const response = await request(app)
+        .get('/api/ai/tutor/stream?question=What%20is%20quantum%20mechanics%3F&discipline=STEM%20%26%20Sciences&level=Beginner');
+
+      expect(response.status).toBe(200);
+      expect(response.headers['content-type']).toContain('text/event-stream');
+      expect(response.text).toContain('event: metadata');
+      expect(response.text).toContain('event: chunk');
+      expect(response.text).toContain('data: [DONE]');
+    });
   });
 
   describe('World Bank APIs', () => {

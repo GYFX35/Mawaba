@@ -34,6 +34,7 @@ const EducationPage: NextPage = () => {
   const [learningLevel, setLearningLevel] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Intermediate');
   const [responseType, setResponseType] = useState<'Explanation' | 'Quiz' | 'Key Takeaways'>('Explanation');
   const [provider, setProvider] = useState<'auto' | 'gemini' | 'openai'>('auto');
+  const [isStreamingMode, setIsStreamingMode] = useState<boolean>(true);
   const [isAiResponding, setIsAiResponding] = useState<boolean>(false);
 
   // Chatbot state with structured data support
@@ -171,35 +172,122 @@ const EducationPage: NextPage = () => {
       if (selectedDiscipline === 'Health') discipline = 'Health & Well-being';
       if (selectedDiscipline === 'Development') discipline = 'World Development';
 
-      const res = await fetch(getApiUrl('/api/ai/tutor'), {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
+      if (isStreamingMode) {
+        const queryParams = new URLSearchParams({
           question: queryText,
           discipline,
           level: learningLevel,
           responseType,
           provider
-        })
-      });
+        });
 
-      if (res.ok) {
-        const data = await res.json();
-        const tutorMsg: ChatMessage = {
-          sender: 'tutor',
-          text: data.answer,
-          provider: data.provider,
-          model: data.model,
-          keyTakeaways: data.keyTakeaways,
-          followUpQuestions: data.followUpQuestions,
-          quiz: data.quiz,
-          time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-        };
-        setChatHistory(prev => [...prev, tutorMsg]);
+        const res = await fetch(getApiUrl(`/api/ai/tutor/stream?${queryParams.toString()}`));
+
+        if (res.ok && res.body) {
+          const reader = res.body.getReader();
+          const decoder = new TextDecoder();
+          let done = false;
+          let buffer = '';
+
+          // Add initial empty tutor message to chat history
+          const initialTutorMsg: ChatMessage = {
+            sender: 'tutor',
+            text: '',
+            provider: provider,
+            model: 'Mawaba AI Streaming Engine',
+            time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+          };
+
+          setChatHistory(prev => [...prev, initialTutorMsg]);
+
+          while (!done) {
+            const { value, done: readerDone } = await reader.read();
+            done = readerDone;
+            if (value) {
+              buffer += decoder.decode(value, { stream: true });
+              const lines = buffer.split('\n\n');
+              buffer = lines.pop() || '';
+
+              for (const line of lines) {
+                if (!line.trim()) continue;
+                const eventMatch = line.match(/^event:\s*(.+)$/m);
+                const dataMatch = line.match(/^data:\s*(.+)$/m);
+
+                const eventName = eventMatch ? eventMatch[1].trim() : 'message';
+                const dataStr = dataMatch ? dataMatch[1].trim() : '';
+
+                if (dataStr === '[DONE]') {
+                  done = true;
+                  break;
+                }
+
+                if (dataStr) {
+                  try {
+                    const parsed = JSON.parse(dataStr);
+                    if (eventName === 'metadata') {
+                      setChatHistory(prev => {
+                        const updated = [...prev];
+                        const last = updated[updated.length - 1];
+                        if (last && last.sender === 'tutor') {
+                          last.provider = parsed.provider;
+                          last.model = parsed.model;
+                          last.keyTakeaways = parsed.keyTakeaways;
+                          last.followUpQuestions = parsed.followUpQuestions;
+                          last.quiz = parsed.quiz;
+                        }
+                        return updated;
+                      });
+                    } else if (eventName === 'chunk' && parsed.text) {
+                      setChatHistory(prev => {
+                        const updated = [...prev];
+                        const last = updated[updated.length - 1];
+                        if (last && last.sender === 'tutor') {
+                          last.text += parsed.text;
+                        }
+                        return updated;
+                      });
+                    }
+                  } catch (pErr) {
+                    // Ignore parse error
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          throw new Error('Streaming request failed');
+        }
       } else {
-        throw new Error('API response error');
+        const res = await fetch(getApiUrl('/api/ai/tutor'), {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            question: queryText,
+            discipline,
+            level: learningLevel,
+            responseType,
+            provider
+          })
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          const tutorMsg: ChatMessage = {
+            sender: 'tutor',
+            text: data.answer,
+            provider: data.provider,
+            model: data.model,
+            keyTakeaways: data.keyTakeaways,
+            followUpQuestions: data.followUpQuestions,
+            quiz: data.quiz,
+            time: new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+          };
+          setChatHistory(prev => [...prev, tutorMsg]);
+        } else {
+          throw new Error('API response error');
+        }
       }
     } catch (err) {
       console.warn("Using offline simulated response fallback...");
@@ -488,7 +576,7 @@ const EducationPage: NextPage = () => {
                   </p>
 
                   {/* Tutor Control Toolbar */}
-                  <div className="grid grid-cols-3 gap-2 mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
                     <div>
                       <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
                         AI Provider
@@ -501,6 +589,19 @@ const EducationPage: NextPage = () => {
                         <option value="auto">Auto / Mawaba AI</option>
                         <option value="gemini">Google Gemini</option>
                         <option value="openai">OpenAI GPT</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-1">
+                        Stream Mode
+                      </label>
+                      <select
+                        value={isStreamingMode ? 'enabled' : 'disabled'}
+                        onChange={(e) => setIsStreamingMode(e.target.value === 'enabled')}
+                        className="w-full text-xs bg-white border border-slate-200 rounded-lg p-2 focus:outline-none focus:ring-1 focus:ring-blue-500 font-medium"
+                      >
+                        <option value="enabled">Realtime Stream (SSE)</option>
+                        <option value="disabled">Standard Batch</option>
                       </select>
                     </div>
                     <div>
