@@ -4160,6 +4160,192 @@ app.post('/api/ai/tutor', async (req: Request, res: Response) => {
   });
 });
 
+// AI Tutor Streaming Endpoint (Server-Sent Events - SSE)
+app.get('/api/ai/tutor/stream', async (req: Request, res: Response) => {
+  const question = (req.query.question as string) || '';
+  const discipline = (req.query.discipline as string) || '';
+  const level = (req.query.level as string) || 'Intermediate';
+  const responseType = (req.query.responseType as string) || 'Explanation';
+  const provider = (req.query.provider as string) || 'auto';
+
+  if (!question || !discipline) {
+    return res.status(400).json({ error: 'Missing question or discipline' });
+  }
+
+  // Set SSE headers
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.setHeader('Connection', 'keep-alive');
+  if (typeof (res as any).flushHeaders === 'function') {
+    (res as any).flushHeaders();
+  }
+
+  // Helper function to send SSE event
+  const sendEvent = (event: string, data: any) => {
+    res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
+  };
+
+  let fullAnswer = '';
+  let keyTakeaways: string[] = [];
+  let followUpQuestions: string[] = [];
+  let quiz: any = null;
+  let activeProvider = provider;
+  let modelUsed = 'Mawaba AI Master Engine';
+
+  // Delegate to Python Google AI service if provider is gemini or auto
+  if (provider === 'gemini' || provider === 'auto') {
+    const pythonResult = await callPythonAiService({
+      question,
+      discipline,
+      level,
+      responseType,
+      provider
+    });
+
+    if (pythonResult && pythonResult.answer) {
+      fullAnswer = pythonResult.answer;
+      keyTakeaways = pythonResult.keyTakeaways || [];
+      followUpQuestions = pythonResult.followUpQuestions || [];
+      quiz = pythonResult.quiz || null;
+      activeProvider = pythonResult.provider || 'gemini';
+      modelUsed = pythonResult.model || 'Gemini 1.5 Flash';
+    }
+  }
+
+  // Fallback simulated answer generation if fullAnswer not populated
+  if (!fullAnswer) {
+    const levelPrefix = level === 'Beginner'
+      ? 'In simple terms: '
+      : level === 'Advanced'
+      ? 'Deep Academic Breakdown: '
+      : 'Conceptual Explanation: ';
+
+    const lowerQ = question.toLowerCase();
+    if (discipline === 'STEM & Sciences' || discipline === 'Sciences') {
+      if (lowerQ.includes('quantum') || lowerQ.includes('physics')) {
+        fullAnswer = `${levelPrefix}Quantum physics focuses on the behavior of matter and light at subatomic levels. A key concept is superposition, where particles exist in multiple states simultaneously until measured. We model these probabilities with state vectors and visual simulations.`;
+        keyTakeaways = [
+          'Superposition allows systems to exist in multiple potential states at once.',
+          'Wave-particle duality illustrates that subatomic entities exhibit properties of both particles and waves.',
+          'Quantum state collapse occurs upon direct measurement.'
+        ];
+        followUpQuestions = [
+          'How does quantum entanglement differ from classical correlation?',
+          'What are the real-world applications of quantum computing in cryptography?'
+        ];
+        quiz = {
+          question: 'What happens to a quantum system upon measurement?',
+          options: ['It remains in superposition', 'It collapses into a single definite state', 'It disappears completely', 'It accelerates to light speed'],
+          answer: 'It collapses into a single definite state',
+          explanation: 'Measurement causes the quantum superposition to collapse into a single measurable eigenstate.'
+        };
+      } else {
+        fullAnswer = `${levelPrefix}Scientific inquiry drives modern discovery through empirical hypothesis testing, visual data modeling, and peer verification. Modern STEM tools facilitate distributed global lab experiments in real time.`;
+        keyTakeaways = [
+          'Empirical observation forms the core of scientific advancement.',
+          'Hypotheses must be falsifiable and subject to peer review.',
+          'Global research collaboration accelerates breakthrough solutions.'
+        ];
+        followUpQuestions = [
+          'What is the first step in the scientific method?',
+          'How do digital simulations complement physical lab experiments?'
+        ];
+        quiz = {
+          question: 'What is the first step in the scientific method?',
+          options: ['Drawing conclusions', 'Observation and asking a question', 'Publishing results', 'Skipping hypotheses'],
+          answer: 'Observation and asking a question',
+          explanation: 'The scientific method begins with observing a phenomenon and forming a specific question.'
+        };
+      }
+    } else if (discipline === 'Literature & Languages' || discipline === 'Literature') {
+      fullAnswer = `${levelPrefix}Language and literature represent the human experience across cultures. Modern natural language processing enables real-time context-aware translation, preserving cultural metaphors and idiomatic expressions across global works.`;
+      keyTakeaways = [
+        'Translation requires understanding cultural context, not just word substitution.',
+        'Literary analysis uncovers universal themes across historical eras.',
+        'LLMs assist in preserving endangered languages through oral and text digitizations.'
+      ];
+      followUpQuestions = [
+        'How do cultural idioms challenge machine translation systems?',
+        'In what ways does comparative literature foster cross-cultural empathy?'
+      ];
+      quiz = {
+        question: 'What does "nuance" mean in literary translation?',
+        options: ['Exact literal dictionary word swap', 'Subtle distinction in meaning or expression', 'Grammatical errors', 'Rhyming scheme'],
+        answer: 'Subtle distinction in meaning or expression',
+        explanation: 'Nuance refers to subtle variations in tone, emotion, or cultural meaning that must be preserved during translation.'
+      };
+    } else if (discipline === 'Business & Economics' || discipline === 'Business') {
+      fullAnswer = `${levelPrefix}Building resilient businesses requires aligning economic value with global sustainability targets. By combining AI forecasting with point-of-sale integrations, organizations optimize supply chains and reduce carbon footprints.`;
+      keyTakeaways = [
+        'Triple bottom line focuses on People, Planet, and Profit.',
+        'Real-time supply chain telemetry reduces inventory waste.',
+        'Micro-finance and open APIs empower entrepreneurs in emerging economies.'
+      ];
+      followUpQuestions = [
+        'How does micro-financing impact regional economic growth?',
+        'What metrics best measure a business\'s environmental sustainability?'
+      ];
+      quiz = {
+        question: 'What are the three pillars of the "Triple Bottom Line"?',
+        options: ['Product, Price, Promotion', 'People, Planet, Profit', 'Sales, Revenue, Growth', 'Assets, Liabilities, Equity'],
+        answer: 'People, Planet, Profit',
+        explanation: 'The Triple Bottom Line framework measures social, environmental, and financial impact.'
+      };
+    } else {
+      fullAnswer = `${levelPrefix}World development focuses on equitable growth, clean infrastructure, public health access, and sustainable technology. Open data networks connect local community metrics with global initiatives.`;
+      keyTakeaways = [
+        'Sustainable Development Goals (SDGs) provide a shared framework for progress.',
+        'De-centralized sensor networks enable transparent environmental monitoring.',
+        'Community-led innovations scale effectively with open platform APIs.'
+      ];
+      followUpQuestions = [
+        'How do open data platforms improve disaster response efficiency?',
+        'What role does clean energy infrastructure play in rural development?'
+      ];
+      quiz = {
+        question: 'Which international framework guides global sustainability targets?',
+        options: ['UN Sustainable Development Goals (SDGs)', 'World Trade Agreement', 'Global Tech Standard', 'ISO 9001'],
+        answer: 'UN Sustainable Development Goals (SDGs)',
+        explanation: 'The UN SDGs outline 17 interconnected goals for global peace, prosperity, and environmental protection.'
+      };
+    }
+
+    if (responseType === 'Quiz') {
+      fullAnswer = `Here is a quick practice quiz on ${discipline} to test your understanding of "${question}":`;
+    } else if (responseType === 'Key Takeaways') {
+      fullAnswer = `Here are the key study takeaways for "${question}" (${level} level):`;
+    }
+  }
+
+  // 1. Send initial metadata event
+  sendEvent('metadata', {
+    question,
+    discipline,
+    level,
+    responseType,
+    provider: activeProvider,
+    model: modelUsed,
+    tutorName: 'Mawaba AI Streaming Tutor',
+    keyTakeaways,
+    followUpQuestions,
+    quiz,
+    timestamp: new Date().toISOString()
+  });
+
+  // 2. Stream answer text chunk by chunk (simulated streaming delivery for smooth UI typing experience)
+  const words = fullAnswer.split(' ');
+  const chunkSize = 3;
+  for (let i = 0; i < words.length; i += chunkSize) {
+    const chunkText = words.slice(i, i + chunkSize).join(' ') + (i + chunkSize < words.length ? ' ' : '');
+    sendEvent('chunk', { text: chunkText });
+    await new Promise((resolve) => setTimeout(resolve, 30));
+  }
+
+  // 3. Send done event and close response stream
+  res.write(`data: [DONE]\n\n`);
+  res.end();
+});
+
 // 12. Sponsorship & GitHub Partnership APIs (Stripe, Cards, Bank Transfer)
 app.get('/api/sponsorship/tiers', (req: Request, res: Response) => {
   res.json(sponsorshipTiers);

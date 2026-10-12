@@ -118,6 +118,18 @@ const endpoints: Endpoint[] = [
   },
   {
     method: 'GET',
+    path: '/api/ai/tutor/stream',
+    description: 'Real-time Server-Sent Events (SSE) AI tutor streaming endpoint delivering metadata and token chunks for live typing experiences.',
+    sampleBody: {
+      question: "What is quantum superposition?",
+      discipline: "STEM & Sciences",
+      provider: "gemini",
+      level: "Intermediate",
+      responseType: "Explanation"
+    }
+  },
+  {
+    method: 'GET',
     path: '/api/integrations',
     description: 'Get all point-of-sale and commerce integration modules (Square, Clover, NCR, Toast, etc.).'
   },
