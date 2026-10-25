@@ -27,7 +27,7 @@ const Footer = () => {
               </div>
               <span className="text-xl font-black text-white tracking-wider">MAWABA</span>
               <span className="bg-blue-900/60 text-blue-300 text-[10px] font-black px-2 py-0.5 rounded-full border border-blue-700/50">
-                v1.4.0
+                v1.5.0
               </span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed max-w-sm">
@@ -126,7 +126,7 @@ const Footer = () => {
           <div className="flex items-center gap-2 text-slate-500">
             <span>Made with ❤️ for a unified global community</span>
             <span className="text-slate-700">•</span>
-            <span className="text-blue-400 font-bold">Release v1.4.0</span>
+            <span className="text-blue-400 font-bold">Release v1.5.0</span>
           </div>
         </div>
       </div>

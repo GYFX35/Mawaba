@@ -1,4 +1,4 @@
-# Mawaba (v1.4.0)
+# Mawaba (v1.5.0)
 
 Global interaction, communication, and development platform integrated with AI for business, partnerships, opinion sharing, project publishing, educational tutoring, forums, chat, investors & VCs matching, sustainable agriculture, health promotion, sponsorships, DTC e-commerce, and gaming tools.
 

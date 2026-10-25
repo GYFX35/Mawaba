@@ -1,20 +1,20 @@
-# Release Notes: Mawaba v1.4.0 🚀
+# Release Notes: Mawaba v1.5.0 🚀
 
-We are thrilled to announce **Mawaba Version 1.4.0**, bringing platform-wide version upgrades, enhanced AI service fallback mechanisms, dependency alignment across monorepo workspaces, and performance optimizations!
+We are thrilled to announce **Mawaba Version 1.5.0**, bringing platform-wide version upgrades, enhanced AI service fallback mechanisms, dependency alignment across monorepo workspaces, and performance optimizations!
 
 Mawaba connects global health, AI tutoring, climate solutions, environmental protection, cultural heritage archives, DTC e-commerce, venture capital networks, sustainable agribusiness, videos hub, and browser gaming tools into a unified digital ecosystem.
 
 ---
 
-## What's New & Improved in v1.4.0
+## What's New & Improved in v1.5.0
 
 ### 1. 🚀 Next-Generation Workspace & Version Bumping
-- Upgraded monorepo package versions across root (`package.json`), frontend (`apps/frontend/package.json`), and backend (`apps/backend/package.json`) to **v1.4.0**.
+- Upgraded monorepo package versions across root (`package.json`), frontend (`apps/frontend/package.json`), and backend (`apps/backend/package.json`) to **v1.5.0**.
 - Synchronized workspace lockfiles (`package-lock.json`) and verified complete dependency tree integrity.
 
 ### 2. 🎨 Platform Brand & Interface Synchronization
-- Updated header (`Navbar.tsx`) and footer (`Footer.tsx`) badges to showcase active version **v1.4.0**.
-- Refreshed Homepage (`/`) and About Page (`/about`) with v1.4.0 release highlights and ecosystem milestones.
+- Updated header (`Navbar.tsx`) and footer (`Footer.tsx`) badges to showcase active version **v1.5.0**.
+- Refreshed Homepage (`/`) and About Page (`/about`) with v1.5.0 release highlights and ecosystem milestones.
 - Updated root `README.md` and repository documentation.
 
 ### 3. ⚡ AI Service & REST API Robustness
@@ -68,7 +68,7 @@ To publish this release on GitHub:
 
 ```bash
 # 1. Create annotated release tag
-git tag -a v1.4.0 -m "Mawaba Version 1.4.0 Release"
+git tag -a v1.5.0 -m "Mawaba Version 1.5.0 Release"
 
 # 2. Push tags to GitHub
 git push origin main --tags
